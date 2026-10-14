@@ -3,6 +3,7 @@ import { prismaAdapter } from "better-auth/adapters/prisma";
 import { APIError } from "better-auth/api";
 import { nextCookies } from "better-auth/next-js";
 import { db } from "@/lib/db";
+import { queueEmail } from "@/lib/email";
 
 const googleClientId = process.env.GOOGLE_CLIENT_ID;
 const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET;
@@ -17,6 +18,15 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
     minPasswordLength: 8,
+    // "Forgot password" emails a one-hour link to /reset-password; resetting signs out other devices.
+    sendResetPassword: async ({ user, url }) => {
+      queueEmail({
+        to: user.email,
+        subject: "Reset your NRC password",
+        text: `Hello ${user.name},\n\nSomeone asked to reset the password for this account. If it was you, choose a new password here (the link works for one hour):\n${url}\n\nIf it was not you, ignore this email; your password stays the same.`,
+      });
+    },
+    revokeSessionsOnPasswordReset: true,
   },
   socialProviders: googleEnabled
     ? { google: { clientId: googleClientId!, clientSecret: googleClientSecret! } }

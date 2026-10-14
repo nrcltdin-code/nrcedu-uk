@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import type { Prisma } from "@/generated/prisma/client";
 import { db } from "@/lib/db";
+import { sendEmail } from "@/lib/email";
 import { optionalDate, text } from "@/lib/form";
 import type { FormState } from "@/lib/form";
 import { createInvite } from "@/lib/invites";
@@ -146,17 +147,17 @@ export async function addStudentNote(_previous: FormState, form: FormData): Prom
   return { saved: true };
 }
 
-export type InviteState = { error?: string; url?: string; expires?: string };
+export type InviteState = { error?: string; url?: string; expires?: string; emailedTo?: string };
 
-// Makes a set-password link for a student created by staff. Until email is set up (4.7),
-// staff copy the link and send it by email or WhatsApp themselves.
+// Makes a set-password link for a student created by staff and emails it to them. Staff can
+// also copy it and send it by WhatsApp (or by hand while email is off).
 export async function makePortalInvite(_previous: InviteState, form: FormData): Promise<InviteState> {
   const user = await requirePermission("STUDENTS", "edit");
   const studentId = text(form, "studentId");
 
   const student = await db.studentProfile.findUnique({
     where: { id: studentId },
-    select: { userId: true, user: { select: { status: true, accounts: { select: { id: true }, take: 1 } } } },
+    select: { userId: true, user: { select: { name: true, email: true, status: true, accounts: { select: { id: true }, take: 1 } } } },
   });
   if (!student) return { error: "This student no longer exists." };
   if (student.user.accounts.length) return { error: "This student can already sign in." };
@@ -164,5 +165,11 @@ export async function makePortalInvite(_previous: InviteState, form: FormData): 
 
   const invite = await createInvite(student.userId);
   await log(user.id, "student.invite", "StudentProfile", studentId);
-  return { url: invite.url, expires: invite.expiresAt.toISOString() };
+  const emailed = await sendEmail({
+    to: student.user.email,
+    replyTo: user.email,
+    subject: "Set your password for the NRC student portal",
+    text: `Hello ${student.user.name},\n\n${user.name} at NRC has set up your student portal, where you can follow your applications and upload documents.\n\nChoose your password here (the link works once and expires in 7 days):\n${invite.url}`,
+  });
+  return { url: invite.url, expires: invite.expiresAt.toISOString(), emailedTo: emailed ? student.user.email : undefined };
 }

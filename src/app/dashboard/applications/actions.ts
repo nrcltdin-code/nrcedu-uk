@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import type { ApplicationStage } from "@/generated/prisma/client";
 import { startApplication } from "@/lib/applications";
 import { db } from "@/lib/db";
+import { link, queueEmail } from "@/lib/email";
 import { text } from "@/lib/form";
 import type { FormState } from "@/lib/form";
 import { requirePermission } from "@/lib/session";
@@ -35,10 +36,38 @@ export async function moveStage(_previous: FormState, form: FormData): Promise<F
   if (!application) return { error: "This application no longer exists." };
   if (application.stage === stage && !note) return { error: "Choose a different stage, or add a note." };
 
-  await db.$transaction([
-    db.application.update({ where: { id }, data: { stage: stage as ApplicationStage } }),
+  const [updated] = await db.$transaction([
+    db.application.update({
+      where: { id },
+      data: { stage: stage as ApplicationStage },
+      select: {
+        studentId: true,
+        student: { select: { user: { select: { name: true, email: true } } } },
+        course: { select: { name: true, university: { select: { name: true } } } },
+        agent: { select: { user: { select: { email: true } } } },
+      },
+    }),
     db.applicationStageHistory.create({ data: { applicationId: id, stage: stage as ApplicationStage, note: note || null, changedById: user.id } }),
   ]);
+
+  // The student (and their agent) hear about every stage change; the note is the one they see.
+  if (application.stage !== stage) {
+    const student = updated.student.user;
+    const course = `${updated.course.name}, ${updated.course.university.name}`;
+    const update = `is now at the stage “${stageLabels[stage as ApplicationStage]}”.${note ? `\n\nNote from NRC: ${note}` : ""}`;
+    queueEmail({
+      to: student.email,
+      subject: `Your application: ${stageLabels[stage as ApplicationStage]}`,
+      text: `Hello ${student.name},\n\nYour application for ${course} ${update}\n\nSee the details: ${link("/dashboard/my-applications")}`,
+    });
+    if (updated.agent) {
+      queueEmail({
+        to: updated.agent.user.email,
+        subject: `${student.name}: ${stageLabels[stage as ApplicationStage]}`,
+        text: `The application of ${student.name} for ${course} ${update}\n\nSee the details: ${link(`/dashboard/agent/students/${updated.studentId}`)}`,
+      });
+    }
+  }
   revalidatePath(`/dashboard/applications/${id}`);
   return { saved: true };
 }

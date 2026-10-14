@@ -27,9 +27,11 @@ function safeNext(next: string | null | undefined) {
 
 export function AuthDrawerProvider({
   googleEnabled,
+  resetEnabled,
   children,
 }: {
   googleEnabled: boolean;
+  resetEnabled: boolean;
   children: ReactNode;
 }) {
   const [request, setRequest] = useState<AuthRequest | null>(null);
@@ -39,7 +41,7 @@ export function AuthDrawerProvider({
       {children}
       {/* Reads ?auth= from the URL, which is only known at request time. */}
       <Suspense>
-        <AuthDrawer request={request} onClose={() => setRequest(null)} googleEnabled={googleEnabled} />
+        <AuthDrawer request={request} onClose={() => setRequest(null)} googleEnabled={googleEnabled} resetEnabled={resetEnabled} />
       </Suspense>
     </AuthDrawerContext>
   );
@@ -49,10 +51,12 @@ function AuthDrawer({
   request,
   onClose,
   googleEnabled,
+  resetEnabled,
 }: {
   request: AuthRequest | null;
   onClose: () => void;
   googleEnabled: boolean;
+  resetEnabled: boolean;
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -102,6 +106,7 @@ function AuthDrawer({
         onSuccess={onSuccess}
         callbackURL={next}
         googleEnabled={googleEnabled}
+        resetEnabled={resetEnabled}
       />
     </Drawer>
   );

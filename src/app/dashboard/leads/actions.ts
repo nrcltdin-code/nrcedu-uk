@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import type { LeadStatus, Prisma, StudyLevel } from "@/generated/prisma/client";
 import { db } from "@/lib/db";
+import { link, queueEmail } from "@/lib/email";
 import { text } from "@/lib/form";
 import type { FormState } from "@/lib/form";
 import { createLead, isEmail } from "@/lib/leads";
@@ -84,7 +85,18 @@ export async function updateLead(_previous: FormState, form: FormData): Promise<
   }
   if (Object.keys(changes).length === 0) return { saved: true };
 
-  await db.$transaction([db.lead.update({ where: { id }, data: after }), log(user.id, "lead.update", id, changes)]);
+  const [lead] = await db.$transaction([
+    db.lead.update({ where: { id }, data: after, select: { name: true, assignedStaff: { select: { id: true, email: true } } } }),
+    log(user.id, "lead.update", id, changes),
+  ]);
+  // Tell a counsellor when someone else hands them a lead.
+  if (changes.assignedStaffId && lead.assignedStaff && lead.assignedStaff.id !== user.id) {
+    queueEmail({
+      to: lead.assignedStaff.email,
+      subject: `Lead assigned to you: ${lead.name}`,
+      text: `${user.name} assigned the lead ${lead.name} to you.\n\nOpen the lead: ${link(`/dashboard/leads/${id}`)}`,
+    });
+  }
   revalidatePath(`/dashboard/leads/${id}`);
   return { saved: true };
 }

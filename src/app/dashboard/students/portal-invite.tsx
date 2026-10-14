@@ -19,8 +19,13 @@ export function PortalInvite({ studentId }: { studentId: string }) {
   return (
     <div className="grid gap-3">
       <p className="text-sm text-muted">
-        This student has no password yet. Make a link and send it to them by email or WhatsApp. It works once and expires in 7 days; a new link cancels the old one.
+        This student has no password yet. Make a link: we email it to them, and you can also copy it for WhatsApp. It works once and expires in 7 days; a new link cancels the old one.
       </p>
+      {state.url && (
+        <p role="status" className="text-sm">
+          {state.emailedTo ? `Emailed to ${state.emailedTo}.` : "Email is not set up or could not be sent: copy the link and send it yourself."}
+        </p>
+      )}
       {state.url && (
         <div className="grid gap-2">
           <Input value={state.url} readOnly aria-label="Invite link" onFocus={(e) => e.currentTarget.select()} className="font-mono text-xs" />

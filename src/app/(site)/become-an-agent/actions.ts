@@ -2,6 +2,7 @@
 
 import { hashPassword } from "better-auth/crypto";
 import { db } from "@/lib/db";
+import { link, queueEmail, staffAlertAddresses } from "@/lib/email";
 import { isEmail } from "@/lib/leads";
 
 export type AgentFormState = { status: "idle" | "sent" } | { status: "error"; error: string };
@@ -60,5 +61,18 @@ export async function applyAsAgent(_previous: AgentFormState, form: FormData): P
     console.error("Agent application: could not save", error);
     return fail("We could not submit your application. Please try again.");
   }
+  queueEmail(
+    {
+      to: staffAlertAddresses(),
+      replyTo: email,
+      subject: `New agent application: ${companyName || name}`,
+      text: `${name}${companyName ? ` (${companyName})` : ""} applied to become an agent.\n\nEmail: ${email}\nPhone: ${phone}\n\n${about}\n\nReview it: ${link("/dashboard/agents")}`,
+    },
+    {
+      to: email,
+      subject: "We received your agent application",
+      text: `Hello ${name},\n\nThank you for applying to become an NRC agent. We will review your application and email you once your account is approved.`,
+    },
+  );
   return { status: "sent" };
 }

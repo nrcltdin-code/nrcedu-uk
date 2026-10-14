@@ -4,6 +4,7 @@ import { hashPassword } from "better-auth/crypto";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
+import { link, queueEmail } from "@/lib/email";
 import { isEmail } from "@/lib/leads";
 import { requirePermission, requireRole } from "@/lib/session";
 import type { CurrentUser } from "@/lib/session";
@@ -123,7 +124,10 @@ export async function updateStaffPermissions(_previous: UserFormState, form: For
 export async function decideAgent(userId: string, decision: "APPROVED" | "REJECTED") {
   const actor = await requirePermission("AGENTS", "edit");
 
-  const profile = await db.agentProfile.findUnique({ where: { userId }, select: { id: true } });
+  const profile = await db.agentProfile.findUnique({
+    where: { userId },
+    select: { approvalStatus: true, user: { select: { name: true, email: true } } },
+  });
   if (!profile) return;
 
   await db.$transaction([
@@ -135,6 +139,23 @@ export async function decideAgent(userId: string, decision: "APPROVED" | "REJECT
     ...(decision === "REJECTED" ? [db.session.deleteMany({ where: { userId } })] : []),
   ]);
   await log(actor, decision === "APPROVED" ? "agent.approved" : "agent.rejected", userId);
+
+  if (profile.approvalStatus !== decision) {
+    const { name, email } = profile.user;
+    queueEmail(
+      decision === "APPROVED"
+        ? {
+            to: email,
+            subject: "Your NRC agent account is approved",
+            text: `Hello ${name},\n\nYour agent account is now active. Sign in with your email and password to add students and follow their applications:\n${link("/?auth=login&next=/dashboard")}`,
+          }
+        : {
+            to: email,
+            subject: "Your NRC agent application",
+            text: `Hello ${name},\n\nThank you for your interest in working with NRC. We are not able to approve your agent account at this time. If you have questions, reply to this email or contact us.`,
+          },
+    );
+  }
 
   revalidatePath("/dashboard/agents");
   revalidatePath("/dashboard/users");

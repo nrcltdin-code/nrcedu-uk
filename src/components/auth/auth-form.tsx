@@ -14,16 +14,22 @@ type AuthFormProps = {
   // Where Google sends the person back to after signing in.
   callbackURL: string;
   googleEnabled: boolean;
+  // "Forgot password" needs email to be set up.
+  resetEnabled: boolean;
 };
 
-export function AuthForm({ mode, onModeChange, onSuccess, callbackURL, googleEnabled }: AuthFormProps) {
+export function AuthForm({ mode, onModeChange, onSuccess, callbackURL, googleEnabled, resetEnabled }: AuthFormProps) {
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  const [forgot, setForgot] = useState(false);
 
   function switchMode(next: AuthMode) {
     setError(null);
+    setForgot(false);
     onModeChange(next);
   }
+
+  if (forgot) return <ForgotPassword onBack={() => setForgot(false)} />;
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -115,6 +121,11 @@ export function AuthForm({ mode, onModeChange, onSuccess, callbackURL, googleEna
             required
           />
           {mode === "register" && <p className="mt-1.5 text-xs text-muted">At least 8 characters.</p>}
+          {mode === "login" && resetEnabled && (
+            <button type="button" onClick={() => setForgot(true)} className="mt-1.5 text-xs font-semibold text-brand-700 hover:underline">
+              Forgot password?
+            </button>
+          )}
         </div>
 
         {error && (
@@ -138,6 +149,53 @@ export function AuthForm({ mode, onModeChange, onSuccess, callbackURL, googleEna
           {mode === "login" ? "Create an account" : "Sign in"}
         </button>
       </p>
+    </div>
+  );
+}
+
+function ForgotPassword({ onBack }: { onBack: () => void }) {
+  const [state, setState] = useState<"idle" | "pending" | "sent">("idle");
+  const [error, setError] = useState<string | null>(null);
+
+  async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setError(null);
+    setState("pending");
+    const email = String(new FormData(event.currentTarget).get("email"));
+    const { error } = await authClient.requestPasswordReset({ email, redirectTo: "/reset-password" });
+    if (error) {
+      setError(error.message ?? "Something went wrong. Please try again.");
+      setState("idle");
+      return;
+    }
+    setState("sent");
+  }
+
+  return (
+    <div className="grid gap-4">
+      {state === "sent" ? (
+        // Same answer whether or not the account exists, so the form cannot reveal who is registered.
+        <p role="status">If an account uses that email, we have sent it a link to choose a new password. Check your inbox (and spam folder); the link works for one hour.</p>
+      ) : (
+        <form onSubmit={onSubmit} className="grid gap-4">
+          <p className="text-sm text-muted">Enter your email and we will send you a link to choose a new password.</p>
+          <div>
+            <Label htmlFor="forgot-email">Email</Label>
+            <Input id="forgot-email" name="email" type="email" autoComplete="email" required />
+          </div>
+          {error && (
+            <p role="alert" className="rounded-xl border border-red-500/25 bg-red-500/10 px-4 py-2.5 text-sm text-red-800">
+              {error}
+            </p>
+          )}
+          <Button type="submit" variant="accent" disabled={state === "pending"}>
+            {state === "pending" ? "Sending…" : "Send reset link"}
+          </Button>
+        </form>
+      )}
+      <button type="button" onClick={onBack} className="justify-self-center text-sm font-semibold text-brand-700 hover:underline">
+        Back to sign in
+      </button>
     </div>
   );
 }

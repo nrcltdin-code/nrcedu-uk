@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, Plus_Jakarta_Sans } from "next/font/google";
 import { AuthDrawerProvider } from "@/components/auth/auth-drawer";
 import { googleEnabled } from "@/lib/auth";
+import { emailEnabled } from "@/lib/email";
 import "./globals.css";
 
 const inter = Inter({
@@ -30,7 +31,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${inter.variable} ${jakarta.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <AuthDrawerProvider googleEnabled={googleEnabled}>{children}</AuthDrawerProvider>
+        <AuthDrawerProvider googleEnabled={googleEnabled} resetEnabled={emailEnabled}>{children}</AuthDrawerProvider>
       </body>
     </html>
   );

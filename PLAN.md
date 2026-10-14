@@ -166,7 +166,7 @@ New → Documents pending → Submitted to university → Offer received → Dep
   - [ ] First admin account: fill `SEED_ADMIN_EMAIL` and `SEED_ADMIN_PASSWORD` in `.env`, then run `npm run db:seed`
 - [x] 1.4 Auth and roles (Better Auth 1.7: email and password, Google ready; no separate login pages: sign in / sign up / Google live in a panel that slides in from the right (`AuthDrawer`, built on the reusable `Drawer` in `src/components/ui/drawer.tsx`); protected `/dashboard`; role and per-staff permission checks in `src/lib/session.ts`)
   - [ ] Google sign-in: add `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` to `.env`
-  - [ ] Later, with email (4.7): email verification and password reset
+  - [x] Password reset (4.7); email verification still open
 - [ ] 1.5 Vercel preview deployment (skipped for now; needs the client's Vercel account)
 
 ### Phase 2 — Public website (week 2)
@@ -182,7 +182,7 @@ New → Documents pending → Submitted to university → Offer received → Dep
 - [x] 2.6 Blog: `/blog` with paging and article pages (plain text until the editor in 3.3)
 - [x] 2.7 Forms: `/consultation` (saves a lead with country, destination and level; auto-assigns when a country has a default owner), `/become-an-agent` (creates a locked agent account awaiting admin approval), plus `/partners`. World country list (197) seeded for the dropdowns
   - [x] Agent approval screen (3.0)
-  - [ ] Emails to staff and applicants (4.7)
+  - [x] Emails to staff and applicants (4.7)
 
 ### Phase 3 — Admin panel (week 3)
 - [x] 3.0 Users, roles and per-staff permissions (`/dashboard/users`): search and filter all accounts, admins add staff/admins, change role and status (suspending signs the person out; the last active admin cannot be demoted), per-module access for staff (view and edit / view only / none), approve or reject agent applications; every change is written to the activity log
@@ -348,9 +348,28 @@ New → Documents pending → Submitted to university → Offer received → Dep
     - [ ] Assign yourself a lead: it appears under My work; set it to Qualified: it disappears
     - [ ] Move an application to a new stage: the pipeline bar counts change
     - [ ] Upload a document on a student: "Documents to review" goes up and its link lists that student
-    - [ ] As admin, add a note or change a lead: it shows in Recent activity; as staff, the section is not shown
+    - [ ] As admin, change a lead's status: it shows in Recent activity; as staff, the section is not shown
     - [ ] Staff with Leads "None": no New leads tile and no leads in My work
-- [ ] 4.7 Email notifications
+- [ ] 4.7 Email notifications (built; switches on with Resend keys)
+  - `src/lib/email.ts`: Resend over plain HTTP, plain-text messages, sent after the response (`after()`) so a mail failure never breaks a form; with no keys every message is only logged (`[email off]`)
+  - New lead from the contact / consultation form: alert to the routed counsellor, or to `EMAIL_STAFF_ALERTS` when nobody is assigned (reply goes to the visitor); "we received your message" to the visitor. Leads added by staff send nothing
+  - Lead reassigned to a counsellor by someone else: email to that counsellor
+  - Agent application: alert to `EMAIL_STAFF_ALERTS`, acknowledgement to the applicant; approve / reject: email to the agent
+  - Portal invite: emailed to the student automatically; staff see "Emailed to …" or are told to copy the link
+  - Application stage changed: email to the student (with the stage note) and to their agent
+  - Document "ask again": email to the student and their agent with what to fix
+  - Forgot password: link under the password field in the sign-in panel (only when email is on) → one-hour link → `/reset-password`; other devices are signed out. Same reply whether or not the account exists
+  - Not done: email verification on sign-up (would lock out accounts made before email existed; decide with the client)
+  - To switch on: Resend account → add and verify the domain `nrcedu-uk.com` (DNS records) → API key; fill `EMAIL_API_KEY`, `EMAIL_FROM` (e.g. `NRC Educational Consultants <no-reply@nrcedu-uk.com>`) and `EMAIL_STAFF_ALERTS` (open question 2: which mailbox); restart
+  - Test checklist (after switching on):
+    - [ ] Submit the consultation form from a routed country: the counsellor gets the alert, you get the acknowledgement; replying to the alert goes to the visitor
+    - [ ] Submit the contact form: alert arrives at `EMAIL_STAFF_ALERTS`
+    - [ ] Assign a lead to another staff member: they get an email; assigning yourself sends nothing
+    - [ ] Apply at `/become-an-agent`, then approve: both emails arrive; the approval link opens the sign-in panel
+    - [ ] Make a portal invite: "Emailed to …" shows and the email link sets the password
+    - [ ] Move an application with a note: the student's email shows the new stage and the note
+    - [ ] "Ask again" on a document: the student gets what to fix
+    - [ ] Forgot password: email arrives, new password works, the old one does not, and an old link says "expired"
 - [ ] 4.8 Messaging between student and counsellor
 - [ ] 4.9 Follow-up reminders
 - [ ] 4.10 CSV export and activity log
