@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import Link from "next/link";
+import { ExportLink } from "@/components/dashboard/export-link";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonStyles } from "@/components/ui/button";
@@ -22,7 +23,7 @@ const openStatuses: LeadStatus[] = ["NEW", "CONTACTED", "QUALIFIED"];
 export default function LeadsPage({ searchParams }: PageProps<"/dashboard/leads">) {
   return (
     <>
-      <PageHeader title="Leads" description="Enquiries from the consultation and contact forms, and leads added by staff." />
+      <PageHeader title="Leads" description="Enquiries from the consultation and contact forms, and leads added by staff." actions={<ExportLink kind="leads" />} />
       <Suspense fallback={<Card tone="solid">Loading leads…</Card>}>
         <LeadsInbox searchParams={searchParams} />
       </Suspense>

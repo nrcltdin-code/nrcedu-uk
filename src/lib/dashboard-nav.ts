@@ -56,6 +56,7 @@ const groups: { label: string; entries: Entry[] }[] = [
     entries: [
       { label: "Users and roles", href: "/dashboard/users", icon: "users", roles: staff, module: "USERS" },
       { label: "Site settings", href: "/dashboard/settings", icon: "settings", roles: staff, module: "SETTINGS", action: "edit" },
+      { label: "Activity log", href: "/dashboard/activity", icon: "clock", roles: ["ADMIN"] },
     ],
   },
 ];

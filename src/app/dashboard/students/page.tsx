@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import Link from "next/link";
+import { ExportLink } from "@/components/dashboard/export-link";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonStyles } from "@/components/ui/button";
@@ -21,7 +22,7 @@ const pageSize = 25;
 export default function StudentsPage({ searchParams }: PageProps<"/dashboard/students">) {
   return (
     <>
-      <PageHeader title="Students" description="Everyone NRC is helping to apply. Convert a lead or add a student directly." />
+      <PageHeader title="Students" description="Everyone NRC is helping to apply. Convert a lead or add a student directly." actions={<ExportLink kind="students" />} />
       <Suspense fallback={<Card tone="solid">Loading students…</Card>}>
         <StudentsList searchParams={searchParams} />
       </Suspense>

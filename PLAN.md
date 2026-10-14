@@ -397,7 +397,18 @@ New → Documents pending → Submitted to university → Offer received → Dep
     - [ ] Press Done: it moves to Done and the menu count drops; Reopen brings it back
     - [ ] Staff with Leads "View only": sees the lead's reminders but cannot add or change them
     - [ ] After deploying: in Vercel → Cron Jobs, run the job by hand; you get the morning email
-- [ ] 4.10 CSV export and activity log
+- [x] 4.10 CSV export and activity log
+  - "Download CSV" on Leads, Students, Applications and Commission (anyone who can view that area): every record, up to 20,000 rows, opens straight in Excel. Passport numbers are left out
+  - Cells starting with = + - @ get a leading ' so a form entry cannot become a spreadsheet formula
+  - Every download is written to the activity log
+  - Dashboard → Activity log (admins only, also linked from the overview): filter by person, area and dates, 50 per page, "from → to" details where recorded, link to the record; Download CSV saves the filtered list
+  - Activity labels moved to `src/lib/activity.ts` (shared by the overview and the log)
+  - Test checklist:
+    - [ ] Leads → Download CSV: opens in Excel with names and accents correct; the download shows in the Activity log
+    - [ ] Submit the contact form with the name `=1+1`: in the CSV it shows as text, not 2
+    - [ ] Staff with Commission "None": no Commission page, and `/api/export/commissions` says not found
+    - [ ] Activity log: filter by one person and yesterday's date; Download CSV contains only those rows
+    - [ ] Signed in as staff: no Activity log menu item, and `/dashboard/activity` sends you back
 
 ### Phase 5 — Launch (week 7)
 - [ ] 5.1 Real content from client

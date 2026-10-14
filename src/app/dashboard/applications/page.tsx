@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import Link from "next/link";
+import { ExportLink } from "@/components/dashboard/export-link";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonStyles } from "@/components/ui/button";
@@ -20,7 +21,7 @@ const pageSize = 25;
 export default function ApplicationsPage({ searchParams }: PageProps<"/dashboard/applications">) {
   return (
     <>
-      <PageHeader title="Applications" description="Every university application, by pipeline stage. Start new ones from a student's page." />
+      <PageHeader title="Applications" description="Every university application, by pipeline stage. Start new ones from a student's page." actions={<ExportLink kind="applications" />} />
       <Suspense fallback={<Card tone="solid">Loading applications…</Card>}>
         <Pipeline searchParams={searchParams} />
       </Suspense>

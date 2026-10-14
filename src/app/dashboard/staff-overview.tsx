@@ -2,43 +2,13 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { db } from "@/lib/db";
+import { activityHref, describeAction } from "@/lib/activity";
 import { formatDate } from "@/lib/format";
 import { dueLabel, londonToday } from "@/lib/reminders";
 import { can } from "@/lib/session";
 import type { CurrentUser } from "@/lib/session";
 import { closedStages, stageLabels, stages, stageTones } from "./applications/labels";
 
-const activityText: Record<string, string> = {
-  "lead.create": "added a lead",
-  "lead.update": "updated a lead",
-  "lead.delete": "deleted a lead",
-  "student.create": "added a student",
-  "student.update": "updated a student",
-  "student.invite": "made a portal invite",
-  "student.password-set": "set their portal password",
-  "application.create": "started an application",
-  "application.assign": "reassigned an application",
-  "application.delete": "deleted an application",
-  "document.upload": "uploaded a document",
-  "document.approved": "approved a document",
-  "document.rejected": "asked for a document again",
-  "document.delete": "deleted a document",
-  "commission.create": "added commission",
-  "commission.update": "updated commission",
-  "settings.update": "changed site settings",
-  "routing.update": "changed lead routing",
-  "user.created": "added a staff account",
-};
-
-const pages: Record<string, string> = {
-  Lead: "/dashboard/leads/",
-  StudentProfile: "/dashboard/students/",
-  Application: "/dashboard/applications/",
-  User: "/dashboard/users/",
-};
-
-const activityHref = (entityType: string, entityId: string | null) =>
-  entityId && pages[entityType] ? pages[entityType] + entityId : null;
 
 function timeAgo(date: Date) {
   const minutes = Math.round((Date.now() - date.getTime()) / 60_000);
@@ -175,7 +145,7 @@ export async function StaffOverview({ user }: { user: CurrentUser }) {
               const href = activityHref(entry.entityType, entry.entityId);
               const text = (
                 <>
-                  <span className="font-medium">{entry.user?.name ?? "Someone"}</span> {activityText[entry.action] ?? entry.action}
+                  <span className="font-medium">{entry.user?.name ?? "Someone"}</span> {describeAction(entry.action)}
                 </>
               );
               return (
@@ -187,6 +157,7 @@ export async function StaffOverview({ user }: { user: CurrentUser }) {
             })}
             {activity.length === 0 && <li className="py-2 text-muted">Nothing yet.</li>}
           </ul>
+          <Link href="/dashboard/activity" className="mt-2 inline-block text-sm font-medium text-brand-700 hover:underline">Full activity log →</Link>
         </Card>
       )}
     </div>

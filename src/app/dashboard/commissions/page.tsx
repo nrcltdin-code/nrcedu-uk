@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import Link from "next/link";
+import { ExportLink } from "@/components/dashboard/export-link";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { Badge } from "@/components/ui/badge";
 import { buttonStyles } from "@/components/ui/button";
@@ -19,7 +20,7 @@ const pageSize = 50;
 export default function CommissionsPage({ searchParams }: PageProps<"/dashboard/commissions">) {
   return (
     <>
-      <PageHeader title="Commission" description="Money universities owe NRC, and money NRC owes its agents. Amounts are added and settled from each application's page." />
+      <PageHeader title="Commission" description="Money universities owe NRC, and money NRC owes its agents. Amounts are added and settled from each application's page." actions={<ExportLink kind="commissions" />} />
       <Suspense fallback={<Card tone="solid">Loading…</Card>}>
         <Commissions searchParams={searchParams} />
       </Suspense>
