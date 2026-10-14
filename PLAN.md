@@ -323,7 +323,21 @@ New → Documents pending → Submitted to university → Offer received → Dep
     - [ ] Staff add a student by hand, make an invite link, open it in a private window, set a password, sign in: lands in the portal with their data
     - [ ] Open the same invite link again: "expired or already used"
     - [ ] Try to register with that student's email before using the invite: the message says to ask the counsellor
-- [ ] 4.5 Agent portal and commission tracking
+- [x] 4.5 Agent portal and commission tracking
+  - Agent menu: Overview (students, applications in progress, enrolled, payments due), My students, My commission
+  - My students: add a student (only emails NRC does not know yet, so agents cannot claim existing students; counsellor set from lead routing by country); each student: details, education and test scores, documents (upload / download / "upload again" notes), applications with stage and "what happens now", apply for any published course and open intake
+  - Agents never see staff notes, other agents' students (any other id is "not found"), or what universities pay NRC
+  - My commission: only NRC → agent payouts for their students; due and paid totals per currency
+  - Staff Commission page (Commission permission): University pays NRC / NRC pays agent; expected vs received (or due vs paid) totals; filter by status; each row opens the application
+  - Application page → Commission card (Commission permission): "Add expected amounts" works them out from the course's yearly tuition fee × the university's rates (both directions, agent only when one referred the student); or enter an amount by hand; change amount, status (Expected / Received / Cancelled, or Due / Paid / Cancelled) and a note; every change goes in the activity log with before and after
+  - Test checklist:
+    - [ ] Approve a test agent, sign in as them: menu shows My students and My commission
+    - [ ] Add a student; try adding an email that already exists: refused
+    - [ ] Apply for a course for that student: staff see it in Applications with the agent shown
+    - [ ] Open another agent's student by changing the id in the address: "not found"
+    - [ ] Staff: on that application press "Add expected amounts": two rows appear (NRC and agent), amounts = fee × rate
+    - [ ] Mark the agent row Paid: the agent's My commission shows it under Paid; the NRC row is never visible to the agent
+    - [ ] Staff with Commission "None": no Commission card on applications and no Commission menu
 - [ ] 4.6 Dashboard overview
 - [ ] 4.7 Email notifications
 - [ ] 4.8 Messaging between student and counsellor

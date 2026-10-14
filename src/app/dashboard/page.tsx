@@ -11,6 +11,7 @@ import { db } from "@/lib/db";
 import { can, requireUser } from "@/lib/session";
 import type { CurrentUser } from "@/lib/session";
 import { requireMyStudentId } from "@/lib/student";
+import { requireMyAgentId } from "@/lib/agent";
 import { stageLabels, stageTones } from "./applications/labels";
 
 export const metadata: Metadata = { title: "Dashboard", robots: { index: false } };
@@ -79,12 +80,7 @@ async function Overview() {
       )}
 
       {user.role === "STUDENT" && <StudentOverview />}
-      {user.role === "AGENT" && (
-        <Card tone="solid" className="max-w-2xl">
-          <h2 className="text-xl font-bold">Your students</h2>
-          <p className="mt-2 text-muted">Your referred students, their applications and your commission will appear here soon.</p>
-        </Card>
-      )}
+      {user.role === "AGENT" && <AgentOverview />}
     </>
   );
 }
@@ -168,6 +164,34 @@ async function StudentOverview() {
           )}
         </Card>
       </div>
+    </div>
+  );
+}
+
+async function AgentOverview() {
+  const agentId = await requireMyAgentId();
+  const [students, open, enrolled, due] = await Promise.all([
+    db.studentProfile.count({ where: { agentId } }),
+    db.application.count({ where: { student: { agentId }, stage: { notIn: ["ENROLLED", "VISA_REFUSED", "WITHDRAWN"] } } }),
+    db.application.count({ where: { student: { agentId }, stage: "ENROLLED" } }),
+    db.commission.count({ where: { agentId, direction: "NRC_TO_AGENT", status: "PENDING" } }),
+  ]);
+  const tiles = [
+    { label: "Students", value: students, href: "/dashboard/agent/students" },
+    { label: "Applications in progress", value: open, href: "/dashboard/agent/students" },
+    { label: "Enrolled", value: enrolled, href: "/dashboard/agent/students" },
+    { label: "Commission payments due", value: due, href: "/dashboard/agent/commissions" },
+  ];
+  return (
+    <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      {tiles.map((tile) => (
+        <Link key={tile.label} href={tile.href} className="rounded-3xl transition hover:-translate-y-0.5">
+          <Card tone="solid" className="h-full p-5">
+            <p className="font-display text-3xl font-bold">{tile.value}</p>
+            <p className="text-sm text-muted">{tile.label}</p>
+          </Card>
+        </Link>
+      ))}
     </div>
   );
 }

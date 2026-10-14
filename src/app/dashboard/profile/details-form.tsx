@@ -20,11 +20,20 @@ export type MyDetails = {
   address: string | null;
 };
 
-export function MyDetailsForm({ details, countries }: { details: MyDetails; countries: { id: string; name: string }[] }) {
-  const [state, action, pending] = useActionState<FormState, FormData>(saveMyDetails, {});
+type Props = {
+  details: MyDetails;
+  countries: { id: string; name: string }[];
+  // For an agent editing their student; the student portal leaves these out.
+  studentId?: string;
+  submit?: (previous: FormState, form: FormData) => Promise<FormState>;
+};
+
+export function MyDetailsForm({ details, countries, studentId, submit = saveMyDetails }: Props) {
+  const [state, action, pending] = useActionState<FormState, FormData>(submit, {});
 
   return (
     <form action={action} className="grid gap-4">
+      {studentId && <input type="hidden" name="id" value={studentId} />}
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
           <Label htmlFor="m-name">Full name (as on your passport)</Label>
@@ -71,7 +80,7 @@ export function MyDetailsForm({ details, countries }: { details: MyDetails; coun
         <Textarea id="m-address" name="address" defaultValue={details.address ?? ""} maxLength={300} className="min-h-20" autoComplete="street-address" />
       </div>
       <FormMessage state={state} />
-      <Button type="submit" disabled={pending} className="justify-self-start">{pending ? "Saving…" : "Save my details"}</Button>
+      <Button type="submit" disabled={pending} className="justify-self-start">{pending ? "Saving…" : studentId ? "Save details" : "Save my details"}</Button>
     </form>
   );
 }

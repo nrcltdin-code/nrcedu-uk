@@ -8,11 +8,13 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { getAssigneeOptions } from "@/lib/assignees";
 import { db } from "@/lib/db";
-import { formatDate } from "@/lib/format";
+import { formatDate, formatMoney } from "@/lib/format";
 import { can, requirePermission } from "@/lib/session";
 import { addApplicationNote, deleteApplication } from "../actions";
 import { AssignForm, StageForm } from "../application-forms";
 import { stageLabels, stageTones } from "../labels";
+import { AddCommissionForm, CommissionRowForm, ExpectedCommissionsButton } from "../../commissions/commission-forms";
+import { commissionStatusLabels, commissionStatusTones, directionLabels } from "../../commissions/labels";
 
 export const metadata: Metadata = { title: "Application", robots: { index: false } };
 
@@ -33,14 +35,18 @@ export default function ApplicationPage({ params, searchParams }: PageProps<"/da
 
 async function ApplicationDetail({ params, searchParams }: Pick<PageProps<"/dashboard/applications/[id]">, "params" | "searchParams">) {
   const user = await requirePermission("APPLICATIONS", "view");
-  const canEdit = await can(user, "APPLICATIONS", "edit");
+  const [canEdit, canSeeMoney, canEditMoney] = await Promise.all([
+    can(user, "APPLICATIONS", "edit"),
+    can(user, "COMMISSIONS", "view"),
+    can(user, "COMMISSIONS", "edit"),
+  ]);
 
   const [{ id }, { error }] = await Promise.all([params, searchParams]);
   const app = await db.application.findUnique({
     where: { id },
     include: {
       student: { select: { id: true, user: { select: { name: true, email: true } } } },
-      course: { select: { name: true, level: true, university: { select: { name: true } } } },
+      course: { select: { name: true, level: true, currency: true, university: { select: { name: true } } } },
       intake: { select: { name: true, startDate: true, applicationDeadline: true } },
       agent: { select: { user: { select: { name: true } } } },
       submittedBy: { select: { name: true } },
@@ -49,7 +55,16 @@ async function ApplicationDetail({ params, searchParams }: Pick<PageProps<"/dash
     },
   });
   if (!app) notFound();
-  const people = canEdit ? await getAssigneeOptions() : { staff: [] };
+  const [people, commissions] = await Promise.all([
+    canEdit ? getAssigneeOptions() : { staff: [] },
+    canSeeMoney
+      ? db.commission.findMany({
+          where: { applicationId: id },
+          orderBy: { createdAt: "asc" },
+          select: { id: true, direction: true, amount: true, currency: true, status: true, note: true, ratePercent: true },
+        })
+      : [],
+  ]);
 
   const details = [
     ["Student", <Link key="s" href={`/dashboard/students/${app.student.id}`} className="text-brand-700 hover:underline">{app.student.user.name}</Link>],
@@ -97,6 +112,36 @@ async function ApplicationDetail({ params, searchParams }: Pick<PageProps<"/dash
               ))}
             </ol>
           </Card>
+
+          {canSeeMoney && (
+            <Card tone="solid">
+              <h2 className="mb-1 text-xl font-bold">Commission</h2>
+              <p className="mb-4 text-xs text-muted">Staff only. Agents see only what NRC owes them.</p>
+              <ul className="grid gap-4">
+                {commissions.map((c) => (
+                  <li key={c.id} className="rounded-2xl border border-brand-900/10 p-4">
+                    <div className="mb-2 flex flex-wrap items-center gap-2">
+                      <span className="font-semibold">{directionLabels[c.direction]}</span>
+                      <Badge tone={commissionStatusTones[c.status]}>{commissionStatusLabels[c.direction][c.status]}</Badge>
+                      {c.ratePercent && <span className="text-xs text-muted">{c.ratePercent.toString()}% of tuition</span>}
+                    </div>
+                    {canEditMoney ? (
+                      <CommissionRowForm row={{ id: c.id, direction: c.direction, amount: c.amount.toString(), currency: c.currency, status: c.status, note: c.note }} />
+                    ) : (
+                      <p className="text-sm">{formatMoney(Number(c.amount), c.currency)}{c.note && ` · ${c.note}`}</p>
+                    )}
+                  </li>
+                ))}
+                {commissions.length === 0 && <li className="text-sm text-muted">Nothing recorded yet.</li>}
+              </ul>
+              {canEditMoney && (
+                <div className="mt-4 grid gap-3 border-t border-brand-900/10 pt-4">
+                  <ExpectedCommissionsButton applicationId={app.id} />
+                  <AddCommissionForm applicationId={app.id} hasAgent={Boolean(app.agentId)} currency={app.course.currency} />
+                </div>
+              )}
+            </Card>
+          )}
 
           <Card tone="solid">
             <h2 className="mb-4 text-xl font-bold">Notes</h2>

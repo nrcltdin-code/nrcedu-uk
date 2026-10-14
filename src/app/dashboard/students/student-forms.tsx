@@ -136,8 +136,16 @@ export function StudentForm({ student, countries, counsellors, agents }: PeopleP
 type CourseOption = { id: string; name: string; universityId: string; university: string };
 type IntakeOption = { id: string; name: string; universityId: string; courseId: string | null };
 
-export function NewApplicationForm({ studentId, courses, intakes }: { studentId: string; courses: CourseOption[]; intakes: IntakeOption[] }) {
-  const [state, action, pending] = useActionState<FormState, FormData>(createApplication, {});
+type NewApplicationProps = {
+  studentId: string;
+  courses: CourseOption[];
+  intakes: IntakeOption[];
+  // Staff by default; the agent portal passes its own action.
+  submit?: (previous: FormState, form: FormData) => Promise<FormState>;
+};
+
+export function NewApplicationForm({ studentId, courses, intakes, submit = createApplication }: NewApplicationProps) {
+  const [state, action, pending] = useActionState<FormState, FormData>(submit, {});
   const [courseId, setCourseId] = useState("");
   const course = courses.find((c) => c.id === courseId);
   const courseIntakes = course ? intakes.filter((i) => i.universityId === course.universityId && (!i.courseId || i.courseId === course.id)) : [];
