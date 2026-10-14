@@ -17,7 +17,7 @@ async function Shell({ children }: { children: React.ReactNode }) {
   const nav = await getDashboardNav(user);
 
   return (
-    <DashboardShell nav={nav} user={{ name: user.name, email: user.email, roleLabel: roleLabels[user.role] }}>
+    <DashboardShell nav={nav} user={{ name: user.name, email: user.email, role: user.role, roleLabel: roleLabels[user.role] }}>
       {children}
     </DashboardShell>
   );

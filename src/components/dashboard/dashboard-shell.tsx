@@ -6,13 +6,15 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { SignOutButton } from "@/components/auth/sign-out-button";
+import { PageHelpButton } from "@/components/dashboard/page-help-button";
 import { Icon } from "@/components/ui/icon";
 import { cn } from "@/lib/cn";
 import type { NavGroup } from "@/lib/dashboard-nav";
+import type { Role } from "@/generated/prisma/client";
 
 type ShellProps = {
   nav: NavGroup[];
-  user: { name: string; email: string; roleLabel: string };
+  user: { name: string; email: string; role: Role; roleLabel: string };
   children: ReactNode;
 };
 
@@ -104,6 +106,7 @@ export function DashboardShell({ nav, user, children }: ShellProps) {
           </button>
           <span className="rounded-full bg-brand-600/12 px-3 py-1 text-xs font-semibold text-brand-800">{user.roleLabel}</span>
           <div className="ml-auto flex items-center gap-3">
+            <PageHelpButton role={user.role} />
             <Link href="/" className="hidden text-sm font-medium text-brand-700 hover:underline sm:inline">
               View website
             </Link>
