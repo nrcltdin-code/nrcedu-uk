@@ -2,6 +2,7 @@ import "server-only";
 import type { IconName } from "@/components/ui/icon";
 import type { PermissionModule, Role } from "@/generated/prisma/client";
 import { staffUnreadCount, studentUnreadCount } from "@/lib/messages";
+import { dueReminderCount } from "@/lib/reminders";
 import { can } from "@/lib/session";
 import type { CurrentUser } from "@/lib/session";
 
@@ -25,6 +26,7 @@ const groups: { label: string; entries: Entry[] }[] = [
       { label: "Leads", href: "/dashboard/leads", icon: "inbox", roles: staff, module: "LEADS" },
       { label: "Students", href: "/dashboard/students", icon: "cap", roles: staff, module: "STUDENTS" },
       { label: "Applications", href: "/dashboard/applications", icon: "document", roles: staff, module: "APPLICATIONS" },
+      { label: "Reminders", href: "/dashboard/reminders", icon: "clock", roles: staff },
       { label: "My students", href: "/dashboard/agent/students", icon: "cap", roles: ["AGENT"] },
       { label: "My commission", href: "/dashboard/agent/commissions", icon: "coins", roles: ["AGENT"] },
       { label: "My applications", href: "/dashboard/my-applications", icon: "document", roles: ["STUDENT"] },
@@ -66,6 +68,11 @@ export async function getDashboardNav(user: CurrentUser): Promise<NavGroup[]> {
       if (!roles.includes(user.role)) continue;
       // Module limits apply to staff; agents and students only ever see their own records.
       if (module && (user.role === "ADMIN" || user.role === "STAFF") && !(await can(user, module, action))) continue;
+      if (item.href === "/dashboard/reminders") {
+        const due = await dueReminderCount(user.id);
+        items.push(due ? { ...item, badge: due } : item);
+        continue;
+      }
       if (item.href === "/dashboard/messages") {
         const unread = user.role === "STUDENT" ? await studentUnreadCount(user.id) : await staffUnreadCount(user.id);
         items.push(unread ? { ...item, badge: unread } : item);

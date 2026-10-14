@@ -385,7 +385,18 @@ New → Documents pending → Submitted to university → Offer received → Dep
     - [ ] Staff with Students "View only": can read, no reply box; with "None": no Messages menu item
     - [ ] Open a student record → Messages: you can start a conversation with a student who has not written
 - [x] Dashboard "About this page": a button in the top bar opens a panel explaining the current screen (text in `src/lib/page-help.ts`, per role where pages differ; add an entry with each new dashboard page)
-- [ ] 4.9 Follow-up reminders
+- [x] 4.9 Follow-up reminders — Dashboard → Reminders (staff and admins)
+  - Reminders card on every lead, student and application page: what to follow up, the day, and for whom (yourself by default, or a colleague). Done / Reopen / Delete; the last 3 done stay visible. Needs edit access to that area
+  - Reminders page: Due (today and overdue) / Upcoming / Done with counts, each linked to its record; personal reminders not tied to a record; admins can show everyone's
+  - Menu badge and overview "My work" show reminders due today or overdue. Days are counted in London time
+  - Morning email (07:00 UTC) listing each person's due reminders: `/api/cron/reminders`, run by Vercel Cron from `vercel.json`. Needs `CRON_SECRET` set in Vercel (any long random string) and email switched on; the route answers 404 without the secret
+  - Uses the existing `Reminder` table; no migration
+  - Test checklist:
+    - [ ] On a lead, add a reminder for today: it shows on the lead, in the menu count and under My work on the overview
+    - [ ] Add one for a colleague: it appears on their Reminders page, not yours
+    - [ ] Press Done: it moves to Done and the menu count drops; Reopen brings it back
+    - [ ] Staff with Leads "View only": sees the lead's reminders but cannot add or change them
+    - [ ] After deploying: in Vercel → Cron Jobs, run the job by hand; you get the morning email
 - [ ] 4.10 CSV export and activity log
 
 ### Phase 5 — Launch (week 7)

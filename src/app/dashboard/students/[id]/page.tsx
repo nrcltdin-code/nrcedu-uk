@@ -9,6 +9,7 @@ import { getAssigneeOptions } from "@/lib/assignees";
 import { db } from "@/lib/db";
 import { formatDate } from "@/lib/format";
 import { can, requirePermission } from "@/lib/session";
+import { RemindersCard } from "../../reminders/reminders-card";
 import { stageLabels, stageTones } from "../../applications/labels";
 import { studyLevelLabels } from "../../leads/labels";
 import { addStudentNote } from "../actions";
@@ -240,6 +241,7 @@ async function StudentDetail({ params }: Pick<PageProps<"/dashboard/students/[id
             <PortalInvite studentId={student.id} />
           </Card>
         )}
+        <RemindersCard link={{ studentId: student.id }} user={user} canEdit={canEdit} />
         <Card tone="solid">
           <h2 className="mb-4 text-xl font-bold">Notes</h2>
           <p className="-mt-2 mb-4 text-xs text-muted">Only staff see these notes.</p>

@@ -10,6 +10,7 @@ import { getAssigneeOptions } from "@/lib/assignees";
 import { db } from "@/lib/db";
 import { formatDate, formatMoney } from "@/lib/format";
 import { can, requirePermission } from "@/lib/session";
+import { RemindersCard } from "../../reminders/reminders-card";
 import { addApplicationNote, deleteApplication } from "../actions";
 import { AssignForm, StageForm } from "../application-forms";
 import { stageLabels, stageTones } from "../labels";
@@ -142,6 +143,8 @@ async function ApplicationDetail({ params, searchParams }: Pick<PageProps<"/dash
               )}
             </Card>
           )}
+
+          <RemindersCard link={{ applicationId: app.id }} user={user} canEdit={canEdit} />
 
           <Card tone="solid">
             <h2 className="mb-4 text-xl font-bold">Notes</h2>

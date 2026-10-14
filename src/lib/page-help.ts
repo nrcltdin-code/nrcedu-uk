@@ -143,6 +143,20 @@ const entries: Entry[] = [
     },
   },
   {
+    path: at("/reminders"),
+    help: {
+      title: "Reminders",
+      summary: "Your follow-ups, so nothing slips: calls to make, documents to chase, deadlines to check.",
+      points: [
+        "Due shows today's and overdue reminders; the number in the menu counts them.",
+        "Add reminders on a lead, student or application page so they link back to it; personal ones are added here.",
+        "You can set a reminder for a colleague. Done moves it to the Done list; Reopen brings it back.",
+        "Each morning you get one email listing what is due (once email is switched on).",
+        "Admins can show everyone's reminders, for example to cover for someone away.",
+      ],
+    },
+  },
+  {
     path: at(`/messages/${id}`),
     help: {
       title: "Conversation",

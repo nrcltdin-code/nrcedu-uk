@@ -9,6 +9,7 @@ import { Card } from "@/components/ui/card";
 import type { LeadStatus } from "@/generated/prisma/client";
 import { db } from "@/lib/db";
 import { can, requirePermission } from "@/lib/session";
+import { RemindersCard } from "../../reminders/reminders-card";
 import { Button, buttonStyles } from "@/components/ui/button";
 import { convertLead } from "../../students/actions";
 import { addLeadNote, deleteLead } from "../actions";
@@ -128,6 +129,8 @@ async function LeadDetail({ params, searchParams }: Pick<PageProps<"/dashboard/l
               </div>
             )}
           </Card>
+
+          <RemindersCard link={{ leadId: lead.id }} user={user} canEdit={canEdit} />
 
           <Card tone="solid">
             <h2 className="mb-4 text-xl font-bold">Notes and history</h2>

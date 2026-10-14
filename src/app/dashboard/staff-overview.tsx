@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { db } from "@/lib/db";
 import { formatDate } from "@/lib/format";
+import { dueLabel, londonToday } from "@/lib/reminders";
 import { can } from "@/lib/session";
 import type { CurrentUser } from "@/lib/session";
 import { closedStages, stageLabels, stages, stageTones } from "./applications/labels";
@@ -53,7 +54,13 @@ export async function StaffOverview({ user }: { user: CurrentUser }) {
   const [leads, applications] = await Promise.all([can(user, "LEADS"), can(user, "APPLICATIONS")]);
   const isAdmin = user.role === "ADMIN";
 
-  const [myLeads, myApps, pipeline, activity] = await Promise.all([
+  const [myReminders, myLeads, myApps, pipeline, activity] = await Promise.all([
+    db.reminder.findMany({
+      where: { staffId: user.id, doneAt: null, dueAt: { lte: londonToday() } },
+      orderBy: { dueAt: "asc" },
+      take: 6,
+      select: { id: true, text: true, dueAt: true },
+    }),
     leads
       ? db.lead.findMany({
           where: { assignedStaffId: user.id, status: { in: ["NEW", "CONTACTED"] } },
@@ -88,46 +95,58 @@ export async function StaffOverview({ user }: { user: CurrentUser }) {
 
   return (
     <div className="mt-6 grid items-start gap-6 xl:grid-cols-2">
-      {(leads || applications) && (
-        <Card tone="solid">
-          <h2 className="text-xl font-bold">My work</h2>
-          {leads && (
-            <>
-              <h3 className="mt-4 text-sm font-semibold uppercase tracking-wider text-muted">Leads to follow up</h3>
-              <ul className="mt-1 divide-y divide-brand-900/10">
-                {myLeads.map((lead) => (
-                  <li key={lead.id}>
-                    <Link href={`/dashboard/leads/${lead.id}`} className="flex items-center justify-between gap-2 rounded-xl px-2 py-2.5 hover:bg-brand-600/5">
-                      <span className="font-medium">{lead.name}</span>
-                      <span className="text-xs text-muted">{lead.status === "NEW" ? "New" : "Contacted"} · {timeAgo(lead.createdAt)}</span>
-                    </Link>
-                  </li>
-                ))}
-                {myLeads.length === 0 && <li className="py-2 text-sm text-muted">None assigned to you.</li>}
-              </ul>
-            </>
-          )}
-          {applications && (
-            <>
-              <h3 className="mt-5 text-sm font-semibold uppercase tracking-wider text-muted">My applications, longest waiting first</h3>
-              <ul className="mt-1 divide-y divide-brand-900/10">
-                {myApps.map((app) => (
-                  <li key={app.id}>
-                    <Link href={`/dashboard/applications/${app.id}`} className="flex items-center justify-between gap-2 rounded-xl px-2 py-2.5 hover:bg-brand-600/5">
-                      <span className="font-medium">{app.student.user.name}</span>
-                      <span className="flex items-center gap-2 text-xs text-muted">
-                        <Badge tone={stageTones[app.stage]}>{stageLabels[app.stage]}</Badge>
-                        {timeAgo(app.updatedAt)}
-                      </span>
-                    </Link>
-                  </li>
-                ))}
-                {myApps.length === 0 && <li className="py-2 text-sm text-muted">None assigned to you.</li>}
-              </ul>
-            </>
-          )}
-        </Card>
-      )}
+      <Card tone="solid">
+        <h2 className="text-xl font-bold">My work</h2>
+        <h3 className="mt-4 text-sm font-semibold uppercase tracking-wider text-muted">Reminders due</h3>
+        <ul className="mt-1 divide-y divide-brand-900/10">
+          {myReminders.map((reminder) => {
+            const due = dueLabel(reminder.dueAt);
+            return (
+              <li key={reminder.id} className="flex items-center justify-between gap-2 px-2 py-2.5">
+                <span className="min-w-0 truncate font-medium">{reminder.text}</span>
+                <Badge tone={due.tone}>{due.text}</Badge>
+              </li>
+            );
+          })}
+          {myReminders.length === 0 && <li className="py-2 text-sm text-muted">Nothing due today.</li>}
+        </ul>
+        <Link href="/dashboard/reminders" className="mt-1 inline-block text-sm font-medium text-brand-700 hover:underline">All reminders →</Link>
+        {leads && (
+          <>
+            <h3 className="mt-4 text-sm font-semibold uppercase tracking-wider text-muted">Leads to follow up</h3>
+            <ul className="mt-1 divide-y divide-brand-900/10">
+              {myLeads.map((lead) => (
+                <li key={lead.id}>
+                  <Link href={`/dashboard/leads/${lead.id}`} className="flex items-center justify-between gap-2 rounded-xl px-2 py-2.5 hover:bg-brand-600/5">
+                    <span className="font-medium">{lead.name}</span>
+                    <span className="text-xs text-muted">{lead.status === "NEW" ? "New" : "Contacted"} · {timeAgo(lead.createdAt)}</span>
+                  </Link>
+                </li>
+              ))}
+              {myLeads.length === 0 && <li className="py-2 text-sm text-muted">None assigned to you.</li>}
+            </ul>
+          </>
+        )}
+        {applications && (
+          <>
+            <h3 className="mt-5 text-sm font-semibold uppercase tracking-wider text-muted">My applications, longest waiting first</h3>
+            <ul className="mt-1 divide-y divide-brand-900/10">
+              {myApps.map((app) => (
+                <li key={app.id}>
+                  <Link href={`/dashboard/applications/${app.id}`} className="flex items-center justify-between gap-2 rounded-xl px-2 py-2.5 hover:bg-brand-600/5">
+                    <span className="font-medium">{app.student.user.name}</span>
+                    <span className="flex items-center gap-2 text-xs text-muted">
+                      <Badge tone={stageTones[app.stage]}>{stageLabels[app.stage]}</Badge>
+                      {timeAgo(app.updatedAt)}
+                    </span>
+                  </Link>
+                </li>
+              ))}
+              {myApps.length === 0 && <li className="py-2 text-sm text-muted">None assigned to you.</li>}
+            </ul>
+          </>
+        )}
+      </Card>
 
       {applications && (
         <Card tone="solid">
