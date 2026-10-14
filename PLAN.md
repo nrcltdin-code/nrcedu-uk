@@ -338,7 +338,18 @@ New → Documents pending → Submitted to university → Offer received → Dep
     - [ ] Staff: on that application press "Add expected amounts": two rows appear (NRC and agent), amounts = fee × rate
     - [ ] Mark the agent row Paid: the agent's My commission shows it under Paid; the NRC row is never visible to the agent
     - [ ] Staff with Commission "None": no Commission card on applications and no Commission menu
-- [ ] 4.6 Dashboard overview
+- [x] 4.6 Dashboard overview (staff and admin)
+  - Tiles, each shown only with the matching permission and clickable: New leads, Open applications, Documents to review (opens Students filtered to those waiting), Agents waiting for approval
+  - My work: leads assigned to me that are New or Contacted (oldest first), my open applications (longest without an update first)
+  - Application pipeline: a bar per open stage with counts; each bar opens Applications on that stage
+  - Recent activity (admins only): last 12 actions with who and when, linked to the lead, student, application or user
+  - Students and agents keep their own overviews (4.4, 4.5)
+  - Test checklist:
+    - [ ] Assign yourself a lead: it appears under My work; set it to Qualified: it disappears
+    - [ ] Move an application to a new stage: the pipeline bar counts change
+    - [ ] Upload a document on a student: "Documents to review" goes up and its link lists that student
+    - [ ] As admin, add a note or change a lead: it shows in Recent activity; as staff, the section is not shown
+    - [ ] Staff with Leads "None": no New leads tile and no leads in My work
 - [ ] 4.7 Email notifications
 - [ ] 4.8 Messaging between student and counsellor
 - [ ] 4.9 Follow-up reminders

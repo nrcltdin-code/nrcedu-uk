@@ -38,9 +38,11 @@ async function StudentsList({ searchParams }: Pick<PageProps<"/dashboard/student
   const params = await searchParams;
   const q = first(params.q).trim();
   const owner = first(params.owner);
+  const docs = first(params.docs) === "pending" ? "pending" : "";
   const page = Math.max(1, Number.parseInt(first(params.page) || "1", 10) || 1);
 
   const where: Prisma.StudentProfileWhereInput = {
+    ...(docs ? { documents: { some: { status: "PENDING" } } } : {}),
     ...(owner === "me" ? { counsellorId: user.id } : owner === "none" ? { counsellorId: null } : {}),
     ...(q
       ? {
@@ -73,12 +75,19 @@ async function StudentsList({ searchParams }: Pick<PageProps<"/dashboard/student
     canEdit ? getAssigneeOptions() : Promise.resolve({ staff: [], agents: [] }),
   ]);
   const pages = Math.max(1, Math.ceil(total / pageSize));
-  const href = (n: number) => `/dashboard/students?${new URLSearchParams({ q, owner, page: String(n) })}`;
+  const href = (n: number) => `/dashboard/students?${new URLSearchParams({ q, owner, docs, page: String(n) })}`;
 
   return (
     <div className="grid items-start gap-8 xl:grid-cols-[1.8fr_1fr]">
       <Card tone="solid">
+        {docs && (
+          <p className="mb-3 text-sm">
+            Students with documents waiting for review.{" "}
+            <Link href="/dashboard/students" className="text-brand-700 hover:underline">Show all</Link>
+          </p>
+        )}
         <form className="grid gap-3 sm:grid-cols-[1fr_auto_auto]">
+          {docs && <input type="hidden" name="docs" value={docs} />}
           <Input name="q" defaultValue={q} placeholder="Search name, email or phone" aria-label="Search" />
           <Select name="owner" defaultValue={owner} aria-label="Counsellor">
             <option value="">Any counsellor</option>

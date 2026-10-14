@@ -12,7 +12,8 @@ import { can, requireUser } from "@/lib/session";
 import type { CurrentUser } from "@/lib/session";
 import { requireMyStudentId } from "@/lib/student";
 import { requireMyAgentId } from "@/lib/agent";
-import { stageLabels, stageTones } from "./applications/labels";
+import { closedStages, stageLabels, stageTones } from "./applications/labels";
+import { StaffOverview } from "./staff-overview";
 
 export const metadata: Metadata = { title: "Dashboard", robots: { index: false } };
 
@@ -27,23 +28,24 @@ export default function DashboardPage() {
 type Stat = { label: string; value: number; icon: IconName; color: TileColor; href?: string };
 
 async function getStats(user: CurrentUser): Promise<Stat[]> {
-  const stats: Stat[] = [];
+  const [leads, students, applications, agents] = await Promise.all([
+    can(user, "LEADS"),
+    can(user, "STUDENTS"),
+    can(user, "APPLICATIONS"),
+    can(user, "AGENTS", "edit"),
+  ]);
+  const [newLeads, toReview, openApps, waitingAgents] = await Promise.all([
+    leads ? db.lead.count({ where: { status: "NEW" } }) : 0,
+    students ? db.document.count({ where: { status: "PENDING" } }) : 0,
+    applications ? db.application.count({ where: { stage: { notIn: closedStages } } }) : 0,
+    agents ? db.agentProfile.count({ where: { approvalStatus: "PENDING" } }) : 0,
+  ]);
 
-  if (await can(user, "LEADS")) {
-    stats.push({ label: "New leads", value: await db.lead.count({ where: { status: "NEW" } }), icon: "inbox", color: "sky" });
-  }
-  if (await can(user, "AGENTS", "edit")) {
-    const pending = await db.agentProfile.count({ where: { approvalStatus: "PENDING" } });
-    stats.push({ label: "Agents waiting for approval", value: pending, icon: "briefcase", color: "amber", href: "/dashboard/agents" });
-  }
-  if (await can(user, "USERS")) {
-    const students = await db.user.count({ where: { role: "STUDENT", status: "ACTIVE" } });
-    stats.push({ label: "Registered students", value: students, icon: "cap", color: "violet", href: "/dashboard/users?role=STUDENT" });
-  }
-  if (await can(user, "CONTENT", "edit")) {
-    const slides = await db.heroSlide.count({ where: { isPublished: true } });
-    stats.push({ label: "Slides on the home page", value: slides, icon: "image", color: "emerald", href: "/dashboard/slides" });
-  }
+  const stats: Stat[] = [];
+  if (leads) stats.push({ label: "New leads", value: newLeads, icon: "inbox", color: "sky", href: "/dashboard/leads?tab=NEW" });
+  if (applications) stats.push({ label: "Open applications", value: openApps, icon: "document", color: "violet", href: "/dashboard/applications" });
+  if (students) stats.push({ label: "Documents to review", value: toReview, icon: "shield", color: "emerald", href: "/dashboard/students?docs=pending" });
+  if (agents) stats.push({ label: "Agents waiting for approval", value: waitingAgents, icon: "briefcase", color: "amber", href: "/dashboard/agents" });
   return stats;
 }
 
@@ -79,6 +81,7 @@ async function Overview() {
         </div>
       )}
 
+      {(user.role === "ADMIN" || user.role === "STAFF") && <StaffOverview user={user} />}
       {user.role === "STUDENT" && <StudentOverview />}
       {user.role === "AGENT" && <AgentOverview />}
     </>
