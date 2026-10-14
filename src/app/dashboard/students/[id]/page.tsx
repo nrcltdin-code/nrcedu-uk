@@ -14,8 +14,10 @@ import { studyLevelLabels } from "../../leads/labels";
 import { addStudentNote } from "../actions";
 import { deleteDocument } from "../document-actions";
 import { DocumentReview } from "../document-review";
+import { PortalInvite } from "../portal-invite";
 import { DeleteButton } from "@/components/dashboard/form-bits";
 import { DocumentUpload } from "@/components/dashboard/document-upload";
+import { EducationAndScores } from "@/components/dashboard/education-scores";
 import { buttonStyles } from "@/components/ui/button";
 import { documentTypeLabels } from "@/lib/documents";
 import { privateStorageEnabled } from "@/lib/storage";
@@ -218,24 +220,27 @@ async function StudentDetail({ params }: Pick<PageProps<"/dashboard/students/[id
           </Card>
 
           <Card tone="solid">
-            <h2 className="text-xl font-bold">Education and test scores</h2>
-            {student.educationRecords.length === 0 && student.testScores.length === 0 ? (
-              <p className="mt-2 text-sm text-muted">None yet. The student adds these in their portal (task 4.4).</p>
-            ) : (
-              <ul className="mt-3 grid gap-2 text-sm">
-                {student.educationRecords.map((r) => (
-                  <li key={r.id}>{[studyLevelLabels[r.level], r.fieldOfStudy, r.institution, r.result, r.yearCompleted].filter(Boolean).join(" · ")}</li>
-                ))}
-                {student.testScores.map((t) => (
-                  <li key={t.id}>{[t.test, t.score, t.takenAt && formatDate(t.takenAt)].filter(Boolean).join(" · ")}</li>
-                ))}
-              </ul>
-            )}
+            <h2 className="mb-4 text-xl font-bold">Education and test scores</h2>
+            <EducationAndScores
+              studentId={student.id}
+              canEdit={canEdit}
+              levels={Object.entries(studyLevelLabels).map(([value, label]) => ({ value, label }))}
+              education={student.educationRecords}
+              scores={student.testScores.map((t) => ({ id: t.id, test: t.test, score: t.score, takenAt: t.takenAt ? formatDate(t.takenAt) : null }))}
+            />
           </Card>
         </div>
 
+        <div className="grid gap-6">
+        {canEdit && !hasLogin && (
+          <Card tone="solid">
+            <h2 className="mb-3 text-xl font-bold">Portal access</h2>
+            <PortalInvite studentId={student.id} />
+          </Card>
+        )}
         <Card tone="solid">
           <h2 className="mb-4 text-xl font-bold">Notes</h2>
+          <p className="-mt-2 mb-4 text-xs text-muted">Only staff see these notes.</p>
           {canEdit && <NoteForm key={student.notes.length} action={addStudentNote} field={{ studentId: student.id }} />}
           <ol className="mt-5 grid gap-4">
             {student.notes.map((note) => (
@@ -247,6 +252,7 @@ async function StudentDetail({ params }: Pick<PageProps<"/dashboard/students/[id
             {student.notes.length === 0 && <li className="text-sm text-muted">No notes yet.</li>}
           </ol>
         </Card>
+        </div>
       </div>
     </>
   );

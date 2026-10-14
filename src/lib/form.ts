@@ -50,3 +50,10 @@ export const isUniqueError = (error: unknown) =>
 
 export const isInUseError = (error: unknown) =>
   error instanceof Prisma.PrismaClientKnownRequestError && (error.code === "P2003" || error.code === "P2014");
+
+// "YYYY-MM-DD" from a date input → Date at midnight UTC; empty → null; invalid → undefined.
+export function optionalDate(value: string): Date | null | undefined {
+  if (!value) return null;
+  const date = new Date(`${value}T00:00:00Z`);
+  return Number.isNaN(date.getTime()) ? undefined : date;
+}

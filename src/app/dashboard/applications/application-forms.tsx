@@ -21,7 +21,7 @@ export function StageForm({ id, stage }: { id: string; stage: string }) {
         </Select>
       </div>
       <div>
-        <Label htmlFor="a-stage-note">Note for the history</Label>
+        <Label htmlFor="a-stage-note">Note for the history (the student sees this)</Label>
         <Input id="a-stage-note" name="note" maxLength={1000} placeholder="Optional, e.g. Offer is conditional on IELTS 6.5" />
       </div>
       <FormMessage state={state} />

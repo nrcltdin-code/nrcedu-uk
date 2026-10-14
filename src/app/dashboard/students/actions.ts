@@ -4,8 +4,9 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import type { Prisma } from "@/generated/prisma/client";
 import { db } from "@/lib/db";
-import { text } from "@/lib/form";
+import { optionalDate, text } from "@/lib/form";
 import type { FormState } from "@/lib/form";
+import { createInvite } from "@/lib/invites";
 import { isEmail } from "@/lib/leads";
 import { requirePermission } from "@/lib/session";
 
@@ -118,12 +119,6 @@ export async function addStudent(_previous: FormState, form: FormData): Promise<
   redirect(`/dashboard/students/${student.id}`);
 }
 
-const optionalDate = (value: string) => {
-  if (!value) return null;
-  const date = new Date(`${value}T00:00:00Z`);
-  return Number.isNaN(date.getTime()) ? undefined : date;
-};
-
 export async function updateStudent(_previous: FormState, form: FormData): Promise<FormState> {
   const user = await requirePermission("STUDENTS", "edit");
 
@@ -187,4 +182,25 @@ export async function addStudentNote(_previous: FormState, form: FormData): Prom
   await db.note.create({ data: { studentId, body, authorId: user.id } });
   revalidatePath(`/dashboard/students/${studentId}`);
   return { saved: true };
+}
+
+export type InviteState = { error?: string; url?: string; expires?: string };
+
+// Makes a set-password link for a student created by staff. Until email is set up (4.7),
+// staff copy the link and send it by email or WhatsApp themselves.
+export async function makePortalInvite(_previous: InviteState, form: FormData): Promise<InviteState> {
+  const user = await requirePermission("STUDENTS", "edit");
+  const studentId = text(form, "studentId");
+
+  const student = await db.studentProfile.findUnique({
+    where: { id: studentId },
+    select: { userId: true, user: { select: { status: true, accounts: { select: { id: true }, take: 1 } } } },
+  });
+  if (!student) return { error: "This student no longer exists." };
+  if (student.user.accounts.length) return { error: "This student can already sign in." };
+  if (student.user.status !== "ACTIVE") return { error: "This account is suspended." };
+
+  const invite = await createInvite(student.userId);
+  await log(user.id, "student.invite", "StudentProfile", studentId);
+  return { url: invite.url, expires: invite.expiresAt.toISOString() };
 }

@@ -41,6 +41,11 @@ export function AuthForm({ mode, onModeChange, onSuccess, callbackURL, googleEna
 
     setPending(false);
     if (error) {
+      // Students whose file NRC started already have an account without a password.
+      if (mode !== "login" && error.code?.startsWith("USER_ALREADY_EXISTS")) {
+        setError("This email already has an account. Sign in instead, or if NRC started your file for you, ask your counsellor for a link to set your password.");
+        return;
+      }
       setError(error.message ?? "Something went wrong. Please try again.");
       return;
     }

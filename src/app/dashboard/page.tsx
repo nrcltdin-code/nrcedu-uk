@@ -2,12 +2,16 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import Link from "next/link";
 import { PageHeader } from "@/components/dashboard/page-header";
+import { Badge } from "@/components/ui/badge";
+import { buttonStyles } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { IconTile } from "@/components/ui/icon";
 import type { IconName, TileColor } from "@/components/ui/icon";
 import { db } from "@/lib/db";
 import { can, requireUser } from "@/lib/session";
 import type { CurrentUser } from "@/lib/session";
+import { requireMyStudentId } from "@/lib/student";
+import { stageLabels, stageTones } from "./applications/labels";
 
 export const metadata: Metadata = { title: "Dashboard", robots: { index: false } };
 
@@ -74,16 +78,96 @@ async function Overview() {
         </div>
       )}
 
-      {(user.role === "STUDENT" || user.role === "AGENT") && (
+      {user.role === "STUDENT" && <StudentOverview />}
+      {user.role === "AGENT" && (
         <Card tone="solid" className="max-w-2xl">
-          <h2 className="text-xl font-bold">{user.role === "STUDENT" ? "Your applications" : "Your students"}</h2>
-          <p className="mt-2 text-muted">
-            {user.role === "STUDENT"
-              ? "Your profile, documents and application progress will appear here soon."
-              : "Your referred students, their applications and your commission will appear here soon."}
-          </p>
+          <h2 className="text-xl font-bold">Your students</h2>
+          <p className="mt-2 text-muted">Your referred students, their applications and your commission will appear here soon.</p>
         </Card>
       )}
     </>
+  );
+}
+
+// A student's home: what is missing, what needs redoing and where each application is.
+async function StudentOverview() {
+  const studentId = await requireMyStudentId();
+  const student = await db.studentProfile.findUniqueOrThrow({
+    where: { id: studentId },
+    select: {
+      phone: true,
+      dateOfBirth: true,
+      nationality: true,
+      passportNumber: true,
+      counsellor: { select: { name: true, email: true } },
+      _count: { select: { educationRecords: true, testScores: true } },
+      documents: { where: { status: "REJECTED" }, select: { id: true } },
+      applications: {
+        where: { stage: { notIn: ["WITHDRAWN"] } },
+        orderBy: { updatedAt: "desc" },
+        select: { id: true, stage: true, course: { select: { name: true, university: { select: { name: true } } } } },
+      },
+    },
+  });
+
+  const todo = [
+    { done: Boolean(student.phone && student.dateOfBirth && student.nationality), text: "Add your phone, date of birth and nationality", href: "/dashboard/profile" },
+    { done: Boolean(student.passportNumber), text: "Add your passport details", href: "/dashboard/profile" },
+    { done: student._count.educationRecords > 0, text: "Add your education history", href: "/dashboard/profile" },
+    { done: student._count.testScores > 0, text: "Add your English test score, if you have one", href: "/dashboard/profile" },
+    { done: student.documents.length === 0, text: `Upload ${student.documents.length} document${student.documents.length === 1 ? "" : "s"} again`, href: "/dashboard/documents" },
+  ].filter((item) => !item.done);
+
+  return (
+    <div className="grid items-start gap-6 lg:grid-cols-2">
+      <Card tone="solid">
+        <h2 className="text-xl font-bold">Your applications</h2>
+        <ul className="mt-3 divide-y divide-brand-900/10">
+          {student.applications.map((app) => (
+            <li key={app.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
+              <span className="min-w-0">
+                <span className="block font-semibold">{app.course.name}</span>
+                <span className="block text-sm text-muted">{app.course.university.name}</span>
+              </span>
+              <Badge tone={stageTones[app.stage]}>{stageLabels[app.stage]}</Badge>
+            </li>
+          ))}
+          {student.applications.length === 0 && <li className="py-2 text-muted">None yet. Find a course and press Apply on its page.</li>}
+        </ul>
+        <Link href={student.applications.length ? "/dashboard/my-applications" : "/universities"} className={buttonStyles({ variant: "glass", size: "sm", className: "mt-3" })}>
+          {student.applications.length ? "See progress" : "Browse universities"}
+        </Link>
+      </Card>
+
+      <div className="grid gap-6">
+        <Card tone="solid">
+          <h2 className="text-xl font-bold">{todo.length ? "To do" : "All set"}</h2>
+          {todo.length ? (
+            <ul className="mt-3 grid gap-2">
+              {todo.map((item) => (
+                <li key={item.text}>
+                  <Link href={item.href} className="flex items-center gap-2 text-brand-700 hover:underline">
+                    <span aria-hidden>○</span> {item.text}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="mt-2 text-muted">Your profile is complete. Your counsellor will contact you about next steps.</p>
+          )}
+        </Card>
+        <Card tone="solid">
+          <h2 className="text-xl font-bold">Your counsellor</h2>
+          {student.counsellor ? (
+            <p className="mt-2">
+              {student.counsellor.name} ·{" "}
+              <a href={`mailto:${student.counsellor.email}`} className="text-brand-700 hover:underline">{student.counsellor.email}</a>
+            </p>
+          ) : (
+            <p className="mt-2 text-muted">A counsellor will be assigned to you soon.</p>
+          )}
+        </Card>
+      </div>
+    </div>
   );
 }

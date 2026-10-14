@@ -26,8 +26,10 @@ const groups: { label: string; entries: Entry[] }[] = [
       { label: "Applications", href: "/dashboard/applications", icon: "document", roles: staff, module: "APPLICATIONS" },
       // Agent and student views of the same records arrive with their portals (4.4, 4.5).
       { label: "My students", href: "/dashboard/students", icon: "cap", roles: ["AGENT"], soon: true },
-      { label: "My applications", href: "/dashboard/applications", icon: "document", roles: ["AGENT", "STUDENT"], soon: true },
-      { label: "Documents", href: "/dashboard/documents", icon: "document", roles: ["STUDENT"], soon: true },
+      { label: "My applications", href: "/dashboard/applications", icon: "document", roles: ["AGENT"], soon: true },
+      { label: "My applications", href: "/dashboard/my-applications", icon: "document", roles: ["STUDENT"] },
+      { label: "My profile", href: "/dashboard/profile", icon: "users", roles: ["STUDENT"] },
+      { label: "Documents", href: "/dashboard/documents", icon: "document", roles: ["STUDENT"] },
       { label: "Messages", href: "/dashboard/messages", icon: "chat", roles: ["STAFF", "STUDENT"], soon: true },
       { label: "Agents", href: "/dashboard/agents", icon: "briefcase", roles: staff, module: "AGENTS" },
       { label: "Commissions", href: "/dashboard/commissions", icon: "coins", roles: [...staff, "AGENT"], module: "COMMISSIONS", soon: true },

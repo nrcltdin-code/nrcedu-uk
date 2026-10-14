@@ -304,7 +304,25 @@ New → Documents pending → Submitted to university → Offer received → Dep
     - [ ] Copy a Download link, sign out, open it: refused
     - [ ] "Ask again" without a note: refused; with a note: status "Asked again" and the note shows
     - [ ] Delete a document: gone from the list
-- [ ] 4.4 Student portal
+- [x] 4.4 Student portal
+  - Menu for students: Overview, My applications, My profile, Documents (Messages comes with 4.8)
+  - Overview: applications with stage, a to-do list (missing details, passport, education, test score, documents to redo), their counsellor
+  - My profile: personal and passport details; education history and test scores (add / remove). Staff now edit education and scores on the student page with the same editor
+  - Documents: upload (when storage is on), download, see "please upload again" notes, remove until approved; checklist of usually needed documents
+  - My applications: progress bar, plain-language "what happens now" for each stage, history with the notes staff write on stage changes (staff notes stay internal; the stage-note box now says the student sees it)
+  - Apply: every Apply button on the website opens /dashboard/apply with the course; the student picks an open intake. Only published courses; duplicates refused
+  - Website sign-ups get their student record the first time they open the portal
+  - Portal invites for students staff created: student page → "Make invite link" → copy and send. Link works once, expires in 7 days, a new link cancels the old; only a hash is stored. Opens /set-password, then sign in. (Sent by email automatically once 4.7 is done)
+  - Signing up with an email NRC already used now explains to ask the counsellor for a link
+  - Verified: invite valid / old link cancelled / tampered / wrong user refused / secret not stored; set-password page shows the right account and refuses bad links; portal pages send signed-out visitors to sign in
+  - Test checklist:
+    - [ ] Register on the website as a new student, open the dashboard: Overview shows the to-do list
+    - [ ] Fill My profile, add an education entry and an IELTS score: the to-do items disappear; staff see them on the student page
+    - [ ] On a course page press Apply, pick an intake, start: it appears in My applications and in staff Applications under New
+    - [ ] Staff move it to "Offer received" with a note: the student sees the new stage, progress bar and the note
+    - [ ] Staff add a student by hand, make an invite link, open it in a private window, set a password, sign in: lands in the portal with their data
+    - [ ] Open the same invite link again: "expired or already used"
+    - [ ] Try to register with that student's email before using the invite: the message says to ask the counsellor
 - [ ] 4.5 Agent portal and commission tracking
 - [ ] 4.6 Dashboard overview
 - [ ] 4.7 Email notifications

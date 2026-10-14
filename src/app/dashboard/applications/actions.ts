@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import type { ApplicationStage } from "@/generated/prisma/client";
+import { startApplication } from "@/lib/applications";
 import { db } from "@/lib/db";
 import { text } from "@/lib/form";
 import type { FormState } from "@/lib/form";
@@ -11,43 +12,14 @@ import { stageLabels } from "./labels";
 
 export async function createApplication(_previous: FormState, form: FormData): Promise<FormState> {
   const user = await requirePermission("APPLICATIONS", "edit");
-
-  const studentId = text(form, "studentId");
-  const courseId = text(form, "courseId");
-  const intakeId = text(form, "intakeId");
-
-  const [student, course] = await Promise.all([
-    db.studentProfile.findUnique({ where: { id: studentId }, select: { id: true, counsellorId: true, agentId: true } }),
-    db.course.findUnique({ where: { id: courseId }, select: { id: true, universityId: true } }),
-  ]);
-  if (!student) return { error: "This student no longer exists." };
-  if (!course) return { error: "Choose a course from the list." };
-  if (intakeId) {
-    // The intake must belong to the course, or to the whole university.
-    const intake = await db.intake.count({
-      where: { id: intakeId, universityId: course.universityId, OR: [{ courseId: null }, { courseId: course.id }] },
-    });
-    if (!intake) return { error: "That intake is not for this course." };
-  }
-  const duplicate = await db.application.count({
-    where: { studentId, courseId, intakeId: intakeId || null, stage: { notIn: ["WITHDRAWN", "VISA_REFUSED"] } },
+  const result = await startApplication({
+    studentId: text(form, "studentId"),
+    courseId: text(form, "courseId"),
+    intakeId: text(form, "intakeId") || null,
+    byUserId: user.id,
   });
-  if (duplicate) return { error: "This student already has an open application for that course and intake." };
-
-  const application = await db.application.create({
-    data: {
-      studentId,
-      courseId,
-      intakeId: intakeId || null,
-      assignedStaffId: student.counsellorId,
-      agentId: student.agentId,
-      submittedById: user.id,
-      stageHistory: { create: { stage: "NEW", changedById: user.id } },
-    },
-    select: { id: true },
-  });
-  await db.activityLog.create({ data: { userId: user.id, action: "application.create", entityType: "Application", entityId: application.id } });
-  redirect(`/dashboard/applications/${application.id}`);
+  if ("error" in result) return { error: result.error };
+  redirect(`/dashboard/applications/${result.id}`);
 }
 
 export async function moveStage(_previous: FormState, form: FormData): Promise<FormState> {
