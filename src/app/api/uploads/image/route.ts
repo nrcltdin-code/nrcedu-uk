@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { db } from "@/lib/db";
 import { ImageRejected, MAX_IMAGE_BYTES, processImage } from "@/lib/images";
+import { isSameOrigin } from "@/lib/same-origin";
 import { can, getCurrentUser } from "@/lib/session";
 import { putObject, storageEnabled } from "@/lib/storage";
 
@@ -13,18 +14,6 @@ const PER_DAY = 300;
 const BODY_LIMIT = MAX_IMAGE_BYTES + 64 * 1024; // the image plus the multipart wrapping
 
 const fail = (status: number, error: string) => Response.json({ error }, { status });
-
-// Server actions get this check from Next.js; route handlers have to do it themselves.
-function isSameOrigin(request: Request) {
-  const origin = request.headers.get("origin");
-  const host = request.headers.get("x-forwarded-host") ?? request.headers.get("host");
-  if (!origin || !host) return false;
-  try {
-    return new URL(origin).host === host;
-  } catch {
-    return false;
-  }
-}
 
 // Reads the body but stops as soon as it passes the limit, whatever Content-Length claims.
 async function readLimited(request: Request): Promise<Uint8Array<ArrayBuffer> | null> {

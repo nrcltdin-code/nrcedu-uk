@@ -290,7 +290,20 @@ New → Documents pending → Submitted to university → Offer received → Dep
     - [ ] Move the application to "Offer received" with a note: history shows it with your name
     - [ ] Applications page: the Open tab count goes down when you set an application to Withdrawn
     - [ ] Staff with Applications "None": the Applications section is gone from the student page and menu
-- [ ] 4.3 Document uploads and review
+- [x] 4.3 Document uploads and review (built; switches on with storage, like 3.4)
+  - Student page → Documents: upload (type, optional application), download, approve or "ask again" with a note, delete
+  - Files live in a PRIVATE bucket (`STORAGE_PRIVATE_BUCKET`, no public access). Downloads go through `/api/documents/[id]`, which checks access every time and hands out a link valid for 60 seconds that always downloads (never opens inside the site)
+  - Uploads go browser → storage directly (Vercel's 4.5 MB limit), up to 10 MB: the server signs a one-file upload link locked to the exact size, plus a tamper-proof ticket (HMAC with AUTH_SECRET) naming the student, type and storage key
+  - After upload the server checks the file where it landed: exact size, real PDF / JPG / PNG by its bytes; images are re-encoded (removes location data and hidden content); anything failing is deleted
+  - Same-origin check, sign-in, access check (staff: Students permission; students: own record; agents: their referred students), 30 uploads per 10 min / 200 per day counted at start, storage names chosen by the server
+  - Verified: tampered, expired or someone else's tickets refused; HTML renamed to PDF refused; image metadata removed; routes refuse missing/foreign origin and signed-out users
+  - Setup when storage arrives: create a second bucket with public access OFF, put its name in `STORAGE_PRIVATE_BUCKET`, give the API token access to it, and add a CORS rule: allowed origin = the site address, method PUT, header content-length
+  - Test checklist (after switching on):
+    - [ ] Upload a passport PDF on a student: shows "Waiting for review"; Download saves the file
+    - [ ] Upload a phone photo: stored as JPG, downloads fine
+    - [ ] Copy a Download link, sign out, open it: refused
+    - [ ] "Ask again" without a note: refused; with a note: status "Asked again" and the note shows
+    - [ ] Delete a document: gone from the list
 - [ ] 4.4 Student portal
 - [ ] 4.5 Agent portal and commission tracking
 - [ ] 4.6 Dashboard overview

@@ -1,0 +1,104 @@
+import "server-only";
+import { createHmac, timingSafeEqual } from "node:crypto";
+import sharp from "sharp";
+import type { DocumentType } from "@/generated/prisma/client";
+import { db } from "@/lib/db";
+import { can } from "@/lib/session";
+import type { CurrentUser } from "@/lib/session";
+
+export const MAX_DOCUMENT_BYTES = 10 * 1024 * 1024;
+
+export const documentTypeLabels: Record<DocumentType, string> = {
+  PASSPORT: "Passport",
+  PHOTO: "Photo",
+  TRANSCRIPT: "Transcript",
+  CERTIFICATE: "Certificate",
+  ENGLISH_TEST: "English test result",
+  SOP: "Statement of purpose",
+  RECOMMENDATION_LETTER: "Recommendation letter",
+  CV: "CV",
+  FINANCIAL: "Financial document",
+  OFFER_LETTER: "Offer letter",
+  CAS: "CAS",
+  VISA: "Visa",
+  OTHER: "Other",
+};
+
+export type DocumentKind = "pdf" | "jpeg" | "png";
+export const documentContentTypes: Record<DocumentKind, string> = { pdf: "application/pdf", jpeg: "image/jpeg", png: "image/png" };
+
+// What the file really is, from its first bytes. Names and browser-reported types are ignored.
+export function sniffDocument(bytes: Uint8Array): DocumentKind | null {
+  const at = (offset: number, ...values: number[]) => values.every((value, i) => bytes[offset + i] === value);
+  if (at(0, 0x25, 0x50, 0x44, 0x46, 0x2d)) return "pdf"; // %PDF-
+  if (at(0, 0xff, 0xd8, 0xff)) return "jpeg";
+  if (at(0, 0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a)) return "png";
+  return null;
+}
+
+// Scans and phone photos are re-encoded: strips metadata (GPS location) and anything hidden in the file.
+export async function cleanDocumentImage(bytes: Uint8Array) {
+  const data = await sharp(bytes, { limitInputPixels: 60_000_000, failOn: "error" })
+    .rotate()
+    .resize({ width: 3500, height: 3500, fit: "inside", withoutEnlargement: true })
+    .jpeg({ quality: 88, mozjpeg: true })
+    .toBuffer();
+  return new Uint8Array(data);
+}
+
+// ---- Upload tickets ----
+// The server hands the browser a signed ticket with the upload link; the browser sends the
+// ticket back when the upload is done. The signature stops anyone changing whose record the
+// file lands on, its type or its key.
+
+export type UploadTicket = {
+  key: string;
+  studentId: string;
+  applicationId: string | null;
+  type: DocumentType;
+  name: string;
+  size: number;
+  userId: string;
+  expires: number;
+};
+
+const secret = () => {
+  const value = process.env.AUTH_SECRET;
+  if (!value) throw new Error("AUTH_SECRET is not set.");
+  return value;
+};
+const sign = (payload: string) => createHmac("sha256", secret()).update(`document-ticket:${payload}`).digest("base64url");
+
+export function createTicket(ticket: UploadTicket) {
+  const payload = Buffer.from(JSON.stringify(ticket)).toString("base64url");
+  return `${payload}.${sign(payload)}`;
+}
+
+export function readTicket(token: string, userId: string): UploadTicket | null {
+  const [payload, signature] = token.split(".");
+  if (!payload || !signature) return null;
+  const expected = Buffer.from(sign(payload));
+  const given = Buffer.from(signature);
+  if (expected.length !== given.length || !timingSafeEqual(expected, given)) return null;
+  try {
+    const ticket = JSON.parse(Buffer.from(payload, "base64url").toString()) as UploadTicket;
+    if (ticket.userId !== userId || ticket.expires < Date.now()) return null;
+    return ticket;
+  } catch {
+    return null;
+  }
+}
+
+// ---- Who may see or add documents for a student ----
+// Staff: by their Students permission. Students: only their own record. Agents: only students
+// they referred. Agents and students arrive with their portals (4.4, 4.5), but the rule lives here.
+export async function canAccessStudent(user: CurrentUser, studentId: string, action: "view" | "edit") {
+  if (user.role === "ADMIN" || user.role === "STAFF") return can(user, "STUDENTS", action);
+  if (user.role === "STUDENT") {
+    return (await db.studentProfile.count({ where: { id: studentId, userId: user.id } })) > 0;
+  }
+  if (user.role === "AGENT") {
+    return (await db.studentProfile.count({ where: { id: studentId, agent: { userId: user.id, approvalStatus: "APPROVED" } } })) > 0;
+  }
+  return false;
+}

@@ -12,6 +12,16 @@ import { can, requirePermission } from "@/lib/session";
 import { stageLabels, stageTones } from "../../applications/labels";
 import { studyLevelLabels } from "../../leads/labels";
 import { addStudentNote } from "../actions";
+import { deleteDocument } from "../document-actions";
+import { DocumentReview } from "../document-review";
+import { DeleteButton } from "@/components/dashboard/form-bits";
+import { DocumentUpload } from "@/components/dashboard/document-upload";
+import { buttonStyles } from "@/components/ui/button";
+import { documentTypeLabels } from "@/lib/documents";
+import { privateStorageEnabled } from "@/lib/storage";
+
+const docLabels = { PENDING: "Waiting for review", APPROVED: "Approved", REJECTED: "Asked again" } as const;
+const docTones = { PENDING: "accent", APPROVED: "success", REJECTED: "danger" } as const;
 import { NewApplicationForm, StudentForm } from "../student-forms";
 
 export const metadata: Metadata = { title: "Student", robots: { index: false } };
@@ -56,6 +66,10 @@ async function StudentDetail({ params }: Pick<PageProps<"/dashboard/students/[id
         include: { course: { select: { name: true, university: { select: { name: true } } } }, intake: { select: { name: true } } },
       },
       notes: { orderBy: { createdAt: "desc" }, include: { author: { select: { name: true } } } },
+      documents: {
+        orderBy: { createdAt: "desc" },
+        include: { uploadedBy: { select: { name: true } }, reviewedBy: { select: { name: true } }, application: { select: { course: { select: { name: true } } } } },
+      },
     },
   });
   if (!student) notFound();
@@ -125,6 +139,42 @@ async function StudentDetail({ params }: Pick<PageProps<"/dashboard/students/[id
               )}
             </Card>
           )}
+
+          <Card tone="solid">
+            <h2 className="mb-4 text-xl font-bold">Documents</h2>
+            <ul className="divide-y divide-brand-900/10">
+              {student.documents.map((doc) => (
+                <li key={doc.id} className="py-3">
+                  <div className="flex flex-wrap items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="font-semibold">{documentTypeLabels[doc.type]}</p>
+                      <p className="truncate text-sm text-muted">
+                        {[doc.name, doc.application?.course.name, `${doc.uploadedBy?.name ?? "Someone"}, ${formatDate(doc.createdAt)}`].filter(Boolean).join(" · ")}
+                      </p>
+                      {doc.reviewNote && <p className="mt-1 text-sm">“{doc.reviewNote}”{doc.reviewedBy && <span className="text-muted"> — {doc.reviewedBy.name}</span>}</p>}
+                    </div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Badge tone={docTones[doc.status]}>{docLabels[doc.status]}</Badge>
+                      <a href={`/api/documents/${doc.id}`} className={buttonStyles({ variant: "glass", size: "sm" })}>Download</a>
+                      {canEdit && <DeleteButton action={deleteDocument.bind(null, doc.id)} question={`Delete ${doc.name}? The file is removed for good.`} />}
+                    </div>
+                  </div>
+                  {canEdit && doc.status === "PENDING" && <DocumentReview id={doc.id} />}
+                </li>
+              ))}
+              {student.documents.length === 0 && <li className="py-2 text-muted">No documents yet.</li>}
+            </ul>
+            {canEdit && (
+              <div className="mt-4 border-t border-brand-900/10 pt-4">
+                <DocumentUpload
+                  studentId={student.id}
+                  enabled={privateStorageEnabled}
+                  types={Object.entries(documentTypeLabels).map(([value, label]) => ({ value, label }))}
+                  applications={student.applications.map((a) => ({ id: a.id, name: `${a.course.name}, ${a.course.university.name}` }))}
+                />
+              </div>
+            )}
+          </Card>
 
           <Card tone="solid">
             <h2 className="mb-4 text-xl font-bold">Profile</h2>
