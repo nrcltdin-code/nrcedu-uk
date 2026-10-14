@@ -21,9 +21,12 @@ const groups: { label: string; entries: Entry[] }[] = [
   {
     label: "CRM",
     entries: [
-      { label: "Leads", href: "/dashboard/leads", icon: "inbox", roles: staff, module: "LEADS", soon: true },
-      { label: "Students", href: "/dashboard/students", icon: "cap", roles: [...staff, "AGENT"], module: "STUDENTS", soon: true },
-      { label: "Applications", href: "/dashboard/applications", icon: "document", roles: [...staff, "AGENT", "STUDENT"], module: "APPLICATIONS", soon: true },
+      { label: "Leads", href: "/dashboard/leads", icon: "inbox", roles: staff, module: "LEADS" },
+      { label: "Students", href: "/dashboard/students", icon: "cap", roles: staff, module: "STUDENTS" },
+      { label: "Applications", href: "/dashboard/applications", icon: "document", roles: staff, module: "APPLICATIONS" },
+      // Agent and student views of the same records arrive with their portals (4.4, 4.5).
+      { label: "My students", href: "/dashboard/students", icon: "cap", roles: ["AGENT"], soon: true },
+      { label: "My applications", href: "/dashboard/applications", icon: "document", roles: ["AGENT", "STUDENT"], soon: true },
       { label: "Documents", href: "/dashboard/documents", icon: "document", roles: ["STUDENT"], soon: true },
       { label: "Messages", href: "/dashboard/messages", icon: "chat", roles: ["STAFF", "STUDENT"], soon: true },
       { label: "Agents", href: "/dashboard/agents", icon: "briefcase", roles: staff, module: "AGENTS" },

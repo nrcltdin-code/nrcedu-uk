@@ -256,8 +256,40 @@ New → Documents pending → Submitted to university → Offer received → Dep
     - [ ] Enter a map link without https://: refused
 
 ### Phase 4 — CRM (weeks 4–6)
-- [ ] 4.1 Leads inbox and pipeline
-- [ ] 4.2 Students and applications
+- [x] 4.1 Leads inbox and pipeline — Dashboard → Leads (staff with Leads "View only" can look, "Can edit" can change)
+  - Inbox: Open / New / Contacted / Qualified / Converted / Lost / All tabs with counts; search name, email or phone; "Assigned to me" and "Not assigned" filters; 25 per page
+  - Lead page: details and message; change status, counsellor and agent; add notes; one timeline of notes and every change (who and when)
+  - Add a lead by hand (phone call, walk-in); source shows "Added by staff"
+  - Lead routing (admin): default counsellor and/or agent per country; new leads from that country are assigned automatically
+  - Delete (admin only) for spam and duplicates
+  - Assignees are checked on the server: only active staff/admins and approved agents can be chosen
+  - Convert to student comes with 4.2
+  - Test checklist:
+    - [ ] Submit the public consultation form: the lead appears under New with source "Consultation form"
+    - [ ] Submit the contact form: it appears with source "Contact form"
+    - [ ] Open a lead, set it to Contacted and assign yourself: the timeline shows both changes with your name
+    - [ ] Add a note: it appears at the top of the timeline and the box clears
+    - [ ] "Assigned to me" shows only your leads; "Not assigned" only unowned ones
+    - [ ] Routing: give Bangladesh a counsellor, then submit the consultation form saying you live in Bangladesh — the new lead is already assigned
+    - [ ] Add a lead by hand: you land on its page
+    - [ ] Staff with Leads "View only": sees leads but no forms; with "None": the Leads menu item is gone
+- [x] 4.2 Students and applications (staff side) — Dashboard → Students, Dashboard → Applications
+  - Convert a lead: button on the lead page (needs Students "Can edit"); creates the student with the lead's name, email, phone, country, counsellor and agent, and marks the lead Converted. Same email twice links to the existing student
+  - Add a student directly; edit profile (personal details, passport, address, counsellor, agent); notes
+  - Start an application from the student page: course (grouped by university), then intake (only open intakes for that course or the whole university). Duplicate open applications for the same course and intake are refused
+  - Applications: pipeline tabs by stage with counts (Open = not Enrolled / Visa refused / Withdrawn); search student, course or university; "Handled by me"
+  - Application page: move stage with an optional note (full stage history with who and when), change who handles it, notes; admin delete for mistakes, refused when commission records exist
+  - Students created by staff have no password yet: inviting them to the portal is part of 4.4 (also: a student registering on the website with an email staff already used must claim that record, not fail)
+  - Education and test scores show on the student page; entering them comes with the student portal (4.4)
+  - Test checklist:
+    - [ ] Convert a lead: you land on the new student; the lead shows Converted and an "Open student record" button
+    - [ ] Convert a lead whose email is a staff account: refused with a clear message
+    - [ ] Add a student by hand, then edit their passport details and save
+    - [ ] Start an application: pick a course, the intake list shows only that university's open intakes
+    - [ ] Try the same course and intake again: refused
+    - [ ] Move the application to "Offer received" with a note: history shows it with your name
+    - [ ] Applications page: the Open tab count goes down when you set an application to Withdrawn
+    - [ ] Staff with Applications "None": the Applications section is gone from the student page and menu
 - [ ] 4.3 Document uploads and review
 - [ ] 4.4 Student portal
 - [ ] 4.5 Agent portal and commission tracking
