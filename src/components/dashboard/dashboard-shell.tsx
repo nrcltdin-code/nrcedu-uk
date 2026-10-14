@@ -69,6 +69,11 @@ export function DashboardShell({ nav, user, children }: ShellProps) {
                       <Icon name={item.icon} className="size-5 shrink-0" />
                       <span className="flex-1">{item.label}</span>
                       {item.soon && <span className="rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-semibold">Soon</span>}
+                      {item.badge ? (
+                        <span className="rounded-full bg-accent-500 px-2 py-0.5 text-[11px] font-bold text-deep-900">
+                          {item.badge}<span className="sr-only"> unread</span>
+                        </span>
+                      ) : null}
                     </>
                   );
                   const base = "flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium";

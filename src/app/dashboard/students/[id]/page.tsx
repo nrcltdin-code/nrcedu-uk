@@ -106,6 +106,8 @@ async function StudentDetail({ params }: Pick<PageProps<"/dashboard/students/[id
             <Link href={`/dashboard/leads/${student.lead.id}`} className="text-brand-700 hover:underline">from a lead</Link>
           </>
         )}
+        {" · "}
+        <Link href={`/dashboard/messages/${student.id}`} className="text-brand-700 hover:underline">Messages</Link>
       </p>
 
       <div className="mt-6 grid items-start gap-6 lg:grid-cols-[1.5fr_1fr]">

@@ -305,7 +305,7 @@ New → Documents pending → Submitted to university → Offer received → Dep
     - [ ] "Ask again" without a note: refused; with a note: status "Asked again" and the note shows
     - [ ] Delete a document: gone from the list
 - [x] 4.4 Student portal
-  - Menu for students: Overview, My applications, My profile, Documents (Messages comes with 4.8)
+  - Menu for students: Overview, My applications, My profile, Documents (Messages added in 4.8)
   - Overview: applications with stage, a to-do list (missing details, passport, education, test score, documents to redo), their counsellor
   - My profile: personal and passport details; education history and test scores (add / remove). Staff now edit education and scores on the student page with the same editor
   - Documents: upload (when storage is on), download, see "please upload again" notes, remove until approved; checklist of usually needed documents
@@ -370,7 +370,21 @@ New → Documents pending → Submitted to university → Offer received → Dep
     - [ ] Move an application with a note: the student's email shows the new stage and the note
     - [ ] "Ask again" on a document: the student gets what to fix
     - [ ] Forgot password: email arrives, new password works, the old one does not, and an old link says "expired"
-- [ ] 4.8 Messaging between student and counsellor
+- [x] 4.8 Messaging between student and counsellor — Dashboard → Messages
+  - One conversation per student, between the student and NRC staff (uses the existing `Message` table; no migration)
+  - Student: Messages page with their thread and the counsellor's name; opening it marks staff replies read
+  - Staff (Students permission; "View only" can read, "Can edit" can reply): inbox newest first, "My students and unassigned" or "All", unread counts; conversation page links to the student record; the student record links to Messages
+  - Menu shows an unread count (students: replies; staff: messages from their students and students with no counsellor). It refreshes on the next page load or after sending
+  - Email: student writes → their counsellor (or `EMAIL_STAFF_ALERTS`); staff write → the student. Only the first unread message in a burst sends an email
+  - Up to 2,000 characters; 30 messages per 10 minutes per person
+  - Agents are not part of conversations
+  - Test checklist:
+    - [ ] As a student, send a message: it shows on the right; the counsellor sees an unread count in the menu
+    - [ ] As the counsellor, open it from Messages: the count clears; reply: the student sees it and their menu shows 1
+    - [ ] Send three messages in a row: only one email arrives
+    - [ ] Staff with Students "View only": can read, no reply box; with "None": no Messages menu item
+    - [ ] Open a student record → Messages: you can start a conversation with a student who has not written
+- [x] Dashboard "About this page": a button in the top bar opens a panel explaining the current screen (text in `src/lib/page-help.ts`, per role where pages differ; add an entry with each new dashboard page)
 - [ ] 4.9 Follow-up reminders
 - [ ] 4.10 CSV export and activity log
 

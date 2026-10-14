@@ -143,6 +143,46 @@ const entries: Entry[] = [
     },
   },
   {
+    path: at(`/messages/${id}`),
+    help: {
+      title: "Conversation",
+      summary: "Messages between NRC and one student.",
+      points: [
+        "Opening the conversation marks the student's messages as read.",
+        "The student sees your name and is emailed when you write (one email per batch of unread messages).",
+        "Any staff member with access to students can read it; use internal notes on the student record for anything the student must not see.",
+      ],
+    },
+  },
+  {
+    path: at("/messages"),
+    help: {
+      STUDENT: {
+        title: "Messages",
+        summary: "Write to your NRC counsellor about your applications.",
+        points: ["Your counsellor is emailed when you write, and you are emailed when they reply.", "For documents, use the Documents page rather than sending them here."],
+      },
+      ADMIN: {
+        title: "Messages",
+        summary: "Conversations with students, newest first.",
+        points: [
+          "The first view shows your students and students with no counsellor; All shows everyone's.",
+          "The number in the menu counts unread messages from those students.",
+          "To message a student who has not written yet, open their record and choose Messages.",
+        ],
+      },
+      STAFF: {
+        title: "Messages",
+        summary: "Conversations with students, newest first.",
+        points: [
+          "The first view shows your students and students with no counsellor; All shows everyone's.",
+          "The number in the menu counts unread messages from those students.",
+          "To message a student who has not written yet, open their record and choose Messages.",
+        ],
+      },
+    },
+  },
+  {
     path: at("/agents"),
     help: {
       title: "Agents",

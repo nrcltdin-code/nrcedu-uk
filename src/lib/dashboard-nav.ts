@@ -1,10 +1,11 @@
 import "server-only";
 import type { IconName } from "@/components/ui/icon";
 import type { PermissionModule, Role } from "@/generated/prisma/client";
+import { staffUnreadCount, studentUnreadCount } from "@/lib/messages";
 import { can } from "@/lib/session";
 import type { CurrentUser } from "@/lib/session";
 
-export type NavItem = { label: string; href: string; icon: IconName; soon?: boolean };
+export type NavItem = { label: string; href: string; icon: IconName; soon?: boolean; badge?: number };
 export type NavGroup = { label: string; items: NavItem[] };
 
 type Entry = NavItem & { roles: Role[]; module?: PermissionModule; action?: "view" | "edit" };
@@ -29,7 +30,7 @@ const groups: { label: string; entries: Entry[] }[] = [
       { label: "My applications", href: "/dashboard/my-applications", icon: "document", roles: ["STUDENT"] },
       { label: "My profile", href: "/dashboard/profile", icon: "users", roles: ["STUDENT"] },
       { label: "Documents", href: "/dashboard/documents", icon: "document", roles: ["STUDENT"] },
-      { label: "Messages", href: "/dashboard/messages", icon: "chat", roles: ["STAFF", "STUDENT"], soon: true },
+      { label: "Messages", href: "/dashboard/messages", icon: "chat", roles: ["ADMIN", "STAFF", "STUDENT"], module: "STUDENTS" },
       { label: "Agents", href: "/dashboard/agents", icon: "briefcase", roles: staff, module: "AGENTS" },
       { label: "Commission", href: "/dashboard/commissions", icon: "coins", roles: staff, module: "COMMISSIONS" },
     ],
@@ -65,6 +66,11 @@ export async function getDashboardNav(user: CurrentUser): Promise<NavGroup[]> {
       if (!roles.includes(user.role)) continue;
       // Module limits apply to staff; agents and students only ever see their own records.
       if (module && (user.role === "ADMIN" || user.role === "STAFF") && !(await can(user, module, action))) continue;
+      if (item.href === "/dashboard/messages") {
+        const unread = user.role === "STUDENT" ? await studentUnreadCount(user.id) : await staffUnreadCount(user.id);
+        items.push(unread ? { ...item, badge: unread } : item);
+        continue;
+      }
       items.push(item);
     }
     if (items.length) result.push({ label: group.label, items });
