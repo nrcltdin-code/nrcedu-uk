@@ -1,26 +1,235 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  --color-brand-50: #eff6fc;
+  --color-brand-100: #dbeaf7;
+  --color-brand-200: #b9d6ef;
+  --color-brand-300: #8abbe2;
+  --color-brand-400: #5499d1;
+  --color-brand-500: #2f7bbd;
+  --color-brand-600: #1b5e9e;
+  --color-brand-700: #174c80;
+  --color-brand-800: #153f69;
+  --color-brand-900: #123453;
+
+  --color-deep-500: #17677f;
+  --color-deep-600: #0f4c63;
+  --color-deep-700: #0c3d50;
+  --color-deep-900: #082a38;
+
+  --color-accent-400: #fbbf24;
+  --color-accent-500: #f59e0b;
+  --color-accent-600: #d97706;
+
+  --color-ink: #0e2433;
+  --color-muted: #4a6072;
+  --color-surface: #eef4f9;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-inter);
+  --font-display: var(--font-jakarta);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  background: var(--color-surface);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  color: var(--color-ink);
+  font-family: var(--font-sans), system-ui, sans-serif;
+}
+
+/* Soft colour fields behind the page; glass surfaces need something to blur. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(46rem 40rem at 5% -5%, rgb(56 189 248 / 0.5), transparent 62%),
+    radial-gradient(40rem 38rem at 100% 8%, rgb(129 140 248 / 0.38), transparent 62%),
+    radial-gradient(38rem 34rem at 0% 70%, rgb(45 212 191 / 0.28), transparent 62%),
+    radial-gradient(40rem 36rem at 95% 100%, rgb(251 191 36 / 0.3), transparent 62%);
+}
+
+/* Gradient-coloured text for the highlighted words in headings and for key numbers. */
+@utility text-gradient {
+  background-image: linear-gradient(90deg, var(--color-brand-600), #06b6d4 55%, #6366f1);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+@utility text-gradient-warm {
+  background-image: linear-gradient(90deg, var(--color-accent-400), #fb923c 60%, #f472b6);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Colour washes placed behind a section so its glass cards pick up colour. */
+@utility tint-sky {
+  background-image:
+    radial-gradient(40rem 26rem at 12% 25%, rgb(56 189 248 / 0.32), transparent 65%),
+    radial-gradient(34rem 26rem at 92% 80%, rgb(129 140 248 / 0.28), transparent 65%);
+}
+
+@utility tint-amber {
+  background-image:
+    radial-gradient(38rem 26rem at 88% 20%, rgb(251 191 36 / 0.3), transparent 65%),
+    radial-gradient(36rem 26rem at 8% 85%, rgb(56 189 248 / 0.28), transparent 65%);
+}
+
+@utility tint-violet {
+  background-image:
+    radial-gradient(40rem 26rem at 85% 30%, rgb(167 139 250 / 0.3), transparent 65%),
+    radial-gradient(34rem 26rem at 10% 75%, rgb(45 212 191 / 0.28), transparent 65%);
+}
+
+/* Vivid dark band: blue through indigo with bright highlights, for glass-dark cards. */
+@utility bg-vivid {
+  background:
+    radial-gradient(34rem 26rem at 10% 0%, rgb(34 211 238 / 0.45), transparent 62%),
+    radial-gradient(32rem 26rem at 95% 100%, rgb(251 191 36 / 0.3), transparent 62%),
+    radial-gradient(30rem 24rem at 70% 10%, rgb(192 132 252 / 0.35), transparent 62%),
+    linear-gradient(125deg, var(--color-deep-700), var(--color-brand-600) 50%, #4f46e5);
+}
+
+/* Horizontal swipe row without a visible scrollbar. */
+@utility no-scrollbar {
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-display), system-ui, sans-serif;
+}
+
+/* Default glass: cards, header, forms on light backgrounds. */
+@utility glass {
+  background: rgb(255 255 255 / 0.55);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  backdrop-filter: blur(16px) saturate(160%);
+  border: 1px solid rgb(255 255 255 / 0.65);
+  box-shadow:
+    0 8px 32px rgb(18 52 83 / 0.1),
+    inset 0 1px 0 rgb(255 255 255 / 0.7);
+}
+
+/* More opaque glass for dense content such as tables and long forms. */
+@utility glass-solid {
+  background: rgb(255 255 255 / 0.8);
+  -webkit-backdrop-filter: blur(10px) saturate(140%);
+  backdrop-filter: blur(10px) saturate(140%);
+  border: 1px solid rgb(255 255 255 / 0.8);
+  box-shadow: 0 4px 20px rgb(18 52 83 / 0.08);
+}
+
+/* Glass on dark sections: hero, footer, sidebar. */
+@utility glass-dark {
+  background: rgb(255 255 255 / 0.1);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  backdrop-filter: blur(16px) saturate(160%);
+  border: 1px solid rgb(255 255 255 / 0.2);
+  box-shadow:
+    0 8px 32px rgb(8 42 56 / 0.3),
+    inset 0 1px 0 rgb(255 255 255 / 0.15);
+}
+
+/* Dark gradient backdrop for sections that hold glass-dark surfaces. */
+@utility bg-deep {
+  background:
+    radial-gradient(34rem 34rem at 85% 0%, rgb(56 189 248 / 0.5), transparent 60%),
+    radial-gradient(30rem 30rem at 0% 100%, rgb(251 191 36 / 0.26), transparent 60%),
+    radial-gradient(26rem 26rem at 45% 110%, rgb(129 140 248 / 0.35), transparent 60%),
+    linear-gradient(120deg, var(--color-deep-700), var(--color-brand-700));
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .glass,
+  .glass-solid {
+    background: #ffffff;
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  .glass-dark {
+    background: var(--color-deep-700);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
+/* Panel that slides in from the right; see components/ui/drawer.tsx. */
+dialog.drawer {
+  position: fixed;
+  inset: 0 0 0 auto;
+  margin: 0;
+  width: min(28rem, 100vw);
+  max-width: none;
+  height: 100dvh;
+  max-height: none;
+  transform: translateX(100%);
+  will-change: transform;
+  transition:
+    transform 0.25s ease-out,
+    overlay 0.25s allow-discrete,
+    display 0.25s allow-discrete;
+}
+
+dialog.drawer[open] {
+  transform: translateX(0);
+}
+
+dialog.drawer::backdrop {
+  background: rgb(8 42 56 / 0);
+  transition:
+    background 0.25s ease-out,
+    overlay 0.25s allow-discrete,
+    display 0.25s allow-discrete;
+}
+
+/* Plain dim, no blur: blurring the whole page behind a moving panel is what made it lag. */
+dialog.drawer[open]::backdrop {
+  background: rgb(8 42 56 / 0.5);
+}
+
+@starting-style {
+  dialog.drawer[open] {
+    transform: translateX(100%);
+  }
+
+  dialog.drawer[open]::backdrop {
+    background: rgb(8 42 56 / 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  dialog.drawer,
+  dialog.drawer::backdrop {
+    transition: none;
+  }
+}
+
+/* Slim scrollbar for panels such as the dashboard sidebar. */
+@utility scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(255 255 255 / 0.25) transparent;
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: rgb(255 255 255 / 0.25);
+    border-radius: 9999px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
 }

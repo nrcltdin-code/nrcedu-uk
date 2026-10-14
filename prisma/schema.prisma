@@ -1,0 +1,751 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ───────────────────────────── Accounts ─────────────────────────────
+
+enum Role {
+  ADMIN
+  STAFF
+  AGENT
+  STUDENT
+}
+
+enum UserStatus {
+  ACTIVE
+  PENDING
+  SUSPENDED
+}
+
+enum PermissionModule {
+  LEADS
+  STUDENTS
+  APPLICATIONS
+  AGENTS
+  COMMISSIONS
+  CONTENT
+  USERS
+  SETTINGS
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model User {
+  id           String     @id @default(cuid())
+  name         String
+  email        String     @unique
+  emailVerified Boolean   @default(false)
+  phone        String?
+  image        String?
+  role         Role       @default(STUDENT)
+  status       UserStatus @default(ACTIVE)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  sessions         Session[]
+  accounts         Account[]
+  staffPermissions StaffPermission[]
+  agentProfile     AgentProfile?
+  studentProfile   StudentProfile?
+
+  approvedAgents       AgentProfile[]            @relation("AgentApprovedBy")
+  counselledStudents   StudentProfile[]          @relation("StudentCounsellor")
+  assignedLeads        Lead[]                    @relation("LeadAssignedStaff")
+  assignedApplications Application[]             @relation("ApplicationAssignedStaff")
+  submittedApps        Application[]             @relation("ApplicationSubmittedBy")
+  stageChanges         ApplicationStageHistory[]
+  uploadedDocuments    Document[]                @relation("DocumentUploadedBy")
+  reviewedDocuments    Document[]                @relation("DocumentReviewedBy")
+  notes                Note[]
+  messages             Message[]
+  reminders            Reminder[]
+  countryAssignments   CountryAssignment[]
+  blogPosts            BlogPost[]
+  activityLogs         ActivityLog[]
+  uploads              Upload[]
+
+  @@index([role, status])
+}
+
+// Session, Account and Verification follow the shape Better Auth expects.
+// Passwords are stored hashed on Account (providerId "credential"), not on User.
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Account {
+  id                    String    @id @default(cuid())
+  userId                String
+  accountId             String
+  providerId            String
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Verification {
+  id         String   @id @default(cuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+}
+
+// Staff see everything by default; a row here overrides access for one module.
+model StaffPermission {
+  id      String           @id @default(cuid())
+  userId  String
+  module  PermissionModule
+  canView Boolean          @default(true)
+  canEdit Boolean          @default(true)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, module])
+}
+
+// NRC's own sub-agents, who refer students from the country they operate in.
+model AgentProfile {
+  id             String         @id @default(cuid())
+  userId         String         @unique
+  companyName    String?
+  countryId      String?
+  phone          String?
+  address        String?
+  about          String?
+  approvalStatus ApprovalStatus @default(PENDING)
+  approvedById   String?
+  approvedAt     DateTime?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  country    Country? @relation(fields: [countryId], references: [id], onDelete: SetNull)
+  approvedBy User?    @relation("AgentApprovedBy", fields: [approvedById], references: [id], onDelete: SetNull)
+
+  students           StudentProfile[]
+  applications       Application[]
+  leads              Lead[]
+  commissions        Commission[]
+  countryAssignments CountryAssignment[]
+
+  @@index([countryId])
+  @@index([approvalStatus])
+}
+
+// ───────────────────────────── Students ─────────────────────────────
+
+enum StudyLevel {
+  FOUNDATION
+  DIPLOMA
+  UNDERGRADUATE
+  POSTGRADUATE
+  PHD
+  OTHER
+}
+
+enum DocumentType {
+  PASSPORT
+  PHOTO
+  TRANSCRIPT
+  CERTIFICATE
+  ENGLISH_TEST
+  SOP
+  RECOMMENDATION_LETTER
+  CV
+  FINANCIAL
+  OFFER_LETTER
+  CAS
+  VISA
+  OTHER
+}
+
+enum DocumentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model StudentProfile {
+  id             String    @id @default(cuid())
+  userId         String    @unique
+  dateOfBirth    DateTime? @db.Date
+  gender         String?
+  nationality    String?
+  passportNumber String?
+  passportExpiry DateTime? @db.Date
+  phone          String?
+  address        String?
+  countryId      String?
+  counsellorId   String?
+  agentId        String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  user       User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  country    Country?      @relation(fields: [countryId], references: [id], onDelete: SetNull)
+  counsellor User?         @relation("StudentCounsellor", fields: [counsellorId], references: [id], onDelete: SetNull)
+  agent      AgentProfile? @relation(fields: [agentId], references: [id], onDelete: SetNull)
+
+  educationRecords EducationRecord[]
+  testScores       TestScore[]
+  documents        Document[]
+  applications     Application[]
+  notes            Note[]
+  messages         Message[]
+  reminders        Reminder[]
+  lead             Lead?
+
+  @@index([counsellorId])
+  @@index([agentId])
+  @@index([countryId])
+}
+
+model EducationRecord {
+  id            String     @id @default(cuid())
+  studentId     String
+  level         StudyLevel
+  institution   String
+  fieldOfStudy  String?
+  result        String?
+  yearCompleted Int?
+
+  student StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([studentId])
+}
+
+model TestScore {
+  id        String    @id @default(cuid())
+  studentId String
+  test      String
+  score     String
+  takenAt   DateTime? @db.Date
+
+  student StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([studentId])
+}
+
+model Document {
+  id            String         @id @default(cuid())
+  studentId     String
+  applicationId String?
+  type          DocumentType
+  name          String
+  fileUrl       String
+  fileKey       String?
+  status        DocumentStatus @default(PENDING)
+  reviewNote    String?
+  uploadedById  String?
+  reviewedById  String?
+  reviewedAt    DateTime?
+  createdAt     DateTime       @default(now())
+
+  student     StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  application Application?   @relation(fields: [applicationId], references: [id], onDelete: SetNull)
+  uploadedBy  User?          @relation("DocumentUploadedBy", fields: [uploadedById], references: [id], onDelete: SetNull)
+  reviewedBy  User?          @relation("DocumentReviewedBy", fields: [reviewedById], references: [id], onDelete: SetNull)
+
+  @@index([studentId])
+  @@index([applicationId])
+}
+
+// ─────────────────────────────── CRM ────────────────────────────────
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  QUALIFIED
+  CONVERTED
+  LOST
+}
+
+enum LeadSource {
+  CONSULTATION_FORM
+  CONTACT_FORM
+  START_YOUR_JOURNEY
+  AGENT
+  MANUAL
+}
+
+enum ApplicationStage {
+  NEW
+  DOCUMENTS_PENDING
+  SUBMITTED_TO_UNIVERSITY
+  OFFER_RECEIVED
+  DEPOSIT_CAS
+  VISA_APPLIED
+  VISA_GRANTED
+  VISA_REFUSED
+  ENROLLED
+  WITHDRAWN
+}
+
+enum CommissionDirection {
+  UNIVERSITY_TO_NRC
+  NRC_TO_AGENT
+}
+
+enum CommissionStatus {
+  PENDING
+  SETTLED
+  CANCELLED
+}
+
+model Lead {
+  id                   String      @id @default(cuid())
+  name                 String
+  email                String
+  phone                String?
+  countryId            String?
+  destinationCountryId String?
+  studyLevel           StudyLevel?
+  message              String?
+  source               LeadSource  @default(CONSULTATION_FORM)
+  status               LeadStatus  @default(NEW)
+  assignedStaffId      String?
+  assignedAgentId      String?
+  studentId            String?     @unique
+  createdAt            DateTime    @default(now())
+  updatedAt            DateTime    @updatedAt
+
+  // country: where the lead lives (used for routing); destination: where they want to study.
+  country       Country?        @relation("LeadCountry", fields: [countryId], references: [id], onDelete: SetNull)
+  destination   Country?        @relation("LeadDestination", fields: [destinationCountryId], references: [id], onDelete: SetNull)
+  assignedStaff User?           @relation("LeadAssignedStaff", fields: [assignedStaffId], references: [id], onDelete: SetNull)
+  assignedAgent AgentProfile?   @relation(fields: [assignedAgentId], references: [id], onDelete: SetNull)
+  student       StudentProfile? @relation(fields: [studentId], references: [id], onDelete: SetNull)
+
+  notes     Note[]
+  reminders Reminder[]
+
+  @@index([status])
+  @@index([assignedStaffId])
+  @@index([assignedAgentId])
+  @@index([countryId])
+}
+
+// Default owner for new leads from a country; admin can still reassign each lead.
+model CountryAssignment {
+  id        String  @id @default(cuid())
+  countryId String  @unique
+  staffId   String?
+  agentId   String?
+
+  country Country       @relation(fields: [countryId], references: [id], onDelete: Cascade)
+  staff   User?         @relation(fields: [staffId], references: [id], onDelete: SetNull)
+  agent   AgentProfile? @relation(fields: [agentId], references: [id], onDelete: SetNull)
+}
+
+model Application {
+  id              String           @id @default(cuid())
+  studentId       String
+  courseId        String
+  intakeId        String?
+  stage           ApplicationStage @default(NEW)
+  assignedStaffId String?
+  agentId         String?
+  submittedById   String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  student       StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  course        Course         @relation(fields: [courseId], references: [id], onDelete: Restrict)
+  intake        Intake?        @relation(fields: [intakeId], references: [id], onDelete: SetNull)
+  assignedStaff User?          @relation("ApplicationAssignedStaff", fields: [assignedStaffId], references: [id], onDelete: SetNull)
+  agent         AgentProfile?  @relation(fields: [agentId], references: [id], onDelete: SetNull)
+  submittedBy   User?          @relation("ApplicationSubmittedBy", fields: [submittedById], references: [id], onDelete: SetNull)
+
+  stageHistory ApplicationStageHistory[]
+  documents    Document[]
+  notes        Note[]
+  reminders    Reminder[]
+  commissions  Commission[]
+
+  @@index([studentId])
+  @@index([courseId])
+  @@index([stage])
+  @@index([assignedStaffId])
+  @@index([agentId])
+}
+
+model ApplicationStageHistory {
+  id            String           @id @default(cuid())
+  applicationId String
+  stage         ApplicationStage
+  note          String?
+  changedById   String?
+  createdAt     DateTime         @default(now())
+
+  application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  changedBy   User?       @relation(fields: [changedById], references: [id], onDelete: SetNull)
+
+  @@index([applicationId])
+}
+
+// Internal staff note attached to a lead, a student or an application.
+model Note {
+  id            String   @id @default(cuid())
+  authorId      String?
+  body          String
+  leadId        String?
+  studentId     String?
+  applicationId String?
+  createdAt     DateTime @default(now())
+
+  author      User?           @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  lead        Lead?           @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  student     StudentProfile? @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  application Application?    @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@index([leadId])
+  @@index([studentId])
+  @@index([applicationId])
+}
+
+// One conversation thread per student, between the student and NRC staff.
+model Message {
+  id        String    @id @default(cuid())
+  studentId String
+  senderId  String?
+  body      String
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  student StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  sender  User?          @relation(fields: [senderId], references: [id], onDelete: SetNull)
+
+  @@index([studentId, createdAt])
+}
+
+model Reminder {
+  id            String    @id @default(cuid())
+  staffId       String
+  text          String
+  dueAt         DateTime
+  doneAt        DateTime?
+  leadId        String?
+  studentId     String?
+  applicationId String?
+  createdAt     DateTime  @default(now())
+
+  staff       User            @relation(fields: [staffId], references: [id], onDelete: Cascade)
+  lead        Lead?           @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  student     StudentProfile? @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  application Application?    @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@index([staffId, dueAt])
+}
+
+// UNIVERSITY_TO_NRC: income NRC earns from the university.
+// NRC_TO_AGENT: payout NRC owes the referring sub-agent (agentId set).
+model Commission {
+  id            String              @id @default(cuid())
+  applicationId String
+  direction     CommissionDirection
+  agentId       String?
+  ratePercent   Decimal?            @db.Decimal(5, 2)
+  amount        Decimal             @db.Decimal(12, 2)
+  currency      String              @default("GBP")
+  status        CommissionStatus    @default(PENDING)
+  settledAt     DateTime?
+  note          String?
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+
+  application Application   @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  agent       AgentProfile? @relation(fields: [agentId], references: [id], onDelete: SetNull)
+
+  @@index([applicationId])
+  @@index([agentId])
+  @@index([direction, status])
+}
+
+model ActivityLog {
+  id         String   @id @default(cuid())
+  userId     String?
+  action     String
+  entityType String
+  entityId   String?
+  meta       Json?
+  createdAt  DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([entityType, entityId])
+  @@index([createdAt])
+}
+
+// ───────────────────────── Website content ──────────────────────────
+
+enum PostStatus {
+  DRAFT
+  PUBLISHED
+}
+
+// Both study destinations (isDestination) and the countries students and agents come from.
+model Country {
+  id            String   @id @default(cuid())
+  name          String   @unique
+  slug          String   @unique
+  isoCode       String?  @unique
+  flagUrl       String?
+  imageUrl      String?
+  description   String?
+  isDestination Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  universities     University[]
+  agents           AgentProfile[]
+  students         StudentProfile[]
+  leads            Lead[]             @relation("LeadCountry")
+  destinationLeads Lead[]             @relation("LeadDestination")
+  assignment       CountryAssignment?
+}
+
+model University {
+  id                  String   @id @default(cuid())
+  name                String
+  slug                String   @unique
+  countryId           String
+  city                String?
+  logoUrl             String?
+  coverUrl            String?
+  description         String?
+  website             String?
+  ranking             Int?
+  isOfficialPartner   Boolean  @default(false)
+  isFeatured          Boolean  @default(false)
+  isPublished         Boolean  @default(false)
+  // Internal only; never send these to public pages.
+  nrcCommissionRate   Decimal? @db.Decimal(5, 2)
+  agentCommissionRate Decimal? @db.Decimal(5, 2)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  country Country  @relation(fields: [countryId], references: [id], onDelete: Restrict)
+  courses Course[]
+  intakes Intake[]
+
+  @@index([countryId])
+  @@index([isPublished])
+}
+
+model Subject {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  slug        String   @unique
+  description String?
+  imageUrl    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  courses Course[]
+}
+
+model Course {
+  id                String     @id @default(cuid())
+  universityId      String
+  subjectId         String?
+  name              String
+  slug              String
+  level             StudyLevel
+  durationMonths    Int?
+  tuitionFee        Decimal?   @db.Decimal(12, 2)
+  currency          String     @default("GBP")
+  description       String?
+  entryRequirements String?
+  isPublished       Boolean    @default(false)
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
+
+  university   University    @relation(fields: [universityId], references: [id], onDelete: Cascade)
+  subject      Subject?      @relation(fields: [subjectId], references: [id], onDelete: SetNull)
+  intakes      Intake[]
+  applications Application[]
+
+  @@unique([universityId, slug])
+  @@index([subjectId])
+  @@index([level])
+}
+
+// courseId empty means the intake applies to every course at the university.
+model Intake {
+  id                  String    @id @default(cuid())
+  universityId        String
+  courseId            String?
+  name                String
+  startDate           DateTime  @db.Date
+  applicationDeadline DateTime? @db.Date
+  isOpen              Boolean   @default(true)
+
+  university   University    @relation(fields: [universityId], references: [id], onDelete: Cascade)
+  course       Course?       @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  applications Application[]
+
+  @@index([universityId])
+  @@index([courseId])
+  @@index([startDate])
+}
+
+// NRC's own offices, shown on the contact and home pages.
+model Office {
+  id           String   @id @default(cuid())
+  name         String
+  city         String
+  country      String
+  address      String
+  phone        String?
+  email        String?
+  openingHours String?
+  mapUrl       String?
+  imageUrl     String?
+  isHeadOffice Boolean  @default(false)
+  sortOrder    Int      @default(0)
+  isPublished  Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([isPublished, sortOrder])
+}
+
+// Slides in the home page hero slider, managed from the admin panel.
+model HeroSlide {
+  id          String   @id @default(cuid())
+  title       String
+  subtitle    String?
+  imageUrl    String?
+  buttonLabel String?
+  buttonHref  String?
+  sortOrder   Int      @default(0)
+  isPublished Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([isPublished, sortOrder])
+}
+
+model TestPrepPage {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  summary     String?
+  content     String?
+  imageUrl    String?
+  sortOrder   Int      @default(0)
+  isPublished Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model BlogPost {
+  id          String     @id @default(cuid())
+  title       String
+  slug        String     @unique
+  excerpt     String?
+  content     String
+  coverUrl    String?
+  status      PostStatus @default(DRAFT)
+  publishedAt DateTime?
+  authorId    String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  author User? @relation(fields: [authorId], references: [id], onDelete: SetNull)
+
+  @@index([status, publishedAt])
+}
+
+model Testimonial {
+  id          String   @id @default(cuid())
+  name        String
+  photoUrl    String?
+  headline    String?
+  quote       String
+  rating      Int?
+  sortOrder   Int      @default(0)
+  isPublished Boolean  @default(false)
+  createdAt   DateTime @default(now())
+}
+
+// Logos for the "partnered with" strip that are not universities in the catalogue.
+model Partner {
+  id          String  @id @default(cuid())
+  name        String
+  logoUrl     String?
+  website     String?
+  sortOrder   Int     @default(0)
+  isPublished Boolean @default(true)
+}
+
+model Faq {
+  id          String  @id @default(cuid())
+  question    String
+  answer      String
+  category    String?
+  sortOrder   Int     @default(0)
+  isPublished Boolean @default(true)
+}
+
+// Key/value store: contact details, social links, menus, home page figures.
+model SiteSetting {
+  key       String   @id
+  value     Json
+  updatedAt DateTime @updatedAt
+}
+
+// ───────────────────────────── Files ─────────────────────────────
+
+// Every file stored in object storage. Used for auditing, per-user rate limits and,
+// later, cleaning up files nothing points to any more.
+model Upload {
+  id           String   @id @default(cuid())
+  key          String   @unique
+  url          String
+  contentType  String
+  size         Int
+  width        Int?
+  height       Int?
+  originalName String?
+  uploadedById String?
+  createdAt    DateTime @default(now())
+
+  uploadedBy User? @relation(fields: [uploadedById], references: [id], onDelete: SetNull)
+
+  @@index([uploadedById, createdAt])
+}

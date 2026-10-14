@@ -1,0 +1,220 @@
+"use client";
+
+import { useActionState } from "react";
+import Link from "next/link";
+import { Checkbox, FormMessage } from "@/components/dashboard/form-bits";
+import { ImageField } from "@/components/dashboard/image-field";
+import { Button, buttonStyles } from "@/components/ui/button";
+import { Input, Label, Select, Textarea } from "@/components/ui/field";
+import type { FormState } from "@/lib/form";
+import { addIntake, saveCourse, saveUniversity } from "./actions";
+
+type Option = { id: string; name: string };
+
+// Decimals arrive as strings: Prisma's Decimal cannot be passed to the browser.
+export type UniversityValues = {
+  id: string;
+  name: string;
+  slug: string;
+  countryId: string;
+  city: string | null;
+  website: string | null;
+  description: string | null;
+  logoUrl: string | null;
+  coverUrl: string | null;
+  ranking: number | null;
+  nrcCommissionRate: string | null;
+  agentCommissionRate: string | null;
+  isOfficialPartner: boolean;
+  isFeatured: boolean;
+  isPublished: boolean;
+};
+
+export function UniversityForm({ university, countries }: { university: UniversityValues | null; countries: Option[] }) {
+  const [state, action, pending] = useActionState<FormState, FormData>(saveUniversity, {});
+
+  return (
+    <form action={action} className="grid gap-4">
+      {university && <input type="hidden" name="id" value={university.id} />}
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div>
+          <Label htmlFor="uni-name">Name</Label>
+          <Input id="uni-name" name="name" defaultValue={university?.name} maxLength={150} required />
+        </div>
+        <div>
+          <Label htmlFor="uni-slug">Web address</Label>
+          <Input id="uni-slug" name="slug" defaultValue={university?.slug} placeholder="Made from the name if left empty" />
+        </div>
+        <div>
+          <Label htmlFor="uni-country">Country</Label>
+          <Select id="uni-country" name="countryId" defaultValue={university?.countryId ?? ""} required>
+            <option value="" disabled>Choose…</option>
+            {countries.map((country) => <option key={country.id} value={country.id}>{country.name}</option>)}
+          </Select>
+        </div>
+        <div>
+          <Label htmlFor="uni-city">City</Label>
+          <Input id="uni-city" name="city" defaultValue={university?.city ?? ""} maxLength={100} />
+        </div>
+        <div>
+          <Label htmlFor="uni-website">Website</Label>
+          <Input id="uni-website" name="website" type="url" defaultValue={university?.website ?? ""} placeholder="https://…" />
+        </div>
+        <div>
+          <Label htmlFor="uni-ranking">World ranking</Label>
+          <Input id="uni-ranking" name="ranking" type="number" min={1} defaultValue={university?.ranking ?? ""} />
+        </div>
+      </div>
+      <div>
+        <Label htmlFor="uni-description">Description</Label>
+        <Textarea id="uni-description" name="description" defaultValue={university?.description ?? ""} maxLength={10000} className="min-h-40" />
+      </div>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <ImageField name="logoUrl" label="Logo" defaultValue={university?.logoUrl} fit="contain" />
+        <ImageField name="coverUrl" label="Cover image" defaultValue={university?.coverUrl} />
+      </div>
+
+      <fieldset className="rounded-2xl border border-brand-900/10 p-4">
+        <legend className="px-1 text-sm font-semibold">Commission (staff only, never shown on the website)</legend>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <Label htmlFor="uni-nrc-rate">University pays NRC (%)</Label>
+            <Input id="uni-nrc-rate" name="nrcCommissionRate" type="number" min={0} max={100} step="0.01" defaultValue={university?.nrcCommissionRate ?? ""} />
+          </div>
+          <div>
+            <Label htmlFor="uni-agent-rate">NRC pays sub-agent (%)</Label>
+            <Input id="uni-agent-rate" name="agentCommissionRate" type="number" min={0} max={100} step="0.01" defaultValue={university?.agentCommissionRate ?? ""} />
+          </div>
+        </div>
+      </fieldset>
+
+      <div className="grid gap-3 sm:grid-cols-3">
+        <Checkbox name="isPublished" defaultChecked={university?.isPublished ?? true}>Show on the website</Checkbox>
+        <Checkbox name="isFeatured" defaultChecked={university?.isFeatured}>Feature on the home page</Checkbox>
+        <Checkbox name="isOfficialPartner" defaultChecked={university?.isOfficialPartner}>NRC is official representative</Checkbox>
+      </div>
+
+      <FormMessage state={state} />
+      <Button type="submit" disabled={pending} className="justify-self-start">
+        {pending ? "Saving…" : university ? "Save changes" : "Add university"}
+      </Button>
+    </form>
+  );
+}
+
+export type CourseValues = {
+  id: string;
+  name: string;
+  slug: string;
+  subjectId: string | null;
+  level: string;
+  durationMonths: number | null;
+  tuitionFee: string | null;
+  currency: string;
+  description: string | null;
+  entryRequirements: string | null;
+  isPublished: boolean;
+};
+
+type CourseFormProps = {
+  universityId: string;
+  course: CourseValues | null;
+  subjects: Option[];
+  levels: { value: string; label: string }[];
+};
+
+export function CourseForm({ universityId, course, subjects, levels }: CourseFormProps) {
+  const [state, action, pending] = useActionState<FormState, FormData>(saveCourse, {});
+
+  return (
+    <form action={action} className="grid gap-4">
+      <input type="hidden" name="universityId" value={universityId} />
+      {course && <input type="hidden" name="id" value={course.id} />}
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div>
+          <Label htmlFor="course-name">Course name</Label>
+          <Input id="course-name" name="name" defaultValue={course?.name} maxLength={200} required />
+        </div>
+        <div>
+          <Label htmlFor="course-slug">Web address</Label>
+          <Input id="course-slug" name="slug" defaultValue={course?.slug} placeholder="Made from the name if left empty" />
+        </div>
+        <div>
+          <Label htmlFor="course-level">Level</Label>
+          <Select id="course-level" name="level" defaultValue={course?.level ?? ""} required>
+            <option value="" disabled>Choose…</option>
+            {levels.map((level) => <option key={level.value} value={level.value}>{level.label}</option>)}
+          </Select>
+        </div>
+        <div>
+          <Label htmlFor="course-subject">Subject</Label>
+          <Select id="course-subject" name="subjectId" defaultValue={course?.subjectId ?? ""}>
+            <option value="">None</option>
+            {subjects.map((subject) => <option key={subject.id} value={subject.id}>{subject.name}</option>)}
+          </Select>
+        </div>
+        <div>
+          <Label htmlFor="course-duration">Duration (months)</Label>
+          <Input id="course-duration" name="durationMonths" type="number" min={1} max={120} defaultValue={course?.durationMonths ?? ""} />
+        </div>
+        <div className="grid grid-cols-[1fr_6rem] gap-2">
+          <div>
+            <Label htmlFor="course-fee">Tuition fee per year</Label>
+            <Input id="course-fee" name="tuitionFee" type="number" min={0} step="0.01" defaultValue={course?.tuitionFee ?? ""} />
+          </div>
+          <div>
+            <Label htmlFor="course-currency">Currency</Label>
+            <Input id="course-currency" name="currency" defaultValue={course?.currency ?? "GBP"} maxLength={3} />
+          </div>
+        </div>
+      </div>
+      <div>
+        <Label htmlFor="course-description">Description</Label>
+        <Textarea id="course-description" name="description" defaultValue={course?.description ?? ""} maxLength={10000} />
+      </div>
+      <div>
+        <Label htmlFor="course-entry">Entry requirements</Label>
+        <Textarea id="course-entry" name="entryRequirements" defaultValue={course?.entryRequirements ?? ""} maxLength={5000} />
+      </div>
+      <Checkbox name="isPublished" defaultChecked={course?.isPublished ?? true}>Show on the website</Checkbox>
+      <FormMessage state={state} />
+      <div className="flex gap-3">
+        <Button type="submit" disabled={pending}>{pending ? "Saving…" : course ? "Save course" : "Add course"}</Button>
+        <Link href={`/dashboard/universities/${universityId}#courses`} className={buttonStyles({ variant: "ghost" })}>Cancel</Link>
+      </div>
+    </form>
+  );
+}
+
+export function IntakeForm({ universityId, courses }: { universityId: string; courses: Option[] }) {
+  const [state, action, pending] = useActionState<FormState, FormData>(addIntake, {});
+
+  return (
+    <form action={action} className="grid gap-4">
+      <input type="hidden" name="universityId" value={universityId} />
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div>
+          <Label htmlFor="intake-name">Name</Label>
+          <Input id="intake-name" name="name" placeholder="September 2027" maxLength={60} required />
+        </div>
+        <div>
+          <Label htmlFor="intake-course">Course</Label>
+          <Select id="intake-course" name="courseId" defaultValue="">
+            <option value="">All courses</option>
+            {courses.map((course) => <option key={course.id} value={course.id}>{course.name}</option>)}
+          </Select>
+        </div>
+        <div>
+          <Label htmlFor="intake-start">Starts</Label>
+          <Input id="intake-start" name="startDate" type="date" required />
+        </div>
+        <div>
+          <Label htmlFor="intake-deadline">Application deadline</Label>
+          <Input id="intake-deadline" name="applicationDeadline" type="date" />
+        </div>
+      </div>
+      <FormMessage state={state} />
+      <Button type="submit" disabled={pending} className="justify-self-start">{pending ? "Adding…" : "Add intake"}</Button>
+    </form>
+  );
+}

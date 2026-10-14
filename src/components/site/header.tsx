@@ -1,0 +1,44 @@
+import { Suspense } from "react";
+import Image from "next/image";
+import Link from "next/link";
+import { GuestActions, HeaderActions } from "@/components/site/header-actions";
+import { MobileMenu } from "@/components/site/mobile-menu";
+import { ActiveNavList, NavList } from "@/components/site/nav-links";
+import { Container } from "@/components/ui/section";
+import { getSiteSettings } from "@/lib/settings";
+
+export async function Header() {
+  const { menus } = await getSiteSettings();
+  const mainNav = menus.main;
+  const actions = (
+    <Suspense fallback={<GuestActions />}>
+      <HeaderActions />
+    </Suspense>
+  );
+
+  return (
+    <header className="sticky top-3 z-40 mt-3">
+      <Container>
+        <div className="glass flex items-center justify-between gap-4 rounded-full py-2 pl-4 pr-2">
+          <Link href="/" className="flex shrink-0 items-center gap-2">
+            <Image src="/nrc-logo.png" alt="" width={50} height={40} priority />
+            <span className="font-display text-lg font-bold text-brand-800">
+              NRC <span className="hidden font-medium text-muted sm:inline">Education</span>
+            </span>
+          </Link>
+
+          <nav aria-label="Main" className="hidden lg:block">
+            <Suspense fallback={<NavList items={mainNav} />}>
+              <ActiveNavList items={mainNav} />
+            </Suspense>
+          </nav>
+
+          <div className="flex items-center gap-2">
+            <div className="hidden items-center gap-2 sm:flex">{actions}</div>
+            <MobileMenu items={mainNav} actions={actions} />
+          </div>
+        </div>
+      </Container>
+    </header>
+  );
+}
