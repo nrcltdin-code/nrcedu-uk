@@ -3,7 +3,7 @@ import { Suspense } from "react";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { requireMyAgentId } from "@/lib/agent";
+import { requireAgentOwner } from "@/lib/agent";
 import { db } from "@/lib/db";
 import { formatDate, formatMoney } from "@/lib/format";
 import { commissionStatusLabels, commissionStatusTones } from "../../commissions/labels";
@@ -22,7 +22,7 @@ export default function AgentCommissionsPage() {
 }
 
 async function AgentCommissions() {
-  const agentId = await requireMyAgentId();
+  const { agentId } = await requireAgentOwner();
   // Only payouts to this agent. What the university pays NRC is never shown to agents.
   const rows = await db.commission.findMany({
     where: { agentId, direction: "NRC_TO_AGENT" },

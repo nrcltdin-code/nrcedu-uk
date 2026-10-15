@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { findMyStudent, requireMyAgentId } from "@/lib/agent";
+import { findMyStudent, requireAgentScope } from "@/lib/agent";
 import { startApplication } from "@/lib/applications";
 import { db } from "@/lib/db";
 import { optionalDate, text } from "@/lib/form";
@@ -13,7 +13,7 @@ import { findOrCreateStudent } from "@/lib/student";
 
 export async function addMyStudent(_previous: FormState, form: FormData): Promise<FormState> {
   const user = await requireUser();
-  const agentId = await requireMyAgentId();
+  const scope = await requireAgentScope();
 
   const name = text(form, "name");
   const email = text(form, "email").toLowerCase();
@@ -38,18 +38,19 @@ export async function addMyStudent(_previous: FormState, form: FormData): Promis
     phone: phone || null,
     countryId: countryId || null,
     counsellorId: routing?.staffId ?? null,
-    agentId,
+    agentId: scope.agentId,
+    addedById: user.id,
   });
   if ("error" in student) return { error: student.error };
 
-  await db.activityLog.create({ data: { userId: user.id, action: "student.create", entityType: "StudentProfile", entityId: student.id, meta: { byAgent: agentId } } });
+  await db.activityLog.create({ data: { userId: user.id, action: "student.create", entityType: "StudentProfile", entityId: student.id, meta: { byAgent: scope.agentId } } });
   redirect(`/dashboard/agent/students/${student.id}`);
 }
 
 export async function updateMyStudent(_previous: FormState, form: FormData): Promise<FormState> {
-  const agentId = await requireMyAgentId();
+  const scope = await requireAgentScope();
   const id = text(form, "id");
-  const student = await db.studentProfile.findFirst({ where: { id, agentId }, select: { userId: true } });
+  const student = await db.studentProfile.findFirst({ where: { id, ...scope.students }, select: { userId: true } });
   if (!student) return { error: "This student is not on your list." };
 
   const name = text(form, "name");
@@ -93,10 +94,10 @@ export async function updateMyStudent(_previous: FormState, form: FormData): Pro
 
 export async function applyForMyStudent(_previous: FormState, form: FormData): Promise<FormState> {
   const user = await requireUser();
-  const agentId = await requireMyAgentId();
+  const scope = await requireAgentScope();
   const studentId = text(form, "studentId");
   const courseId = text(form, "courseId");
-  if (!(await findMyStudent(agentId, studentId))) return { error: "This student is not on your list." };
+  if (!(await findMyStudent(scope, studentId))) return { error: "This student is not on your list." };
   if (!(await db.course.count({ where: { id: courseId, isPublished: true, university: { isPublished: true } } }))) {
     return { error: "This course is not open for applications." };
   }

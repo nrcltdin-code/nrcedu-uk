@@ -56,6 +56,10 @@ model User {
   staffPermissions StaffPermission[]
   agentProfile     AgentProfile?
   studentProfile   StudentProfile?
+  // Set for an agent's team member: they sign in as AGENT and work under that agency.
+  agentTeamId      String?
+  agentTeam        AgentProfile?    @relation("AgentTeam", fields: [agentTeamId], references: [id], onDelete: Cascade)
+  addedStudents    StudentProfile[] @relation("StudentAddedBy")
 
   approvedAgents       AgentProfile[]            @relation("AgentApprovedBy")
   counselledStudents   StudentProfile[]          @relation("StudentCounsellor")
@@ -74,6 +78,7 @@ model User {
   uploads              Upload[]
 
   @@index([role, status])
+  @@index([agentTeamId])
 }
 
 // Session, Account and Verification follow the shape Better Auth expects.
@@ -166,6 +171,7 @@ model AgentProfile {
   approvedBy User?    @relation("AgentApprovedBy", fields: [approvedById], references: [id], onDelete: SetNull)
 
   students           StudentProfile[]
+  team               User[]           @relation("AgentTeam")
   applications       Application[]
   leads              Lead[]
   commissions        Commission[]
@@ -221,10 +227,13 @@ model StudentProfile {
   countryId      String?
   counsellorId   String?
   agentId        String?
+  // Which agent account (the agency owner or a team member) added this student.
+  addedById      String?
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 
   user       User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  addedBy    User?         @relation("StudentAddedBy", fields: [addedById], references: [id], onDelete: SetNull)
   country    Country?      @relation(fields: [countryId], references: [id], onDelete: SetNull)
   counsellor User?         @relation("StudentCounsellor", fields: [counsellorId], references: [id], onDelete: SetNull)
   agent      AgentProfile? @relation(fields: [agentId], references: [id], onDelete: SetNull)
@@ -240,6 +249,7 @@ model StudentProfile {
 
   @@index([counsellorId])
   @@index([agentId])
+  @@index([addedById])
   @@index([countryId])
 }
 

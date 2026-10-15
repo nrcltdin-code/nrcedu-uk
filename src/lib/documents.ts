@@ -2,6 +2,7 @@ import "server-only";
 import { createHmac, timingSafeEqual } from "node:crypto";
 import sharp from "sharp";
 import type { DocumentType } from "@/generated/prisma/client";
+import { findAgentScope } from "@/lib/agent";
 import { db } from "@/lib/db";
 import { can } from "@/lib/session";
 import type { CurrentUser } from "@/lib/session";
@@ -91,14 +92,15 @@ export function readTicket(token: string, userId: string): UploadTicket | null {
 
 // ---- Who may see or add documents for a student ----
 // Staff: by their Students permission. Students: only their own record. Agents: only students
-// they referred. Agents and students arrive with their portals (4.4, 4.5), but the rule lives here.
+// they (or, for an agency owner, their team) added. Agents and students arrive with their portals (4.4, 4.5), but the rule lives here.
 export async function canAccessStudent(user: CurrentUser, studentId: string, action: "view" | "edit") {
   if (user.role === "ADMIN" || user.role === "STAFF") return can(user, "STUDENTS", action);
   if (user.role === "STUDENT") {
     return (await db.studentProfile.count({ where: { id: studentId, userId: user.id } })) > 0;
   }
   if (user.role === "AGENT") {
-    return (await db.studentProfile.count({ where: { id: studentId, agent: { userId: user.id, approvalStatus: "APPROVED" } } })) > 0;
+    const scope = await findAgentScope(user);
+    return Boolean(scope) && (await db.studentProfile.count({ where: { id: studentId, ...scope!.students } })) > 0;
   }
   return false;
 }

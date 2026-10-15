@@ -11,7 +11,7 @@ import { db } from "@/lib/db";
 import { can, requireUser } from "@/lib/session";
 import type { CurrentUser } from "@/lib/session";
 import { requireMyStudentId } from "@/lib/student";
-import { requireMyAgentId } from "@/lib/agent";
+import { requireAgentScope } from "@/lib/agent";
 import { closedStages, stageLabels, stageTones } from "./applications/labels";
 import { StaffOverview } from "./staff-overview";
 
@@ -172,18 +172,20 @@ async function StudentOverview() {
 }
 
 async function AgentOverview() {
-  const agentId = await requireMyAgentId();
+  const scope = await requireAgentScope();
+  const where = scope.students;
   const [students, open, enrolled, due] = await Promise.all([
-    db.studentProfile.count({ where: { agentId } }),
-    db.application.count({ where: { student: { agentId }, stage: { notIn: ["ENROLLED", "VISA_REFUSED", "WITHDRAWN"] } } }),
-    db.application.count({ where: { student: { agentId }, stage: "ENROLLED" } }),
-    db.commission.count({ where: { agentId, direction: "NRC_TO_AGENT", status: "PENDING" } }),
+    db.studentProfile.count({ where }),
+    db.application.count({ where: { student: where, stage: { notIn: ["ENROLLED", "VISA_REFUSED", "WITHDRAWN"] } } }),
+    db.application.count({ where: { student: where, stage: "ENROLLED" } }),
+    // Commission is paid to the agency, so only the owner sees it.
+    scope.isOwner ? db.commission.count({ where: { agentId: scope.agentId, direction: "NRC_TO_AGENT", status: "PENDING" } }) : 0,
   ]);
   const tiles = [
     { label: "Students", value: students, href: "/dashboard/agent/students" },
     { label: "Applications in progress", value: open, href: "/dashboard/agent/students" },
     { label: "Enrolled", value: enrolled, href: "/dashboard/agent/students" },
-    { label: "Commission payments due", value: due, href: "/dashboard/agent/commissions" },
+    ...(scope.isOwner ? [{ label: "Commission payments due", value: due, href: "/dashboard/agent/commissions" }] : []),
   ];
   return (
     <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">

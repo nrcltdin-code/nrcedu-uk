@@ -24,6 +24,7 @@ export type NewStudent = {
   countryId: string | null;
   counsellorId: string | null;
   agentId: string | null;
+  addedById?: string | null;
 };
 
 // Students are User accounts with role STUDENT. Staff-created ones have no password yet;
@@ -36,7 +37,7 @@ export async function findOrCreateStudent(student: NewStudent): Promise<{ id: st
     if (existing.role !== "STUDENT") return { error: `${email} belongs to a staff or agent account, so it cannot be a student.` };
     if (existing.studentProfile) return existing.studentProfile;
     return db.studentProfile.create({
-      data: { userId: existing.id, phone: student.phone, countryId: student.countryId, counsellorId: student.counsellorId, agentId: student.agentId },
+      data: { userId: existing.id, phone: student.phone, countryId: student.countryId, counsellorId: student.counsellorId, agentId: student.agentId, addedById: student.addedById ?? null },
       select: { id: true },
     });
   }
@@ -48,7 +49,7 @@ export async function findOrCreateStudent(student: NewStudent): Promise<{ id: st
       phone: student.phone,
       role: "STUDENT",
       studentProfile: {
-        create: { phone: student.phone, countryId: student.countryId, counsellorId: student.counsellorId, agentId: student.agentId },
+        create: { phone: student.phone, countryId: student.countryId, counsellorId: student.counsellorId, agentId: student.agentId, addedById: student.addedById ?? null },
       },
     },
     select: { studentProfile: { select: { id: true } } },

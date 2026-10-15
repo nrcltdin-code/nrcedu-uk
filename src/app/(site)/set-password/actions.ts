@@ -20,9 +20,11 @@ export async function setPasswordFromInvite(_previous: SetPasswordState, form: F
 
   const user = await db.user.findUnique({
     where: { id: userId },
-    select: { role: true, status: true, accounts: { where: { providerId: "credential" }, select: { id: true } } },
+    select: { role: true, status: true, agentTeamId: true, accounts: { where: { providerId: "credential" }, select: { id: true } } },
   });
-  if (!user || user.role !== "STUDENT" || user.status !== "ACTIVE") return { error: "This link can no longer be used." };
+  // Invites go to students staff added and to agents' team members.
+  const invitable = user?.role === "STUDENT" || (user?.role === "AGENT" && user.agentTeamId);
+  if (!user || !invitable || user.status !== "ACTIVE") return { error: "This link can no longer be used." };
   if (user.accounts.length) {
     await consumeInvite(userId);
     return { error: "You already have a password. Sign in, or use “Forgot password”." };

@@ -1,6 +1,7 @@
 import "server-only";
 import type { IconName } from "@/components/ui/icon";
 import type { PermissionModule, Role } from "@/generated/prisma/client";
+import { findAgentScope } from "@/lib/agent";
 import { staffUnreadCount, studentUnreadCount } from "@/lib/messages";
 import { dueReminderCount } from "@/lib/reminders";
 import { can } from "@/lib/session";
@@ -29,6 +30,7 @@ const groups: { label: string; entries: Entry[] }[] = [
       { label: "Reminders", href: "/dashboard/reminders", icon: "clock", roles: staff },
       { label: "My students", href: "/dashboard/agent/students", icon: "cap", roles: ["AGENT"] },
       { label: "My commission", href: "/dashboard/agent/commissions", icon: "coins", roles: ["AGENT"] },
+      { label: "My team", href: "/dashboard/agent/team", icon: "users", roles: ["AGENT"] },
       { label: "My applications", href: "/dashboard/my-applications", icon: "document", roles: ["STUDENT"] },
       { label: "My profile", href: "/dashboard/profile", icon: "users", roles: ["STUDENT"] },
       { label: "Documents", href: "/dashboard/documents", icon: "document", roles: ["STUDENT"] },
@@ -78,6 +80,10 @@ export async function getDashboardNav(user: CurrentUser): Promise<NavGroup[]> {
         const unread = user.role === "STUDENT" ? await studentUnreadCount(user.id) : await staffUnreadCount(user.id);
         items.push(unread ? { ...item, badge: unread } : item);
         continue;
+      }
+      // Commission and team belong to the agency owner, not to team members.
+      if (user.role === "AGENT" && (item.href === "/dashboard/agent/commissions" || item.href === "/dashboard/agent/team")) {
+        if (!(await findAgentScope(user))?.isOwner) continue;
       }
       items.push(item);
     }

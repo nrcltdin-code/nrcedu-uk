@@ -7,7 +7,7 @@ import { PageHeader } from "@/components/dashboard/page-header";
 import { Badge } from "@/components/ui/badge";
 import { buttonStyles } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { requireMyAgentId } from "@/lib/agent";
+import { requireAgentScope } from "@/lib/agent";
 import { nextStepText } from "@/lib/applications";
 import { db } from "@/lib/db";
 import { documentTypeLabels } from "@/lib/documents";
@@ -34,13 +34,13 @@ export default function AgentStudentPage({ params }: PageProps<"/dashboard/agent
 }
 
 async function AgentStudent({ params }: Pick<PageProps<"/dashboard/agent/students/[id]">, "params">) {
-  const agentId = await requireMyAgentId();
+  const scope = await requireAgentScope();
   const { id } = await params;
 
   // Only students this agent referred; anyone else's id is simply "not found".
   // Staff notes, counsellor contact details and commission are deliberately not loaded.
   const student = await db.studentProfile.findFirst({
-    where: { id, agentId },
+    where: { id, ...scope.students },
     include: {
       user: { select: { name: true, email: true } },
       educationRecords: { orderBy: { yearCompleted: "desc" } },
