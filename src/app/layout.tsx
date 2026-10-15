@@ -3,6 +3,7 @@ import { Inter, Plus_Jakarta_Sans } from "next/font/google";
 import { AuthDrawerProvider } from "@/components/auth/auth-drawer";
 import { googleEnabled } from "@/lib/auth";
 import { emailEnabled } from "@/lib/email";
+import { siteUrl } from "@/lib/site-url";
 import "./globals.css";
 
 const inter = Inter({
@@ -16,12 +17,19 @@ const jakarta = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
   title: {
     default: "NRC Educational Consultants",
     template: "%s | NRC Educational Consultants",
   },
   description:
     "Study abroad and student visa consultancy: university admissions, applications and visa support.",
+  openGraph: {
+    type: "website",
+    siteName: "NRC Educational Consultants",
+    locale: "en_GB",
+    images: ["/nrc-logo.png"],
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

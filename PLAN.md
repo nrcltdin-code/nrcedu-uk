@@ -412,7 +412,16 @@ New → Documents pending → Submitted to university → Offer received → Dep
 
 ### Phase 5 — Launch (week 7)
 - [ ] 5.1 Real content from client
-- [ ] 5.2 SEO: metadata, sitemap, redirects from old URLs
+- [x] 5.2 SEO: metadata, sitemap, redirects from old URLs
+  - `/sitemap.xml`: fixed pages plus every published university, course, destination, subject, test-prep page and blog post; refreshes when content changes
+  - `/robots.txt`: points to the sitemap; keeps the dashboard, API, styleguide and password pages out of search
+  - Site-wide base address from `APP_URL` (must be `https://www.nrcedu-uk.com` in Vercel) and social-preview defaults (site name, logo image)
+  - Old-site addresses (from its sitemap) redirect permanently: `/about-us`, `/blogs`, `/university`, `/affiliated-university`, `/recruitment-partner/become-agent`, `/proceed`, `/login`, `/signup`, `/reset-pass`; `/services`, `/contact`, `/subjects` and `/test-prep/<test>` kept their addresses
+  - Test checklist:
+    - [ ] `/sitemap.xml` lists a newly published post; unpublish it and it drops out
+    - [ ] `/about-us`, `/blogs` and `/signup` land on the new pages (signup opens the register panel)
+    - [ ] After launch: add the site to Google Search Console and submit `https://www.nrcedu-uk.com/sitemap.xml`
+    - [ ] Paste a blog post link into WhatsApp or Facebook: the preview shows title, text and image
 - [ ] 5.3 Testing: forms, roles, mobile, performance
 - [ ] 5.4 Point domain to new deployment
 - [ ] 5.5 Client handover: admin accounts, short guide
