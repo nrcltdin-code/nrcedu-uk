@@ -412,6 +412,26 @@ New → Documents pending → Submitted to university → Offer received → Dep
     - [ ] Staff with Commission "None": no Commission page, and `/api/export/commissions` says not found
     - [ ] Activity log: filter by one person and yesterday's date; Download CSV contains only those rows
     - [ ] Signed in as staff: no Activity log menu item, and `/dashboard/activity` sends you back
+- [x] 4.11 Agent teams — Dashboard → My team (agency owners only)
+  - The owner adds people by name and email; each gets an agent login linked to the agency and an emailed set-password link (7 days, one use; can be copied or sent again)
+  - Team members see only the students they added (list, student pages, documents, applications, overview); the owner sees everyone's, with "by …" on each student and a filter per person
+  - Commission and My team stay with the owner. Turning a member's access off signs them out; their students stay with the agency. Revoking the agency locks the whole team
+  - Test checklist:
+    - [ ] As an approved agent, add a team member; open the invite link in a private window and set a password
+    - [ ] As the member: add a student; no My commission or My team in the menu
+    - [ ] As the owner: the student shows "by <member>", and the member's filter lists only theirs
+    - [ ] As the member, open one of the owner's students by changing the id in the address: "not found"
+    - [ ] Turn the member's access off: their next page load signs them out
+- [x] 4.12 Notifications — bell in the top bar and Dashboard → Notifications (everyone)
+  - Recipients come from role and access (`src/lib/notifications.ts`): staff only get notices for areas they can edit; counsellor first, otherwise the area's staff; agency owner plus the team member who added the student; never the person who did it
+  - Events: new lead, lead or application assigned, agent application and approval, application started and stage changes, document uploaded / approved / sent back, new message, agent adds a student, agent commission paid
+  - Every notice is also emailed; events that already had a detailed email (4.7) keep that one instead of a second
+  - Opening a notice marks it read; "Mark all as read"; read notices are deleted after 90 days by the daily cron
+  - Test checklist:
+    - [ ] Submit the consultation form: the routed counsellor's bell count goes up; the link opens the lead
+    - [ ] Upload a document as a student: the counsellor is notified; approve it: the student is notified and emailed
+    - [ ] Staff with Leads "None" get no new-lead notices
+    - [ ] Moving your own application stage does not notify you
 
 ### Phase 5 — Launch (week 7)
 - [ ] 5.1 Real content from client

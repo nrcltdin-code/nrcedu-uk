@@ -28,6 +28,7 @@ This guide covers everyday use. Every dashboard screen also has an **About this 
 
 - Agents apply at **/become-an-agent**. Their account stays locked until an admin approves it at **Dashboard → Agents** (or Users and roles). They get an email either way.
 - Approved agents add their own students and apply for them. They only ever see their own students and their own commission.
+- Agents can add their own staff at **Dashboard → My team**. Each team member gets their own sign-in and sees only the students they added; the agent who owns the account sees all of them. Commission is only shown to the owner.
 
 ## Daily work
 
@@ -71,10 +72,13 @@ This guide covers everyday use. Every dashboard screen also has an **About this 
 - Changes show on the website straight away.
 - Images: upload JPG, PNG or WebP. Phone photos are turned the right way up and resized automatically.
 
-## Emails the system sends
+## Notifications and emails
 
-- To staff: new leads, new agent applications, lead assigned to you, new student messages, morning reminders.
-- To visitors and students: enquiry received, agent approved or rejected, portal invite, application stage updates, document "ask again", new counsellor messages, password reset, email confirmation.
+- The bell at the top of the dashboard shows new notifications; click one to open what it is about. Everyone only gets notifications for work they are allowed to see.
+- Every notification is also sent by email.
+
+- To staff: new leads, new agent applications, leads and applications assigned to you, new applications and documents to check, students added by agents, new student messages, morning reminders.
+- To students and agents: enquiry received, agent approved or rejected, portal and team invites, new applications and stage updates, documents approved or "ask again", new counsellor messages, commission paid, password reset, email confirmation.
 
 ## Good habits
 
