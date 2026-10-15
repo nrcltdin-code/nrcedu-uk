@@ -1,36 +1,60 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# NRC Educational Consultants — website and CRM
 
-## Getting Started
+Public website, admin panel and CRM for `nrcedu-uk.com`. Next.js 16 (App Router), PostgreSQL with Prisma 7, Better Auth, Tailwind 4.
+The build plan and per-feature test checklists are in `PLAN.md`; the guide for NRC's team is `docs/client-guide.md`.
 
-First, run the development server:
+## Running locally
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install            # also generates the Prisma client
+cp .env.example .env   # then fill it in (see below)
+npm run db:deploy      # apply migrations
+npm run db:seed        # countries, plus the first admin from SEED_ADMIN_*
+npm run dev            # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Optional sample content: `npm run db:seed:demo` (remove it with `npm run db:seed:demo -- --remove`).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+`npm run build` reads the database for static pages, so it needs `DATABASE_URL` to be reachable.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Settings (`.env`, and the same in Vercel)
 
-## Learn More
+| Setting | Needed for | Without it |
+|---|---|---|
+| `DATABASE_URL` | Everything | Site does not run |
+| `AUTH_SECRET` | Sign-in | Site does not run |
+| `APP_URL` | Links in emails, sitemap, social previews | Must be `https://www.nrcedu-uk.com` in production |
+| `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Google sign-in | Google button hidden |
+| `STORAGE_*` | Image uploads and student documents (Cloudflare R2) | Uploads switched off |
+| `EMAIL_API_KEY`, `EMAIL_FROM`, `EMAIL_STAFF_ALERTS` | All emails (Resend) | Emails only logged; password reset and email confirmation unavailable |
+| `CRON_SECRET` | Morning reminder email and daily cleanup | Cron route answers 404 |
+| `SEED_ADMIN_*` | First admin account (seed only) | No admin created |
 
-To learn more about Next.js, take a look at the following resources:
+## Deploying
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Hosted on Vercel (app) and Railway (PostgreSQL). For every release that adds a migration (`prisma/migrations`):
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. `npm run db:deploy` against the production database **before** the new code goes live.
+2. Push to `main`; Vercel builds and deploys.
 
-## Deploy on Vercel
+The daily cron (`vercel.json`, 07:00 UTC) sends reminder digests and clears old rate-limit counts.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Launch checklist
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- [ ] All production settings above filled in Vercel; `APP_URL` is the live address
+- [ ] `npm run db:deploy`, then `npm run db:seed` with the client's admin email
+- [ ] Sample content removed: `npm run db:seed:demo -- --remove`
+- [ ] Resend: domain verified, `EMAIL_FROM` on that domain; send a test password reset
+- [ ] R2: public and private buckets, API token limited to them; upload a test image and document
+- [ ] Google sign-in: production redirect URL `https://www.nrcedu-uk.com/api/auth/callback/google`
+- [ ] DNS pointed to Vercel; HTTPS working on both `nrcedu-uk.com` and `www`
+- [ ] Vercel → Cron Jobs: run the reminders job once by hand
+- [ ] Google Search Console: add the site, submit `/sitemap.xml`
+- [ ] Hand over: at least two admin accounts for NRC, `docs/client-guide.md`, billing for every service on NRC's card
+
+## Code map
+
+- `src/app/(site)` public pages · `src/app/dashboard` all signed-in screens · `src/app/api` uploads, documents, exports, cron, auth
+- `src/lib/session.ts` who is signed in and what they may do (every action and route goes through it)
+- `src/lib/dashboard-nav.ts` menu per role and permission · `src/lib/page-help.ts` "About this page" text (add one per new page)
+- `src/lib/email.ts` emails · `src/lib/storage.ts` R2 · `src/lib/rate-limit.ts` form limits

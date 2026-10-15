@@ -438,6 +438,9 @@ New → Documents pending → Submitted to university → Offer received → Dep
   - [ ] Roles, mobile and performance passes on the live preview
 - [ ] 5.4 Point domain to new deployment
 - [ ] 5.5 Client handover: admin accounts, short guide
+  - [x] Guide for the NRC team: `docs/client-guide.md` (sign-in, roles and access, daily CRM work, editing the website, emails, who pays for what)
+  - [x] `README.md` rewritten for whoever runs the site: setup, settings table, deploy order (migrations before code), launch checklist, code map
+  - [ ] At launch: create NRC's admin accounts (at least two) and walk them through the guide
 
 ## 7. Risks
 
