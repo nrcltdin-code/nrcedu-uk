@@ -131,6 +131,7 @@ export async function updateCommission(_previous: FormState, form: FormData): Pr
       title: `Commission paid: ${before.currency} ${round(amount).toLocaleString("en-GB")}`,
       body: `For ${before.application.student.user.name}.`,
       href: "/dashboard/agent/commissions",
+      email: true,
     });
   }
   refresh(before.applicationId);

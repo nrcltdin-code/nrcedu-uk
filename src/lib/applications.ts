@@ -46,9 +46,10 @@ export async function startApplication(input: { studentId: string; courseId: str
     title: `New application: ${side?.user.name ?? "a student"}`,
     body: courseName,
     href: `/dashboard/applications/${application.id}`,
+    email: true,
   }, input.byUserId);
-  notify([side?.userId], { type: "application.new", title: "New application started for you", body: courseName, href: "/dashboard/my-applications" }, input.byUserId);
-  notify(side?.agents ?? [], { type: "application.new", title: `New application: ${side?.user.name ?? "a student"}`, body: courseName, href: `/dashboard/agent/students/${student.id}` }, input.byUserId);
+  notify([side?.userId], { type: "application.new", title: "New application started for you", body: courseName, href: "/dashboard/my-applications", email: true }, input.byUserId);
+  notify(side?.agents ?? [], { type: "application.new", title: `New application: ${side?.user.name ?? "a student"}`, body: courseName, href: `/dashboard/agent/students/${student.id}`, email: true }, input.byUserId);
   return { id: application.id };
 }
 

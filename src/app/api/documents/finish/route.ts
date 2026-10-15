@@ -81,6 +81,7 @@ export async function POST(request: Request) {
       title: `New document to check: ${side?.user.name ?? "a student"}`,
       body: `${documentTypeLabels[ticket.type]}, uploaded by ${user.role === "AGENT" ? `agent ${user.name}` : "the student"}.`,
       href: `/dashboard/students/${ticket.studentId}`,
+      email: true,
     }, user.id);
   }
 

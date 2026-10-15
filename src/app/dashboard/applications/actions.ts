@@ -98,6 +98,7 @@ export async function assignApplication(_previous: FormState, form: FormData): P
     title: `Application assigned to you: ${assigned.student.user.name}`,
     body: `${assigned.course.name}. By ${user.name}.`,
     href: `/dashboard/applications/${id}`,
+    email: true,
   }, user.id);
   revalidatePath(`/dashboard/applications/${id}`);
   return { saved: true };

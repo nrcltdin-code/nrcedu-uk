@@ -50,11 +50,12 @@ export async function addMyStudent(_previous: FormState, form: FormData): Promis
     title: `New student from an agent: ${name}`,
     body: `Added by ${user.name}.`,
     href: `/dashboard/students/${student.id}`,
+    email: true,
   });
   // A team member's new student also shows up for the agency owner.
   if (!scope.isOwner) {
     const owner = await db.agentProfile.findUnique({ where: { id: scope.agentId }, select: { userId: true } });
-    notify([owner?.userId], { type: "student.agent-added", title: `${user.name} added a student: ${name}`, href: `/dashboard/agent/students/${student.id}` }, user.id);
+    notify([owner?.userId], { type: "student.agent-added", title: `${user.name} added a student: ${name}`, href: `/dashboard/agent/students/${student.id}`, email: true }, user.id);
   }
   redirect(`/dashboard/agent/students/${student.id}`);
 }

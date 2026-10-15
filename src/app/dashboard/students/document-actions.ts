@@ -43,8 +43,10 @@ export async function reviewDocument(_previous: FormState, form: FormData): Prom
   const notice = decision === "APPROVED"
     ? { type: "document.approved", title: `${what} approved`, body: "No action needed." }
     : { type: "document.rejected", title: `Please upload the ${what} again`, body: note };
-  notify([side?.userId], { ...notice, href: "/dashboard/documents" }, user.id);
-  notify(side?.agents ?? [], { ...notice, title: `${document.student.user.name}: ${notice.title}`, href: `/dashboard/agent/students/${document.studentId}` }, user.id);
+  // Rejections send their own email below, with what to fix.
+  const email = decision === "APPROVED";
+  notify([side?.userId], { ...notice, href: "/dashboard/documents", email }, user.id);
+  notify(side?.agents ?? [], { ...notice, email, title: `${document.student.user.name}: ${notice.title}`, href: `/dashboard/agent/students/${document.studentId}` }, user.id);
 
   if (decision === "REJECTED") {
     const { name, email } = document.student.user;

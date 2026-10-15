@@ -2,12 +2,14 @@ import "server-only";
 import { after } from "next/server";
 import type { PermissionModule } from "@/generated/prisma/client";
 import { db } from "@/lib/db";
+import { link, sendEmail } from "@/lib/email";
 
 // In-app notifications. Each event names who should hear about it; this file turns that into
 // user ids by role and access, so a staff member restricted from a module never gets its notices,
 // and an agent team member only hears about their own students.
 
-export type Notice = { type: string; title: string; body?: string; href?: string };
+// email: also send it by email. Events that already send their own, more detailed email leave it off.
+export type Notice = { type: string; title: string; body?: string; href?: string; email?: boolean };
 
 const oneLine = (value: string, max: number) => value.replace(/\s+/g, " ").trim().slice(0, max);
 
@@ -17,10 +19,21 @@ export function notify(userIds: (string | null | undefined)[], notice: Notice, a
   const ids = [...new Set(userIds.filter((id): id is string => Boolean(id) && id !== actorId))];
   if (!ids.length) return;
   const data = { type: notice.type, title: oneLine(notice.title, 150), body: notice.body ? oneLine(notice.body, 300) : null, href: notice.href ?? null };
-  after(() =>
-    db.notification
+  after(async () => {
+    await db.notification
       .createMany({ data: ids.map((userId) => ({ userId, ...data })) })
-      .catch((error) => console.error(`Notification "${notice.type}" failed`, error)),
+      .catch((error) => console.error(`Notification "${notice.type}" failed`, error));
+    if (notice.email) await emailNotice(ids, data);
+  });
+}
+
+async function emailNotice(ids: string[], notice: { title: string; body: string | null; href: string | null }) {
+  const users = await db.user.findMany({ where: { id: { in: ids }, status: "ACTIVE" }, select: { name: true, email: true } });
+  const open = notice.href ? `\n\nOpen it here: ${link(notice.href)}` : "";
+  await Promise.all(
+    users.map((user) =>
+      sendEmail({ to: user.email, subject: notice.title, text: `Hello ${user.name},\n\n${notice.title}.${notice.body ? `\n\n${notice.body}` : ""}${open}` }),
+    ),
   );
 }
 
