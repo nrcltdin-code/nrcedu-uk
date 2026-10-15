@@ -12,6 +12,7 @@ export type CurrentUser = {
   email: string;
   image: string | null;
   role: Role;
+  emailVerified: boolean;
 };
 
 // Every page, action and route handler that needs the signed-in user goes through here.
@@ -22,11 +23,11 @@ export const getCurrentUser = cache(async (): Promise<CurrentUser | null> => {
 
   const user = await db.user.findUnique({
     where: { id: session.user.id },
-    select: { id: true, name: true, email: true, image: true, role: true, status: true },
+    select: { id: true, name: true, email: true, image: true, role: true, status: true, emailVerified: true },
   });
   if (!user || user.status !== "ACTIVE") return null;
 
-  return { id: user.id, name: user.name, email: user.email, image: user.image, role: user.role };
+  return { id: user.id, name: user.name, email: user.email, image: user.image, role: user.role, emailVerified: user.emailVerified };
 });
 
 export async function requireUser(): Promise<CurrentUser> {

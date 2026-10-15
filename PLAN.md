@@ -166,7 +166,10 @@ New → Documents pending → Submitted to university → Offer received → Dep
   - [ ] First admin account: fill `SEED_ADMIN_EMAIL` and `SEED_ADMIN_PASSWORD` in `.env`, then run `npm run db:seed`
 - [x] 1.4 Auth and roles (Better Auth 1.7: email and password, Google ready; no separate login pages: sign in / sign up / Google live in a panel that slides in from the right (`AuthDrawer`, built on the reusable `Drawer` in `src/components/ui/drawer.tsx`); protected `/dashboard`; role and per-staff permission checks in `src/lib/session.ts`)
   - [ ] Google sign-in: add `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` to `.env`
-  - [x] Password reset (4.7); email verification still open
+  - [x] Password reset (4.7)
+  - [x] Email verification: registering sends a confirmation link (Better Auth, via the email queue); until confirmed, the dashboard shows an amber bar with "Send again" (5 per hour). Sign-in does not require it. Google sign-ins and invite-link students already count as confirmed. Hidden while email is switched off
+    - [ ] Register a new student: the email arrives, the bar shows; open the link: lands on the dashboard signed in, bar gone
+    - [ ] Press "Send again": "A new link is on its way" and a second email arrives
 - [ ] 1.5 Vercel preview deployment (skipped for now; needs the client's Vercel account)
 
 ### Phase 2 — Public website (week 2)

@@ -28,6 +28,19 @@ export const auth = betterAuth({
     },
     revokeSessionsOnPasswordReset: true,
   },
+  // New registrations get a link to confirm their address; the dashboard shows a reminder with
+  // "Send again" until they do. Signing in does not depend on it.
+  emailVerification: {
+    sendOnSignUp: true,
+    autoSignInAfterVerification: true,
+    sendVerificationEmail: async ({ user, url }) => {
+      queueEmail({
+        to: user.email,
+        subject: "Confirm your email address",
+        text: `Hello ${user.name},\n\nPlease confirm this is your email address so we can keep you updated about your applications:\n${url}\n\nIf you did not create an NRC account, ignore this email.`,
+      });
+    },
+  },
   // Active in production only. Counts live in the RateLimit table so every Vercel instance shares them;
   // the limits are per visitor address (see also lib/rate-limit.ts for the public forms).
   rateLimit: {
@@ -36,6 +49,7 @@ export const auth = betterAuth({
       "/sign-in/email": { window: 300, max: 10 },
       "/sign-up/email": { window: 3600, max: 5 },
       "/request-password-reset": { window: 3600, max: 5 },
+      "/send-verification-email": { window: 3600, max: 5 },
     },
   },
   socialProviders: googleEnabled
