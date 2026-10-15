@@ -28,7 +28,7 @@ export const metadata: Metadata = {
     type: "website",
     siteName: "NRC Educational Consultants",
     locale: "en_GB",
-    images: ["/nrc-logo.png"],
+    images: ["/nrc-logo.jpeg"],
   },
 };
 

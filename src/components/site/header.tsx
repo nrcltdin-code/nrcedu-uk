@@ -21,7 +21,7 @@ export async function Header() {
       <Container>
         <div className="glass flex items-center justify-between gap-4 rounded-full py-2 pl-4 pr-2">
           <Link href="/" className="flex shrink-0 items-center gap-2">
-            <Image src="/nrc-logo.png" alt="" width={50} height={40} priority />
+            <Image src="/nrc-logo.jpeg" alt="" width={48} height={48} priority className="rounded-full" />
             <span className="font-display text-lg font-bold text-brand-800">
               NRC <span className="hidden font-medium text-muted sm:inline">Education</span>
             </span>

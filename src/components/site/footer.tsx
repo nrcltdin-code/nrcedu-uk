@@ -31,7 +31,7 @@ export async function Footer() {
           <div>
             <Link href="/" className="flex items-center gap-3">
               <span className="rounded-2xl bg-white p-1.5">
-                <Image src="/nrc-logo.png" alt="" width={50} height={40} />
+                <Image src="/nrc-logo.jpeg" alt="" width={48} height={48} className="rounded-full" />
               </span>
               <span className="font-display text-lg font-bold">NRC Educational Consultants</span>
             </Link>

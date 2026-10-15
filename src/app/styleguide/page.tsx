@@ -24,7 +24,7 @@ export default function StyleGuide() {
         <Container>
           <div className="glass flex items-center justify-between rounded-full py-2 pl-3 pr-2">
             <div className="flex items-center gap-3">
-              <Image src="/nrc-logo.png" alt="NRC" width={50} height={40} priority />
+              <Image src="/nrc-logo.jpeg" alt="NRC" width={48} height={48} priority className="rounded-full" />
               <span className="font-display font-bold text-brand-800">
                 NRC Educational Consultants
               </span>

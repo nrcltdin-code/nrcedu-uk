@@ -48,7 +48,7 @@ export function DashboardShell({ nav, user, unreadNotifications, children }: She
       >
         <div className="flex items-center justify-between gap-2 px-5 py-5">
           <Link href="/" className="flex items-center gap-2.5 font-display font-bold">
-            <Image src="/nrc-logo.png" alt="" width={40} height={32} />
+            <Image src="/nrc-logo.jpeg" alt="" width={36} height={36} className="rounded-full" />
             NRC Education
           </Link>
           <button type="button" className="rounded-lg p-1.5 hover:bg-white/10 lg:hidden" onClick={() => setOpen(false)} aria-label="Close menu">
