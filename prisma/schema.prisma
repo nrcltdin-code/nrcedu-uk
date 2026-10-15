@@ -124,6 +124,15 @@ model Verification {
   @@index([identifier])
 }
 
+// Request counts for sign-in (Better Auth, storage: "database") and the public forms (lib/rate-limit.ts).
+// Kept in the database because each Vercel instance has its own memory.
+model RateLimit {
+  id          String @id @default(cuid())
+  key         String @unique
+  count       Int
+  lastRequest BigInt
+}
+
 // Staff see everything by default; a row here overrides access for one module.
 model StaffPermission {
   id      String           @id @default(cuid())

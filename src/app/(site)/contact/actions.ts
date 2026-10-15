@@ -1,6 +1,7 @@
 "use server";
 
 import { createLead, isEmail } from "@/lib/leads";
+import { withinLimit } from "@/lib/rate-limit";
 
 export type ContactFormState = { status: "idle" | "sent" } | { status: "error"; error: string };
 
@@ -20,6 +21,10 @@ export async function sendContactMessage(_previous: ContactFormState, form: Form
   if (phone.length > 30) return { status: "error", error: "Enter a valid phone number." };
   if (message.length < 10) return { status: "error", error: "Tell us a little more in your message." };
   if (message.length > 2000) return { status: "error", error: "Keep your message under 2,000 characters." };
+
+  if (!(await withinLimit("contact", 5, 3600))) {
+    return { status: "error", error: "Too many messages from your connection. Please try again in an hour, or email us directly." };
+  }
 
   try {
     await createLead({ name, email, phone, message, source: "CONTACT_FORM" });

@@ -4,6 +4,7 @@ import { hashPassword } from "better-auth/crypto";
 import { db } from "@/lib/db";
 import { link, queueEmail, staffAlertAddresses } from "@/lib/email";
 import { isEmail } from "@/lib/leads";
+import { withinLimit } from "@/lib/rate-limit";
 
 export type AgentFormState = { status: "idle" | "sent" } | { status: "error"; error: string };
 
@@ -36,6 +37,8 @@ export async function applyAsAgent(_previous: AgentFormState, form: FormData): P
   if (about.length > 2000) return fail("Keep your description under 2,000 characters.");
   if (password.length < 8 || password.length > 128) return fail("Choose a password of at least 8 characters.");
   if (password !== confirm) return fail("The two passwords do not match.");
+
+  if (!(await withinLimit("agent", 3, 3600))) return fail("Too many applications from your connection. Please try again in an hour.");
 
   const country = await db.country.findUnique({ where: { id: countryId }, select: { id: true } });
   if (!country) return fail("Choose the country you work in.");

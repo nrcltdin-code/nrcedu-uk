@@ -423,6 +423,16 @@ New → Documents pending → Submitted to university → Offer received → Dep
     - [ ] After launch: add the site to Google Search Console and submit `https://www.nrcedu-uk.com/sitemap.xml`
     - [ ] Paste a blog post link into WhatsApp or Facebook: the preview shows title, text and image
 - [ ] 5.3 Testing: forms, roles, mobile, performance
+  - [x] Offline checks (2026-10-15): type-check, lint and production compile pass (the full build needs the database for page data). Every dashboard server action and API route checks sign-in and role/permission before doing anything
+  - [x] Limits on repeated submissions, stored in a new `RateLimit` table (migration `20261015120000_rate_limit`, written by hand; run `npm run db:deploy`), shared by every Vercel instance:
+    - Contact and consultation forms: 5 per hour per visitor address; become-an-agent: 3 per hour (`src/lib/rate-limit.ts`)
+    - Sign-in: 10 per 5 minutes; sign-up and "Forgot password": 5 per hour (Better Auth, production only)
+    - The daily reminders cron also clears counts older than a day
+  - Test checklist (after `npm run db:deploy`, needs the internet):
+    - [ ] Send the contact form 6 times: the 6th says "Too many messages"; the consultation form still works
+    - [ ] In Prisma Studio the `RateLimit` table shows rows starting with `form:`
+    - [ ] On the deployed site, 11 wrong passwords in a row: the 11th says "Too many requests"
+  - [ ] Roles, mobile and performance passes on the live preview
 - [ ] 5.4 Point domain to new deployment
 - [ ] 5.5 Client handover: admin accounts, short guide
 

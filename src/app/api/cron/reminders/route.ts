@@ -2,8 +2,9 @@ import { timingSafeEqual } from "node:crypto";
 import { db } from "@/lib/db";
 import { emailEnabled, link, sendEmail } from "@/lib/email";
 import { dueLabel, londonToday } from "@/lib/reminders";
+import { clearOldRateLimits } from "@/lib/rate-limit";
 
-// Morning digest: each active staff member with reminders due today or overdue gets one email.
+// Morning digest (plus a little housekeeping): each active staff member with reminders due today or overdue gets one email.
 // Called daily by Vercel Cron (vercel.json), which sends "Authorization: Bearer <CRON_SECRET>".
 
 function authorised(request: Request) {
@@ -16,6 +17,8 @@ function authorised(request: Request) {
 
 export async function GET(request: Request) {
   if (!authorised(request)) return new Response("Not found.", { status: 404 });
+  // Daily housekeeping that rides on this job: request counts older than a day are no longer needed.
+  await clearOldRateLimits().catch((error) => console.error("Rate limit cleanup:", error));
   if (!emailEnabled) return Response.json({ sent: 0, reason: "email is off" });
 
   const due = await db.reminder.findMany({

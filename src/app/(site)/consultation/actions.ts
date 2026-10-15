@@ -3,6 +3,7 @@
 import { isStudyLevel } from "@/lib/data/catalogue";
 import { db } from "@/lib/db";
 import { createLead, isEmail } from "@/lib/leads";
+import { withinLimit } from "@/lib/rate-limit";
 
 export type ConsultationState = { status: "idle" | "sent" } | { status: "error"; error: string };
 
@@ -36,6 +37,8 @@ export async function requestConsultation(_previous: ConsultationState, form: Fo
   ]);
   if (!country) return fail("Choose the country you live in.");
   if (destinationCountryId && !destination) return fail("Choose a study destination from the list.");
+
+  if (!(await withinLimit("consultation", 5, 3600))) return fail("Too many requests from your connection. Please try again in an hour, or call us.");
 
   try {
     await createLead({

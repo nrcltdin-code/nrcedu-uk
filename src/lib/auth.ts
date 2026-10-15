@@ -28,6 +28,16 @@ export const auth = betterAuth({
     },
     revokeSessionsOnPasswordReset: true,
   },
+  // Active in production only. Counts live in the RateLimit table so every Vercel instance shares them;
+  // the limits are per visitor address (see also lib/rate-limit.ts for the public forms).
+  rateLimit: {
+    storage: "database",
+    customRules: {
+      "/sign-in/email": { window: 300, max: 10 },
+      "/sign-up/email": { window: 3600, max: 5 },
+      "/request-password-reset": { window: 3600, max: 5 },
+    },
+  },
   socialProviders: googleEnabled
     ? { google: { clientId: googleClientId!, clientSecret: googleClientSecret! } }
     : {},
