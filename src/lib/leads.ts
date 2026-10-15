@@ -1,6 +1,7 @@
 import "server-only";
 import { db } from "@/lib/db";
 import { link, queueEmail, staffAlertAddresses } from "@/lib/email";
+import { notify, staffWithAccess } from "@/lib/notifications";
 import type { LeadSource, StudyLevel } from "@/generated/prisma/client";
 
 type NewLead = {
@@ -34,7 +35,7 @@ export async function createLead(lead: NewLead) {
       assignedStaffId: assignment?.staffId ?? null,
       assignedAgentId: assignment?.agentId ?? null,
     },
-    select: { id: true, assignedStaff: { select: { email: true } } },
+    select: { id: true, assignedStaff: { select: { id: true, email: true } } },
   });
 
   if (lead.source === "MANUAL") return { id: created.id };
@@ -42,6 +43,12 @@ export async function createLead(lead: NewLead) {
   // Alert the routed counsellor (or the shared staff inbox) and acknowledge the visitor.
   const counsellor = created.assignedStaff?.email;
   const fromForm = lead.source === "CONTACT_FORM" ? "contact form" : "consultation form";
+  notify(created.assignedStaff ? [created.assignedStaff.id] : await staffWithAccess("LEADS", "edit"), {
+    type: "lead.new",
+    title: `New lead: ${lead.name}`,
+    body: `Sent the ${fromForm}${created.assignedStaff ? " and assigned to you" : ""}.`,
+    href: `/dashboard/leads/${created.id}`,
+  });
   queueEmail(
     {
       to: counsellor ? [counsellor] : staffAlertAddresses(),

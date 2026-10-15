@@ -5,6 +5,7 @@ import { db } from "@/lib/db";
 import { documentTypeLabels } from "@/lib/documents";
 import { link, queueEmail } from "@/lib/email";
 import { text } from "@/lib/form";
+import { notify, studentSide } from "@/lib/notifications";
 import type { FormState } from "@/lib/form";
 import { requirePermission } from "@/lib/session";
 import { deletePrivateObject } from "@/lib/storage";
@@ -37,9 +38,16 @@ export async function reviewDocument(_previous: FormState, form: FormData): Prom
     db.activityLog.create({ data: { userId: user.id, action: `document.${decision.toLowerCase()}`, entityType: "Document", entityId: id } }),
   ]);
 
+  const side = await studentSide(document.studentId);
+  const what = documentTypeLabels[document.type];
+  const notice = decision === "APPROVED"
+    ? { type: "document.approved", title: `${what} approved`, body: "No action needed." }
+    : { type: "document.rejected", title: `Please upload the ${what} again`, body: note };
+  notify([side?.userId], { ...notice, href: "/dashboard/documents" }, user.id);
+  notify(side?.agents ?? [], { ...notice, title: `${document.student.user.name}: ${notice.title}`, href: `/dashboard/agent/students/${document.studentId}` }, user.id);
+
   if (decision === "REJECTED") {
     const { name, email } = document.student.user;
-    const what = documentTypeLabels[document.type];
     const agentEmail = document.student.agent?.user.email;
     queueEmail({
       to: email,

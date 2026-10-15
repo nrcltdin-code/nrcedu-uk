@@ -4,6 +4,7 @@ import { hashPassword } from "better-auth/crypto";
 import { db } from "@/lib/db";
 import { link, queueEmail, staffAlertAddresses } from "@/lib/email";
 import { isEmail } from "@/lib/leads";
+import { notify, staffWithAccess } from "@/lib/notifications";
 import { withinLimit } from "@/lib/rate-limit";
 
 export type AgentFormState = { status: "idle" | "sent" } | { status: "error"; error: string };
@@ -64,6 +65,12 @@ export async function applyAsAgent(_previous: AgentFormState, form: FormData): P
     console.error("Agent application: could not save", error);
     return fail("We could not submit your application. Please try again.");
   }
+  notify(await staffWithAccess("AGENTS", "edit"), {
+    type: "agent.applied",
+    title: `New agent application: ${companyName || name}`,
+    body: "Review it and approve or reject.",
+    href: "/dashboard/agents",
+  });
   queueEmail(
     {
       to: staffAlertAddresses(),

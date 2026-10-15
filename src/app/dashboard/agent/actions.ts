@@ -9,6 +9,7 @@ import { optionalDate, text } from "@/lib/form";
 import type { FormState } from "@/lib/form";
 import { isEmail } from "@/lib/leads";
 import { requireUser } from "@/lib/session";
+import { counsellorOrStaff, notify } from "@/lib/notifications";
 import { findOrCreateStudent } from "@/lib/student";
 
 export async function addMyStudent(_previous: FormState, form: FormData): Promise<FormState> {
@@ -44,6 +45,17 @@ export async function addMyStudent(_previous: FormState, form: FormData): Promis
   if ("error" in student) return { error: student.error };
 
   await db.activityLog.create({ data: { userId: user.id, action: "student.create", entityType: "StudentProfile", entityId: student.id, meta: { byAgent: scope.agentId } } });
+  notify(await counsellorOrStaff(routing?.staffId, "STUDENTS"), {
+    type: "student.agent-added",
+    title: `New student from an agent: ${name}`,
+    body: `Added by ${user.name}.`,
+    href: `/dashboard/students/${student.id}`,
+  });
+  // A team member's new student also shows up for the agency owner.
+  if (!scope.isOwner) {
+    const owner = await db.agentProfile.findUnique({ where: { id: scope.agentId }, select: { userId: true } });
+    notify([owner?.userId], { type: "student.agent-added", title: `${user.name} added a student: ${name}`, href: `/dashboard/agent/students/${student.id}` }, user.id);
+  }
   redirect(`/dashboard/agent/students/${student.id}`);
 }
 

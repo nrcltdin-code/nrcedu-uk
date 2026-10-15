@@ -3,6 +3,7 @@ import type { IconName } from "@/components/ui/icon";
 import type { PermissionModule, Role } from "@/generated/prisma/client";
 import { findAgentScope } from "@/lib/agent";
 import { staffUnreadCount, studentUnreadCount } from "@/lib/messages";
+import { unreadNotificationCount } from "@/lib/notifications";
 import { dueReminderCount } from "@/lib/reminders";
 import { can } from "@/lib/session";
 import type { CurrentUser } from "@/lib/session";
@@ -19,7 +20,10 @@ const staff: Role[] = ["ADMIN", "STAFF"];
 const groups: { label: string; entries: Entry[] }[] = [
   {
     label: "",
-    entries: [{ label: "Overview", href: "/dashboard", icon: "home", roles: ["ADMIN", "STAFF", "AGENT", "STUDENT"] }],
+    entries: [
+      { label: "Overview", href: "/dashboard", icon: "home", roles: ["ADMIN", "STAFF", "AGENT", "STUDENT"] },
+      { label: "Notifications", href: "/dashboard/notifications", icon: "bell", roles: ["ADMIN", "STAFF", "AGENT", "STUDENT"] },
+    ],
   },
   {
     label: "CRM",
@@ -74,6 +78,11 @@ export async function getDashboardNav(user: CurrentUser): Promise<NavGroup[]> {
       if (item.href === "/dashboard/reminders") {
         const due = await dueReminderCount(user.id);
         items.push(due ? { ...item, badge: due } : item);
+        continue;
+      }
+      if (item.href === "/dashboard/notifications") {
+        const unread = await unreadNotificationCount(user.id);
+        items.push(unread ? { ...item, badge: unread } : item);
         continue;
       }
       if (item.href === "/dashboard/messages") {

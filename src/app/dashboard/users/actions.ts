@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { link, queueEmail } from "@/lib/email";
 import { isEmail } from "@/lib/leads";
+import { notify } from "@/lib/notifications";
 import { requirePermission, requireRole } from "@/lib/session";
 import type { CurrentUser } from "@/lib/session";
 import type { PermissionModule, Role, UserStatus } from "@/generated/prisma/client";
@@ -140,6 +141,9 @@ export async function decideAgent(userId: string, decision: "APPROVED" | "REJECT
   ]);
   await log(actor, decision === "APPROVED" ? "agent.approved" : "agent.rejected", userId);
 
+  if (profile.approvalStatus !== decision && decision === "APPROVED") {
+    notify([userId], { type: "agent.approved", title: "Your agent account is approved", body: "Add your first student to get started.", href: "/dashboard/agent/students" });
+  }
   if (profile.approvalStatus !== decision) {
     const { name, email } = profile.user;
     queueEmail(

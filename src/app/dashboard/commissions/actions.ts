@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import type { CommissionDirection, CommissionStatus } from "@/generated/prisma/client";
 import { db } from "@/lib/db";
 import { text } from "@/lib/form";
+import { notify } from "@/lib/notifications";
 import type { FormState } from "@/lib/form";
 import { requirePermission } from "@/lib/session";
 import { directionLabels } from "./labels";
@@ -91,7 +92,17 @@ export async function updateCommission(_previous: FormState, form: FormData): Pr
   if (!["PENDING", "SETTLED", "CANCELLED"].includes(status)) return { error: "Choose a status." };
   if (note.length > 300) return { error: "Keep the note under 300 characters." };
 
-  const before = await db.commission.findUnique({ where: { id }, select: { applicationId: true, amount: true, status: true, settledAt: true } });
+  const before = await db.commission.findUnique({ where: { id }, select: {
+      applicationId: true,
+      amount: true,
+      status: true,
+      settledAt: true,
+      direction: true,
+      currency: true,
+      agent: { select: { userId: true } },
+      application: { select: { student: { select: { user: { select: { name: true } } } } } },
+    },
+  });
   if (!before) return { error: "This record no longer exists." };
 
   await db.$transaction([
@@ -114,6 +125,14 @@ export async function updateCommission(_previous: FormState, form: FormData): Pr
       },
     }),
   ]);
+  if (before.direction === "NRC_TO_AGENT" && status === "SETTLED" && before.status !== "SETTLED") {
+    notify([before.agent?.userId], {
+      type: "commission.paid",
+      title: `Commission paid: ${before.currency} ${round(amount).toLocaleString("en-GB")}`,
+      body: `For ${before.application.student.user.name}.`,
+      href: "/dashboard/agent/commissions",
+    });
+  }
   refresh(before.applicationId);
   return { saved: true };
 }

@@ -76,6 +76,7 @@ model User {
   blogPosts            BlogPost[]
   activityLogs         ActivityLog[]
   uploads              Upload[]
+  notifications        Notification[]
 
   @@index([role, status])
   @@index([agentTeamId])
@@ -767,4 +768,24 @@ model Upload {
   uploadedBy User? @relation(fields: [uploadedById], references: [id], onDelete: SetNull)
 
   @@index([uploadedById, createdAt])
+}
+
+// ───────────────────────────── Notifications ─────────────────────────────
+
+// In-app notices for one user, created when something happens that they can act on.
+// Who receives each one is decided in src/lib/notifications.ts from their role and access.
+model Notification {
+  id        String    @id @default(cuid())
+  userId    String
+  type      String
+  title     String
+  body      String?
+  href      String?
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, readAt])
+  @@index([userId, createdAt])
 }

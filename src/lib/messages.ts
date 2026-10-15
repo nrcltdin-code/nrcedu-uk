@@ -1,6 +1,7 @@
 import "server-only";
 import { db } from "@/lib/db";
 import { link, queueEmail, staffAlertAddresses } from "@/lib/email";
+import { counsellorOrStaff, notify } from "@/lib/notifications";
 import type { CurrentUser } from "@/lib/session";
 
 // One conversation per student, between the student and NRC staff. readAt on a message means
@@ -19,7 +20,7 @@ export async function postMessage(studentId: string, sender: CurrentUser, rawBod
 
   const student = await db.studentProfile.findUnique({
     where: { id: studentId },
-    select: { userId: true, user: { select: { name: true, email: true } }, counsellor: { select: { email: true, status: true } } },
+    select: { userId: true, user: { select: { name: true, email: true } }, counsellorId: true, counsellor: { select: { email: true, status: true } } },
   });
   if (!student) return { error: "This student no longer exists." };
 
@@ -31,6 +32,11 @@ export async function postMessage(studentId: string, sender: CurrentUser, rawBod
   await db.message.create({ data: { studentId, senderId: sender.id, body } });
 
   if (!alreadyWaiting) {
+    if (fromStudent) {
+      notify(await counsellorOrStaff(student.counsellorId, "STUDENTS"), { type: "message.new", title: `New message from ${student.user.name}`, body, href: `/dashboard/messages/${studentId}` }, sender.id);
+    } else {
+      notify([student.userId], { type: "message.new", title: `New message from ${sender.name} at NRC`, body, href: "/dashboard/messages" }, sender.id);
+    }
     if (fromStudent) {
       const counsellor = student.counsellor?.status === "ACTIVE" ? student.counsellor.email : null;
       queueEmail({

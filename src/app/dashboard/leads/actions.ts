@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import type { LeadStatus, Prisma, StudyLevel } from "@/generated/prisma/client";
 import { db } from "@/lib/db";
 import { link, queueEmail } from "@/lib/email";
+import { notify } from "@/lib/notifications";
 import { text } from "@/lib/form";
 import type { FormState } from "@/lib/form";
 import { createLead, isEmail } from "@/lib/leads";
@@ -90,6 +91,9 @@ export async function updateLead(_previous: FormState, form: FormData): Promise<
     log(user.id, "lead.update", id, changes),
   ]);
   // Tell a counsellor when someone else hands them a lead.
+  if (changes.assignedStaffId && lead.assignedStaff) {
+    notify([lead.assignedStaff.id], { type: "lead.assigned", title: `Lead assigned to you: ${lead.name}`, body: `By ${user.name}.`, href: `/dashboard/leads/${id}` }, user.id);
+  }
   if (changes.assignedStaffId && lead.assignedStaff && lead.assignedStaff.id !== user.id) {
     queueEmail({
       to: lead.assignedStaff.email,

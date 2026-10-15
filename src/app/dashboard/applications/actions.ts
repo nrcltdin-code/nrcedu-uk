@@ -7,6 +7,7 @@ import { startApplication } from "@/lib/applications";
 import { db } from "@/lib/db";
 import { link, queueEmail } from "@/lib/email";
 import { text } from "@/lib/form";
+import { notify, studentSide } from "@/lib/notifications";
 import type { FormState } from "@/lib/form";
 import { requirePermission } from "@/lib/session";
 import { stageLabels } from "./labels";
@@ -42,7 +43,7 @@ export async function moveStage(_previous: FormState, form: FormData): Promise<F
       data: { stage: stage as ApplicationStage },
       select: {
         studentId: true,
-        student: { select: { user: { select: { name: true, email: true } } } },
+        student: { select: { userId: true, user: { select: { name: true, email: true } } } },
         course: { select: { name: true, university: { select: { name: true } } } },
         agent: { select: { user: { select: { email: true } } } },
       },
@@ -54,6 +55,10 @@ export async function moveStage(_previous: FormState, form: FormData): Promise<F
   if (application.stage !== stage) {
     const student = updated.student.user;
     const course = `${updated.course.name}, ${updated.course.university.name}`;
+    const side = await studentSide(updated.studentId);
+    const stageText = `Now at “${stageLabels[stage as ApplicationStage]}”.${note ? ` ${note}` : ""}`;
+    notify([updated.student.userId], { type: "application.stage", title: `Your application for ${course}`, body: stageText, href: "/dashboard/my-applications" }, user.id);
+    notify(side?.agents ?? [], { type: "application.stage", title: `${student.name}: ${course}`, body: stageText, href: `/dashboard/agent/students/${updated.studentId}` }, user.id);
     const update = `is now at the stage “${stageLabels[stage as ApplicationStage]}”.${note ? `\n\nNote from NRC: ${note}` : ""}`;
     queueEmail({
       to: student.email,
@@ -80,10 +85,20 @@ export async function assignApplication(_previous: FormState, form: FormData): P
   if (assignedStaffId && !(await db.user.count({ where: { id: assignedStaffId, role: { in: ["ADMIN", "STAFF"] }, status: "ACTIVE" } }))) {
     return { error: "Choose a staff member from the list." };
   }
-  await db.$transaction([
-    db.application.update({ where: { id }, data: { assignedStaffId: assignedStaffId || null } }),
+  const [assigned] = await db.$transaction([
+    db.application.update({
+      where: { id },
+      data: { assignedStaffId: assignedStaffId || null },
+      select: { student: { select: { user: { select: { name: true } } } }, course: { select: { name: true } } },
+    }),
     db.activityLog.create({ data: { userId: user.id, action: "application.assign", entityType: "Application", entityId: id, meta: { assignedStaffId } } }),
   ]);
+  notify([assignedStaffId], {
+    type: "application.assigned",
+    title: `Application assigned to you: ${assigned.student.user.name}`,
+    body: `${assigned.course.name}. By ${user.name}.`,
+    href: `/dashboard/applications/${id}`,
+  }, user.id);
   revalidatePath(`/dashboard/applications/${id}`);
   return { saved: true };
 }

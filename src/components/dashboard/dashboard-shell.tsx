@@ -15,11 +15,12 @@ import type { Role } from "@/generated/prisma/client";
 type ShellProps = {
   nav: NavGroup[];
   user: { name: string; email: string; role: Role; roleLabel: string };
+  unreadNotifications: number;
   children: ReactNode;
 };
 
 // Fixed sidebar on large screens; on smaller ones it slides in from the left.
-export function DashboardShell({ nav, user, children }: ShellProps) {
+export function DashboardShell({ nav, user, unreadNotifications, children }: ShellProps) {
   const pathname = usePathname();
   // The mobile menu remembers the page it was opened on, so it closes itself after navigating.
   const [openedOn, setOpenedOn] = useState<string | null>(null);
@@ -111,6 +112,18 @@ export function DashboardShell({ nav, user, children }: ShellProps) {
           </button>
           <span className="rounded-full bg-brand-600/12 px-3 py-1 text-xs font-semibold text-brand-800">{user.roleLabel}</span>
           <div className="ml-auto flex items-center gap-3">
+            <Link
+              href="/dashboard/notifications"
+              className="relative rounded-lg p-2 text-brand-800 hover:bg-brand-600/10"
+              aria-label={unreadNotifications ? `Notifications, ${unreadNotifications} unread` : "Notifications"}
+            >
+              <Icon name="bell" className="size-5" />
+              {unreadNotifications > 0 && (
+                <span className="absolute -right-0.5 -top-0.5 min-w-5 rounded-full bg-accent-500 px-1 text-center text-[11px] font-bold leading-5 text-deep-900" aria-hidden="true">
+                  {unreadNotifications > 99 ? "99+" : unreadNotifications}
+                </span>
+              )}
+            </Link>
             <PageHelpButton role={user.role} />
             <Link href="/" className="hidden text-sm font-medium text-brand-700 hover:underline sm:inline">
               View website

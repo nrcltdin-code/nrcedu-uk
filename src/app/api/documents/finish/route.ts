@@ -1,5 +1,6 @@
 import { db } from "@/lib/db";
-import { canAccessStudent, cleanDocumentImage, documentContentTypes, MAX_DOCUMENT_BYTES, readTicket, sniffDocument } from "@/lib/documents";
+import { counsellorOrStaff, notify, studentSide } from "@/lib/notifications";
+import { canAccessStudent, cleanDocumentImage, documentTypeLabels, documentContentTypes, MAX_DOCUMENT_BYTES, readTicket, sniffDocument } from "@/lib/documents";
 import { isSameOrigin } from "@/lib/same-origin";
 import { getCurrentUser } from "@/lib/session";
 import { deletePrivateObject, getPrivateObject, headPrivateObject, privateStorageEnabled, putPrivateObject } from "@/lib/storage";
@@ -71,6 +72,17 @@ export async function POST(request: Request) {
     select: { id: true },
   });
   await db.activityLog.create({ data: { userId: user.id, action: "document.upload", entityType: "Document", entityId: document.id } });
+
+  // Uploads from the student or their agent go to the counsellor (or the students team) to check.
+  if (user.role === "STUDENT" || user.role === "AGENT") {
+    const side = await studentSide(ticket.studentId);
+    notify(await counsellorOrStaff(side?.counsellorId, "STUDENTS"), {
+      type: "document.uploaded",
+      title: `New document to check: ${side?.user.name ?? "a student"}`,
+      body: `${documentTypeLabels[ticket.type]}, uploaded by ${user.role === "AGENT" ? `agent ${user.name}` : "the student"}.`,
+      href: `/dashboard/students/${ticket.studentId}`,
+    }, user.id);
+  }
 
   return Response.json({ id: document.id });
 }

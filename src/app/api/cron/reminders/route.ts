@@ -19,6 +19,10 @@ export async function GET(request: Request) {
   if (!authorised(request)) return new Response("Not found.", { status: 404 });
   // Daily housekeeping that rides on this job: request counts older than a day are no longer needed.
   await clearOldRateLimits().catch((error) => console.error("Rate limit cleanup:", error));
+  // Read notifications are kept for 90 days.
+  await db.notification
+    .deleteMany({ where: { readAt: { not: null }, createdAt: { lt: new Date(Date.now() - 90 * 86_400_000) } } })
+    .catch((error) => console.error("Notification cleanup:", error));
   if (!emailEnabled) return Response.json({ sent: 0, reason: "email is off" });
 
   const due = await db.reminder.findMany({

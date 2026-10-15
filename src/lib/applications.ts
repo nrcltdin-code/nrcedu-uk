@@ -1,12 +1,13 @@
 import "server-only";
 import type { ApplicationStage } from "@/generated/prisma/client";
 import { db } from "@/lib/db";
+import { counsellorOrStaff, notify, studentSide } from "@/lib/notifications";
 
 // Shared by staff (student page), students (portal Apply page) and later agents.
 export async function startApplication(input: { studentId: string; courseId: string; intakeId: string | null; byUserId: string }) {
   const [student, course] = await Promise.all([
     db.studentProfile.findUnique({ where: { id: input.studentId }, select: { id: true, counsellorId: true, agentId: true } }),
-    db.course.findFirst({ where: { id: input.courseId }, select: { id: true, universityId: true } }),
+    db.course.findFirst({ where: { id: input.courseId }, select: { id: true, universityId: true, name: true, university: { select: { name: true } } } }),
   ]);
   if (!student) return { error: "This student no longer exists." };
   if (!course) return { error: "Choose a course from the list." };
@@ -35,6 +36,19 @@ export async function startApplication(input: { studentId: string; courseId: str
     select: { id: true },
   });
   await db.activityLog.create({ data: { userId: input.byUserId, action: "application.create", entityType: "Application", entityId: application.id } });
+
+  // Staff hear about applications the student or an agent started; the student and their
+  // agents hear about ones started for them. Whoever started it is skipped.
+  const side = await studentSide(student.id);
+  const courseName = `${course.name}, ${course.university.name}`;
+  notify(await counsellorOrStaff(student.counsellorId, "APPLICATIONS"), {
+    type: "application.new",
+    title: `New application: ${side?.user.name ?? "a student"}`,
+    body: courseName,
+    href: `/dashboard/applications/${application.id}`,
+  }, input.byUserId);
+  notify([side?.userId], { type: "application.new", title: "New application started for you", body: courseName, href: "/dashboard/my-applications" }, input.byUserId);
+  notify(side?.agents ?? [], { type: "application.new", title: `New application: ${side?.user.name ?? "a student"}`, body: courseName, href: `/dashboard/agent/students/${student.id}` }, input.byUserId);
   return { id: application.id };
 }
 
