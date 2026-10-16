@@ -109,3 +109,24 @@ export async function deleteObject(key: string) {
   const response = await getClient().fetch(`${config.endpoint}/${config.bucket}/${key}`, { method: "DELETE" });
   if (!response.ok && response.status !== 404) throw new Error(`Storage delete failed: ${response.status}`);
 }
+
+// Lists files in the private bucket whose names start with `prefix`, page by page (S3 ListObjectsV2).
+export async function* listPrivateObjects(prefix: string) {
+  let token: string | undefined;
+  do {
+    const url = new URL(`${config.endpoint}/${privateBucket}`);
+    url.searchParams.set("list-type", "2");
+    url.searchParams.set("prefix", prefix);
+    if (token) url.searchParams.set("continuation-token", token);
+    const response = await getClient().fetch(url.toString());
+    if (!response.ok) throw new Error(`Storage list failed: ${response.status}`);
+    const xml = await response.text();
+    const tag = (source: string, name: string) => source.match(new RegExp(`<${name}>([^<]*)</${name}>`))?.[1];
+    for (const [, item] of xml.matchAll(/<Contents>([\s\S]*?)<\/Contents>/g)) {
+      const key = tag(item, "Key")?.replaceAll("&amp;", "&");
+      const modified = tag(item, "LastModified");
+      if (key && modified) yield { key, lastModified: new Date(modified) };
+    }
+    token = tag(xml, "IsTruncated") === "true" ? tag(xml, "NextContinuationToken") : undefined;
+  } while (token);
+}

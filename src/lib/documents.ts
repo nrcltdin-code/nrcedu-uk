@@ -5,6 +5,7 @@ import type { DocumentType } from "@/generated/prisma/client";
 import { findAgentScope } from "@/lib/agent";
 import { db } from "@/lib/db";
 import { can } from "@/lib/session";
+import { deletePrivateObject, listPrivateObjects, privateStorageEnabled } from "@/lib/storage";
 import type { CurrentUser } from "@/lib/session";
 
 export const MAX_DOCUMENT_BYTES = 10 * 1024 * 1024;
@@ -103,4 +104,34 @@ export async function canAccessStudent(user: CurrentUser, studentId: string, act
     return Boolean(scope) && (await db.studentProfile.count({ where: { id: studentId, ...scope!.students } })) > 0;
   }
   return false;
+}
+
+// Daily: files under documents/ that no Document row points to. These are uploads whose
+// "finish" step never ran (page closed or reloaded mid-upload). Only files over a day old are
+// touched, so an upload in progress is never removed. Skipped in development: a local database
+// shares the bucket with the live site but not its Document rows, so live files would look unused.
+export async function sweepAbandonedDocuments() {
+  if (!privateStorageEnabled || process.env.NODE_ENV === "development") return 0;
+  const cutoff = Date.now() - 86_400_000;
+  let removed = 0;
+  let batch: string[] = [];
+
+  const flush = async () => {
+    const saved = await db.document.findMany({ where: { fileKey: { in: batch } }, select: { fileKey: true } });
+    const known = new Set(saved.map((document) => document.fileKey));
+    for (const key of batch) {
+      if (known.has(key)) continue;
+      await deletePrivateObject(key);
+      removed++;
+    }
+    batch = [];
+  };
+
+  for await (const object of listPrivateObjects("documents/")) {
+    if (object.lastModified.getTime() > cutoff) continue;
+    batch.push(object.key);
+    if (batch.length >= 500) await flush();
+  }
+  if (batch.length) await flush();
+  return removed;
 }
