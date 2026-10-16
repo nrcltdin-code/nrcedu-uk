@@ -29,6 +29,15 @@ async function isLastActiveAdmin(userId: string) {
   return admins.length === 1 && admins[0].id === userId;
 }
 
+// At most two administrators (the owner plus one backup); everyone else works as staff with
+// per-module access. Suspended admins count too, since they can be reactivated.
+const MAX_ADMINS = 2;
+const adminLimitError = `There can be at most ${MAX_ADMINS} administrators. Add this person as staff, or change an existing administrator to staff first.`;
+
+async function adminLimitReached() {
+  return (await db.user.count({ where: { role: "ADMIN" } })) >= MAX_ADMINS;
+}
+
 // Admins add staff and other admins here; students and agents register themselves.
 export async function createStaffUser(_previous: UserFormState, form: FormData): Promise<UserFormState> {
   const actor = await requireRole("ADMIN");
@@ -42,6 +51,7 @@ export async function createStaffUser(_previous: UserFormState, form: FormData):
   if (!isEmail(email)) return { error: "Enter a valid email address." };
   if (role !== "STAFF" && role !== "ADMIN") return { error: "Choose Staff or Administrator." };
   if (password.length < 8 || password.length > 128) return { error: "The first password needs at least 8 characters." };
+  if (role === "ADMIN" && (await adminLimitReached())) return { error: adminLimitError };
   if (await db.user.findUnique({ where: { email }, select: { id: true } })) {
     return { error: "An account with this email already exists. Change its role from its page instead." };
   }
@@ -70,6 +80,7 @@ export async function updateUserAccess(_previous: UserFormState, form: FormData)
   const user = await db.user.findUnique({ where: { id }, select: { role: true, status: true } });
   if (!user) return { error: "This account no longer exists." };
   if (user.role === role && user.status === status) return {};
+  if (role === "ADMIN" && user.role !== "ADMIN" && (await adminLimitReached())) return { error: adminLimitError };
 
   const losesAdmin = user.role === "ADMIN" && user.status === "ACTIVE" && (role !== "ADMIN" || status !== "ACTIVE");
   if (losesAdmin && (await isLastActiveAdmin(id))) {

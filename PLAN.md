@@ -193,7 +193,7 @@ New → Documents pending → Submitted to university → Offer received → Dep
   - [x] Emails to staff and applicants (4.7)
 
 ### Phase 3 — Admin panel (week 3)
-- [x] 3.0 Users, roles and per-staff permissions (`/dashboard/users`): search and filter all accounts, admins add staff/admins, change role and status (suspending signs the person out; the last active admin cannot be demoted), per-module access for staff (view and edit / view only / none), approve or reject agent applications; every change is written to the activity log
+- [x] 3.0 Users, roles and per-staff permissions (`/dashboard/users`): search and filter all accounts, admins add staff/admins, change role and status (suspending signs the person out; the last active admin cannot be demoted; at most 2 administrators, suspended ones included), per-module access for staff (view and edit / view only / none), approve or reject agent applications; every change is written to the activity log
   - Test checklist (needs the first admin from 1.3):
     - [ ] Sign in as admin, open Dashboard → Users; search and role/status filters narrow the list
     - [ ] Add a staff member; sign in as them in a private window and reach `/dashboard`
