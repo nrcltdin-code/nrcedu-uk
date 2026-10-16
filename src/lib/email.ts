@@ -7,7 +7,9 @@ import { after } from "next/server";
 // turn into HTML or a disguised link.
 
 const apiKey = process.env.EMAIL_API_KEY;
-const from = process.env.EMAIL_FROM;
+// A bare address gets the company name in front: mail with no sender name looks more like spam.
+const rawFrom = process.env.EMAIL_FROM?.trim();
+const from = rawFrom && !rawFrom.includes("<") ? `NRC Educational Consultants <${rawFrom}>` : rawFrom;
 
 export const emailEnabled = Boolean(apiKey && from);
 
