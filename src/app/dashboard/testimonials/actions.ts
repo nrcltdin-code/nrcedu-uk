@@ -3,6 +3,7 @@
 import { updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
+import { releaseImages } from "@/lib/uploads";
 import { checked, imageError, optionalInt, text } from "@/lib/form";
 import type { FormState } from "@/lib/form";
 import { moveRow } from "@/lib/reorder";
@@ -28,7 +29,11 @@ export async function saveTestimonial(_previous: FormState, form: FormData): Pro
   if (badImage) return { error: badImage };
 
   const data = { name, headline: headline || null, quote, photoUrl: photoUrl || null, rating, isPublished: checked(form, "isPublished") };
-  if (id) await db.testimonial.update({ where: { id }, data });
+  if (id) {
+    const before = await db.testimonial.findUnique({ where: { id }, select: { photoUrl: true } });
+    await db.testimonial.update({ where: { id }, data });
+    releaseImages(before?.photoUrl);
+  }
   else await db.testimonial.create({ data: { ...data, sortOrder: await db.testimonial.count() } });
 
   updateTag("testimonials");
@@ -52,7 +57,8 @@ export async function moveTestimonial(id: string, direction: "up" | "down") {
 
 export async function deleteTestimonial(id: string) {
   await requirePermission("CONTENT", "edit");
-  await db.testimonial.delete({ where: { id } });
+  const deleted = await db.testimonial.delete({ where: { id } });
+  releaseImages(deleted.photoUrl);
   updateTag("testimonials");
   redirect(path);
 }

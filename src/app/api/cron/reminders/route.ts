@@ -3,6 +3,7 @@ import { db } from "@/lib/db";
 import { emailEnabled, link, sendEmail } from "@/lib/email";
 import { dueLabel, londonToday } from "@/lib/reminders";
 import { clearOldRateLimits } from "@/lib/rate-limit";
+import { sweepUnusedImages } from "@/lib/uploads";
 
 // Morning digest (plus a little housekeeping): each active staff member with reminders due today or overdue gets one email.
 // Called daily by Vercel Cron (vercel.json), which sends "Authorization: Bearer <CRON_SECRET>".
@@ -23,6 +24,8 @@ export async function GET(request: Request) {
   await db.notification
     .deleteMany({ where: { readAt: { not: null }, createdAt: { lt: new Date(Date.now() - 90 * 86_400_000) } } })
     .catch((error) => console.error("Notification cleanup:", error));
+  // Uploaded images that no record uses any more are removed from storage.
+  await sweepUnusedImages().catch((error) => console.error("Image sweep:", error));
   if (!emailEnabled) return Response.json({ sent: 0, reason: "email is off" });
 
   const due = await db.reminder.findMany({

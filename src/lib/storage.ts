@@ -103,3 +103,9 @@ export async function putPrivateObject(key: string, body: Uint8Array<ArrayBuffer
 export async function deletePrivateObject(key: string) {
   await getClient().fetch(privateUrl(key), { method: "DELETE" });
 }
+
+// Removes a file from the public bucket. Deleting a key that is already gone is not an error.
+export async function deleteObject(key: string) {
+  const response = await getClient().fetch(`${config.endpoint}/${config.bucket}/${key}`, { method: "DELETE" });
+  if (!response.ok && response.status !== 404) throw new Error(`Storage delete failed: ${response.status}`);
+}

@@ -3,6 +3,7 @@
 import { revalidatePath, updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
+import { releaseImages } from "@/lib/uploads";
 import { imageError, isSlug, isUniqueError, slugify, text } from "@/lib/form";
 import type { FormState } from "@/lib/form";
 import { requirePermission } from "@/lib/session";
@@ -44,7 +45,11 @@ export async function savePost(_previous: FormState, form: FormData): Promise<Fo
 
   let savedId = id;
   try {
-    if (id) await db.blogPost.update({ where: { id }, data });
+    if (id) {
+      const before = await db.blogPost.findUnique({ where: { id }, select: { coverUrl: true } });
+      await db.blogPost.update({ where: { id }, data });
+      releaseImages(before?.coverUrl);
+    }
     else savedId = (await db.blogPost.create({ data: { ...data, authorId: user.id } })).id;
   } catch (error) {
     if (isUniqueError(error)) return { error: "Another post already uses this web address." };
@@ -59,7 +64,8 @@ export async function savePost(_previous: FormState, form: FormData): Promise<Fo
 
 export async function deletePost(id: string) {
   await requirePermission("CONTENT", "edit");
-  await db.blogPost.delete({ where: { id } });
+  const deleted = await db.blogPost.delete({ where: { id } });
+  releaseImages(deleted.coverUrl);
   updateTag("posts");
   redirect("/dashboard/blog");
 }

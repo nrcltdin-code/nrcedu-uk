@@ -3,6 +3,7 @@
 import { updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
+import { releaseImages } from "@/lib/uploads";
 import { imageHosts, isAllowedImageUrl } from "@/lib/image-hosts";
 import { requirePermission } from "@/lib/session";
 
@@ -55,7 +56,11 @@ export async function saveSlide(_previous: SlideFormState, form: FormData): Prom
     isPublished: form.get("isPublished") === "on",
   };
 
-  if (id) await db.heroSlide.update({ where: { id }, data });
+  if (id) {
+    const before = await db.heroSlide.findUnique({ where: { id }, select: { imageUrl: true } });
+    await db.heroSlide.update({ where: { id }, data });
+    releaseImages(before?.imageUrl);
+  }
   else await db.heroSlide.create({ data });
 
   updateTag("hero-slides");
@@ -70,7 +75,8 @@ export async function setSlidePublished(id: string, isPublished: boolean) {
 
 export async function deleteSlide(id: string) {
   await requirePermission("CONTENT", "edit");
-  await db.heroSlide.delete({ where: { id } });
+  const deleted = await db.heroSlide.delete({ where: { id } });
+  releaseImages(deleted.imageUrl);
   updateTag("hero-slides");
   redirect("/dashboard/slides");
 }

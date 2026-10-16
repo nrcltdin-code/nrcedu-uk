@@ -3,6 +3,7 @@
 import { updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
+import { releaseImages } from "@/lib/uploads";
 import { checked, imageError, isHttpsUrl, text } from "@/lib/form";
 import type { FormState } from "@/lib/form";
 import { moveRow } from "@/lib/reorder";
@@ -24,7 +25,11 @@ export async function savePartner(_previous: FormState, form: FormData): Promise
   if (badImage) return { error: badImage };
 
   const data = { name, logoUrl: logoUrl || null, website: website || null, isPublished: checked(form, "isPublished") };
-  if (id) await db.partner.update({ where: { id }, data });
+  if (id) {
+    const before = await db.partner.findUnique({ where: { id }, select: { logoUrl: true } });
+    await db.partner.update({ where: { id }, data });
+    releaseImages(before?.logoUrl);
+  }
   else await db.partner.create({ data: { ...data, sortOrder: await db.partner.count() } });
 
   updateTag("partners");
@@ -48,7 +53,8 @@ export async function movePartner(id: string, direction: "up" | "down") {
 
 export async function deletePartner(id: string) {
   await requirePermission("CONTENT", "edit");
-  await db.partner.delete({ where: { id } });
+  const deleted = await db.partner.delete({ where: { id } });
+  releaseImages(deleted.logoUrl);
   updateTag("partners");
   redirect(path);
 }

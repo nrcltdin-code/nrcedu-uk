@@ -3,6 +3,7 @@
 import { updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
+import { releaseImages } from "@/lib/uploads";
 import { isStudyLevel } from "@/lib/data/catalogue";
 import {
   checked,
@@ -73,7 +74,11 @@ export async function saveUniversity(_previous: FormState, form: FormData): Prom
 
   let savedId = id;
   try {
-    if (id) await db.university.update({ where: { id }, data });
+    if (id) {
+      const before = await db.university.findUnique({ where: { id }, select: { logoUrl: true, coverUrl: true } });
+      await db.university.update({ where: { id }, data });
+      releaseImages(before?.logoUrl, before?.coverUrl);
+    }
     else savedId = (await db.university.create({ data })).id;
   } catch (error) {
     if (isUniqueError(error)) return { error: "Another university already uses this web address." };
@@ -88,7 +93,8 @@ export async function saveUniversity(_previous: FormState, form: FormData): Prom
 export async function deleteUniversity(id: string) {
   await requirePermission("CONTENT", "edit");
   try {
-    await db.university.delete({ where: { id } });
+    const deleted = await db.university.delete({ where: { id } });
+    releaseImages(deleted.logoUrl, deleted.coverUrl);
   } catch (error) {
     // Courses with student applications cannot be removed; hiding is the safe option.
     if (isInUseError(error)) redirect(`${base(id)}?error=in-use`);

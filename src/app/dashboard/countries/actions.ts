@@ -2,6 +2,7 @@
 
 import { updateTag } from "next/cache";
 import { db } from "@/lib/db";
+import { releaseImages } from "@/lib/uploads";
 import { checked, imageError, text } from "@/lib/form";
 import type { FormState } from "@/lib/form";
 import { requirePermission } from "@/lib/session";
@@ -19,6 +20,7 @@ export async function saveCountry(_previous: FormState, form: FormData): Promise
   const badImage = imageError(imageUrl, "The image address") ?? imageError(flagUrl, "The flag address");
   if (badImage) return { error: badImage };
 
+  const before = await db.country.findUnique({ where: { id }, select: { imageUrl: true, flagUrl: true } });
   await db.country.update({
     where: { id },
     data: {
@@ -28,6 +30,7 @@ export async function saveCountry(_previous: FormState, form: FormData): Promise
       isDestination: checked(form, "isDestination"),
     },
   });
+  releaseImages(before?.imageUrl, before?.flagUrl);
 
   updateTag("countries");
   return { saved: true };

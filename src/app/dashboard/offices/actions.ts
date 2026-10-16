@@ -3,6 +3,7 @@
 import { updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
+import { releaseImages } from "@/lib/uploads";
 import { checked, imageError, isHttpsUrl, text } from "@/lib/form";
 import type { FormState } from "@/lib/form";
 import { moveRow } from "@/lib/reorder";
@@ -39,6 +40,7 @@ export async function saveOffice(_previous: FormState, form: FormData): Promise<
   const badImage = imageError(data.imageUrl ?? "", "The photo address");
   if (badImage) return { error: badImage };
 
+  const before = id ? await db.office.findUnique({ where: { id }, select: { imageUrl: true } }) : null;
   // Only one head office: marking this one clears the flag on the others.
   await db.$transaction(async (tx) => {
     if (data.isHeadOffice) {
@@ -47,6 +49,7 @@ export async function saveOffice(_previous: FormState, form: FormData): Promise<
     if (id) await tx.office.update({ where: { id }, data });
     else await tx.office.create({ data: { ...data, sortOrder: await tx.office.count() } });
   });
+  releaseImages(before?.imageUrl);
 
   updateTag("offices");
   redirect(path);
@@ -69,7 +72,8 @@ export async function moveOffice(id: string, direction: "up" | "down") {
 
 export async function deleteOffice(id: string) {
   await requirePermission("CONTENT", "edit");
-  await db.office.delete({ where: { id } });
+  const deleted = await db.office.delete({ where: { id } });
+  releaseImages(deleted.imageUrl);
   updateTag("offices");
   redirect(path);
 }
