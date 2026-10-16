@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import Image from "next/image";
+import { Toaster } from "@/components/ui/toaster";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { SignOutButton } from "@/components/auth/sign-out-button";
@@ -36,6 +37,7 @@ export function DashboardShell({ nav, user, unreadNotifications, children }: She
 
   return (
     <div className="flex min-h-dvh">
+      <Toaster />
       {open && (
         <div className="fixed inset-0 z-30 bg-deep-900/40 backdrop-blur-sm lg:hidden" onClick={() => setOpen(false)} aria-hidden="true" />
       )}

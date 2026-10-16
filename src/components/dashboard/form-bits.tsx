@@ -2,8 +2,19 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { Button, buttonStyles } from "@/components/ui/button";
 import type { FormState } from "@/lib/form";
+import { FormToast } from "@/components/ui/toaster";
 
+// Shows the result under the form and as a toast, so a save is noticed wherever the button is.
 export function FormMessage({ state }: { state: FormState }) {
+  return (
+    <>
+      <FormToast state={state} />
+      <InlineMessage state={state} />
+    </>
+  );
+}
+
+function InlineMessage({ state }: { state: FormState }) {
   if (state.error) {
     return (
       <p role="alert" className="rounded-xl border border-red-500/25 bg-red-500/10 px-4 py-2.5 text-sm text-red-800">
