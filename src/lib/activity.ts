@@ -34,6 +34,7 @@ export const activityText: Record<string, string> = {
   "export.applications": "downloaded applications (CSV)",
   "export.commissions": "downloaded commission (CSV)",
   "export.activity": "downloaded the activity log (CSV)",
+  "auth.sign-in": "signed in",
 };
 
 export const describeAction = (action: string) => activityText[action] ?? action;
@@ -49,6 +50,7 @@ export const activityAreas: Record<string, string> = {
   SiteSetting: "Settings",
   Country: "Lead routing",
   Export: "Downloads",
+  Session: "Sign-ins",
 };
 
 const pages: Record<string, string> = {

@@ -14,7 +14,7 @@ export function SignOutButton() {
   }
 
   return (
-    <Button variant="glass" size="sm" onClick={onClick}>
+    <Button variant="danger" size="sm" onClick={onClick}>
       Sign out
     </Button>
   );

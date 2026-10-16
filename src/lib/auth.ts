@@ -1,20 +1,25 @@
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
-import { APIError } from "better-auth/api";
+import { APIError, createAuthMiddleware, getSessionFromCtx } from "better-auth/api";
+import { emailChangeBlockedReason } from "@/lib/account";
 import { nextCookies } from "better-auth/next-js";
 import { twoFactor } from "better-auth/plugins";
 import { db } from "@/lib/db";
-import { queueEmail } from "@/lib/email";
+import { emailEnabled, queueEmail } from "@/lib/email";
 import { deletePrivateObject } from "@/lib/storage";
 
 // Storage keys of a student's documents, read before their account is deleted and removed after.
 const filesOfDeletedUser = new Map<string, string[]>();
 
+// Endpoints whose new session is a person signing in (Google returns through /callback/google).
+const signInPaths = ["/sign-in/", "/two-factor/verify-", "/callback/", "/verify-email"];
+
 const googleClientId = process.env.GOOGLE_CLIENT_ID;
 const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET;
 
-// Google sign-in switches on once both keys are set in .env.
-export const googleEnabled = Boolean(googleClientId && googleClientSecret);
+// Google sign-in switches on once both keys are set. A placeholder such as "-" does not count:
+// it would show the button and then fail at Google with "invalid_client".
+export const googleEnabled = Boolean(googleClientId?.endsWith(".apps.googleusercontent.com") && googleClientSecret && googleClientSecret.length > 10);
 
 // Sign-in requests are only accepted from APP_URL. Also trust its www / non-www twin, so
 // either form of the domain works. Without APP_URL this falls back to localhost only.
@@ -33,6 +38,10 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
     minPasswordLength: 8,
+    // Password sign-in waits until the address is confirmed, for every role (staff and agents
+    // included). Each refused sign-in sends a fresh link (sendOnSignIn below). Only while email
+    // sending is set up, otherwise nobody could ever confirm.
+    requireEmailVerification: emailEnabled,
     // "Forgot password" emails a one-hour link to /reset-password; resetting signs out other devices.
     sendResetPassword: async ({ user, url }) => {
       queueEmail({
@@ -43,10 +52,10 @@ export const auth = betterAuth({
     },
     revokeSessionsOnPasswordReset: true,
   },
-  // New registrations get a link to confirm their address; the dashboard shows a reminder with
-  // "Send again" until they do. Signing in does not depend on it.
+  // New registrations get a link to confirm their address, and the link signs them in.
   emailVerification: {
     sendOnSignUp: true,
+    sendOnSignIn: true,
     autoSignInAfterVerification: true,
     sendVerificationEmail: async ({ user, url }) => {
       queueEmail({
@@ -131,8 +140,43 @@ export const auth = betterAuth({
             throw new APIError("FORBIDDEN", { message: "This account has been suspended. Please contact us." });
           }
         },
+        // Sign-in history (Account page and Activity log). Only real sign-ins: password, two-step
+        // code, Google and email-link; sessions made by a password change or 2FA set-up are not.
+        after: async (session, ctx) => {
+          const path = ctx?.path ?? "";
+          if (!signInPaths.some((p) => path.startsWith(p))) return;
+          await db.activityLog.create({
+            data: {
+              userId: session.userId,
+              action: "auth.sign-in",
+              entityType: "Session",
+              entityId: session.id,
+              meta: { userAgent: session.userAgent ?? null, ip: session.ipAddress ?? null },
+            },
+          });
+        },
+      },
+      delete: {
+        // With two-step sign-in on, the password step's session is removed straight away and a new
+        // one is made after the code; drop the log entry of that half-finished sign-in.
+        after: async (session) => {
+          await db.activityLog.deleteMany({
+            where: { entityType: "Session", entityId: session.id, createdAt: { gt: new Date(Date.now() - 60_000) } },
+          });
+        },
       },
     },
+  },
+  // Server-side check behind the Account page: only students who manage their own account
+  // can change their email (see lib/account.ts).
+  hooks: {
+    before: createAuthMiddleware(async (ctx) => {
+      if (ctx.path !== "/change-email") return;
+      const session = await getSessionFromCtx(ctx);
+      if (!session) return;
+      const reason = await emailChangeBlockedReason(session.user.id);
+      if (reason) throw new APIError("FORBIDDEN", { message: reason });
+    }),
   },
   // Keep last: lets server actions set the session cookie.
   plugins: [

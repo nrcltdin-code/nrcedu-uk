@@ -51,7 +51,7 @@ export function MarkdownEditor({ id, name, defaultValue = "", required, maxLengt
     cn("rounded-lg px-3 py-1.5 text-sm font-semibold", active ? "bg-white text-brand-800 shadow-sm" : "text-muted hover:text-ink");
 
   return (
-    <div className="overflow-hidden rounded-xl border border-white/70 bg-white/60">
+    <div className="overflow-hidden rounded-xl border border-brand-900/20 bg-white">
       <div className="flex flex-wrap items-center gap-1 border-b border-brand-900/10 bg-brand-600/5 p-1.5">
         <button type="button" className={tab(!preview)} onClick={() => setPreview(false)}>Write</button>
         <button type="button" className={tab(preview)} onClick={() => setPreview(true)}>Preview</button>

@@ -31,7 +31,10 @@
   --font-display: var(--font-jakarta);
 }
 
+/* Light theme only: stops browsers in dark mode from darkening form controls, scrollbars
+   and pages Next.js renders itself. */
 html {
+  color-scheme: light;
   background: var(--color-surface);
 }
 

@@ -27,6 +27,8 @@ export function AuthForm({ mode, onModeChange, onSuccess, callbackURL, googleEna
   // Set after a correct password when the account has two-step sign-in on.
   const [twoFactor, setTwoFactor] = useState(false);
   const [password, setPassword] = useState("");
+  // Address the confirmation link went to, after signing up or a refused sign-in.
+  const [checkInbox, setCheckInbox] = useState<string | null>(null);
 
   function switchMode(next: AuthMode) {
     setError(null);
@@ -37,6 +39,18 @@ export function AuthForm({ mode, onModeChange, onSuccess, callbackURL, googleEna
 
   if (forgot) return <ForgotPassword onBack={() => setForgot(false)} />;
   if (twoFactor) return <TwoFactorStep onSuccess={onSuccess} onBack={() => setTwoFactor(false)} />;
+  if (checkInbox) {
+    return (
+      <div className="grid gap-4">
+        <p role="status" className="rounded-xl border border-emerald-500/25 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-900">
+          We sent a confirmation link to <strong>{checkInbox}</strong>. Open it to confirm your email; it signs you in. Check your spam folder if it has not arrived in a few minutes.
+        </p>
+        <button type="button" onClick={() => { setCheckInbox(null); switchMode("login"); }} className="justify-self-center text-sm font-semibold text-brand-700 hover:underline">
+          Back to sign in
+        </button>
+      </div>
+    );
+  }
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -55,8 +69,8 @@ export function AuthForm({ mode, onModeChange, onSuccess, callbackURL, googleEna
     const phone = String(form.get("phone") ?? "").trim();
     const { data, error } =
       mode === "login"
-        ? await authClient.signIn.email({ email, password })
-        : await authClient.signUp.email({ email, password, name: String(form.get("name")).trim(), phone: phone || undefined });
+        ? await authClient.signIn.email({ email, password, callbackURL })
+        : await authClient.signUp.email({ email, password, name: String(form.get("name")).trim(), phone: phone || undefined, callbackURL });
 
     setPending(false);
     if (error) {
@@ -65,11 +79,21 @@ export function AuthForm({ mode, onModeChange, onSuccess, callbackURL, googleEna
         setError("This email already has an account. Sign in instead, or if NRC started your file for you, ask your counsellor for a link to set your password.");
         return;
       }
+      // Unconfirmed address: Better Auth has just emailed a fresh link.
+      if (error.code === "EMAIL_NOT_VERIFIED") {
+        setCheckInbox(email);
+        return;
+      }
       setError(error.message ?? "Something went wrong. Please try again.");
       return;
     }
     if (data && "twoFactorRedirect" in data && data.twoFactorRedirect) {
       setTwoFactor(true);
+      return;
+    }
+    // Signed up, but no session until the address is confirmed.
+    if (mode === "register" && data && "token" in data && !data.token) {
+      setCheckInbox(email);
       return;
     }
     onSuccess();

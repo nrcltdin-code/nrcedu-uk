@@ -1,7 +1,7 @@
 import type { ComponentProps } from "react";
 import { cn } from "@/lib/cn";
 
-type Variant = "primary" | "accent" | "glass" | "ghost";
+type Variant = "primary" | "accent" | "glass" | "ghost" | "danger";
 type Size = "sm" | "md" | "lg";
 
 const variants: Record<Variant, string> = {
@@ -11,6 +11,8 @@ const variants: Record<Variant, string> = {
     "bg-linear-to-r from-accent-400 to-orange-500 text-deep-900 shadow-lg shadow-orange-500/35 hover:brightness-110",
   glass: "glass text-brand-800 hover:bg-white/75",
   ghost: "text-brand-700 hover:bg-brand-600/10",
+  // Signing out and other actions that end something.
+  danger: "border border-red-600/25 bg-red-50 text-red-700 hover:border-red-600/40 hover:bg-red-100",
 };
 
 const sizes: Record<Size, string> = {

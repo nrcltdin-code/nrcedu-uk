@@ -167,7 +167,7 @@ New → Documents pending → Submitted to university → Offer received → Dep
 - [x] 1.4 Auth and roles (Better Auth 1.7: email and password, Google ready; no separate login pages: sign in / sign up / Google live in a panel that slides in from the right (`AuthDrawer`, built on the reusable `Drawer` in `src/components/ui/drawer.tsx`); protected `/dashboard`; role and per-staff permission checks in `src/lib/session.ts`)
   - [ ] Google sign-in: add `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` to `.env`
   - [x] Password reset (4.7)
-  - [x] Email verification: registering sends a confirmation link (Better Auth, via the email queue); until confirmed, the dashboard shows an amber bar with "Send again" (5 per hour). Sign-in does not require it. Google sign-ins and invite-link students already count as confirmed. Hidden while email is switched off
+  - [x] Email verification: registering sends a confirmation link (Better Auth, via the email queue). Password sign-in is refused until the address is confirmed, for every role (staff and agents too); each refused sign-in emails a fresh link, and the link signs the person in. Sessions from before the rule see only the Account page with "Send again" until they confirm. Google sign-ins and invite-link users already count as confirmed. Not enforced while email is switched off
     - [ ] Register a new student: the email arrives, the bar shows; open the link: lands on the dashboard signed in, bar gone
     - [ ] Press "Send again": "A new link is on its way" and a second email arrives
   - [x] Fuller sign-up: optional phone (copied to the student record), confirm password, Show/Hide, strength meter, agree to `/terms` and `/privacy` (placeholder wording; the client's own text needed)

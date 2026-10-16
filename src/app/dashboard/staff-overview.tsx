@@ -50,7 +50,7 @@ export async function StaffOverview({ user }: { user: CurrentUser }) {
     applications ? db.application.groupBy({ by: ["stage"], where: { stage: { notIn: closedStages } }, _count: true }) : [],
     isAdmin
       ? db.activityLog.findMany({
-          where: { action: { not: "document.start" } },
+          where: { action: { notIn: ["document.start", "auth.sign-in"] } },
           orderBy: { createdAt: "desc" },
           take: 12,
           select: { id: true, action: true, entityType: true, entityId: true, createdAt: true, user: { select: { name: true } } },

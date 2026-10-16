@@ -50,7 +50,7 @@ export function DetailsForm({ name, phone }: { name: string; phone: string | nul
   );
 }
 
-export function EmailForm({ email, verified, emailEnabled }: { email: string; verified: boolean; emailEnabled: boolean }) {
+export function EmailForm({ email, verified, emailEnabled, blockedReason }: { email: string; verified: boolean; emailEnabled: boolean; blockedReason: string | null }) {
   const [state, setState] = useState<{ pending?: boolean; error?: string; sent?: string }>({});
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -70,7 +70,9 @@ export function EmailForm({ email, verified, emailEnabled }: { email: string; ve
           ? <span className="ml-1 rounded-full bg-emerald-500/12 px-2 py-0.5 text-xs font-semibold text-emerald-800">Confirmed</span>
           : <span className="ml-1 rounded-full bg-amber-500/15 px-2 py-0.5 text-xs font-semibold text-amber-900">Not confirmed</span>}
       </p>
-      {!emailEnabled ? (
+      {blockedReason ? (
+        <p className="text-sm text-muted">{blockedReason}</p>
+      ) : !emailEnabled ? (
         <p className="text-sm text-muted">Changing your email needs email sending, which is switched off. Ask an admin to change it for you.</p>
       ) : state.sent ? (
         <Alert tone="success">
@@ -389,15 +391,16 @@ export function Devices({ sessions }: { sessions: DeviceSession[] }) {
               </p>
             </div>
             {!s.current && (
-              <Button type="button" variant="ghost" size="sm" disabled={busy !== null} onClick={() => revoke(s.token)}>
+              <Button type="button" variant="danger" size="sm" disabled={busy !== null} onClick={() => revoke(s.token)}>
                 {busy === s.token ? "Signing out…" : "Sign out"}
               </Button>
             )}
           </li>
         ))}
       </ul>
+      {others === 0 && <p className="text-sm text-muted">No other devices are signed in.</p>}
       {others > 0 && (
-        <Button type="button" variant="glass" disabled={busy !== null} onClick={() => revoke("others")} className="justify-self-start">
+        <Button type="button" variant="danger" disabled={busy !== null} onClick={() => revoke("others")} className="justify-self-start">
           {busy === "others" ? "Signing out…" : "Sign out all other devices"}
         </Button>
       )}
@@ -419,7 +422,7 @@ export function DeleteAccount({ hasPassword }: { hasPassword: boolean }) {
     setPending(false);
     if (error) {
       setError(
-        error.code === "SESSION_EXPIRED"
+        error.code === "SESSION_EXPIRED" || error.code === "SESSION_NOT_FRESH"
           ? "For safety, please sign out, sign in again and then close your account."
           : error.code === "INVALID_PASSWORD" ? "That password is not right." : error.message ?? "Could not close your account.",
       );
@@ -434,7 +437,7 @@ export function DeleteAccount({ hasPassword }: { hasPassword: boolean }) {
     return (
       <div className="grid gap-3">
         <p className="text-sm text-muted">Deletes your account, profile and uploaded documents. This cannot be undone.</p>
-        <Button type="button" variant="ghost" onClick={() => setOpen(true)} className="justify-self-start text-red-700 hover:bg-red-500/10">
+        <Button type="button" variant="danger" onClick={() => setOpen(true)} className="justify-self-start">
           Close my account
         </Button>
       </div>
