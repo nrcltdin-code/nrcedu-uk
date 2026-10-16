@@ -1,30 +1,33 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState, useSyncExternalStore } from "react";
 import { Button } from "@/components/ui/button";
 
 const STORAGE_KEY = "maintenance-notice-dismissed";
 
+function dismissedThisSession() {
+  try {
+    return sessionStorage.getItem(STORAGE_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
 // Pop-up telling visitors the site is under maintenance. Closing it hides it
 // for the rest of the browser session.
 export function MaintenanceNotice() {
-  const [open, setOpen] = useState(false);
-
-  useEffect(() => {
-    try {
-      if (sessionStorage.getItem(STORAGE_KEY)) return;
-    } catch {}
-    setOpen(true);
-  }, []);
+  // Hidden while rendering on the server; the browser then checks sessionStorage.
+  const storedDismissal = useSyncExternalStore(() => () => {}, dismissedThisSession, () => true);
+  const [closed, setClosed] = useState(false);
 
   function close() {
     try {
       sessionStorage.setItem(STORAGE_KEY, "1");
     } catch {}
-    setOpen(false);
+    setClosed(true);
   }
 
-  if (!open) return null;
+  if (storedDismissal || closed) return null;
 
   return (
     <div

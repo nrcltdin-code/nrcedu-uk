@@ -1,6 +1,8 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
+import { PasswordInput, PasswordStrength } from "@/components/auth/password-field";
 import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/field";
@@ -22,14 +24,19 @@ export function AuthForm({ mode, onModeChange, onSuccess, callbackURL, googleEna
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   const [forgot, setForgot] = useState(false);
+  // Set after a correct password when the account has two-step sign-in on.
+  const [twoFactor, setTwoFactor] = useState(false);
+  const [password, setPassword] = useState("");
 
   function switchMode(next: AuthMode) {
     setError(null);
     setForgot(false);
+    setPassword("");
     onModeChange(next);
   }
 
   if (forgot) return <ForgotPassword onBack={() => setForgot(false)} />;
+  if (twoFactor) return <TwoFactorStep onSuccess={onSuccess} onBack={() => setTwoFactor(false)} />;
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -38,12 +45,18 @@ export function AuthForm({ mode, onModeChange, onSuccess, callbackURL, googleEna
 
     const form = new FormData(event.currentTarget);
     const email = String(form.get("email"));
-    const password = String(form.get("password"));
 
-    const { error } =
+    if (mode === "register" && password !== String(form.get("confirm"))) {
+      setPending(false);
+      setError("The two passwords do not match.");
+      return;
+    }
+
+    const phone = String(form.get("phone") ?? "").trim();
+    const { data, error } =
       mode === "login"
         ? await authClient.signIn.email({ email, password })
-        : await authClient.signUp.email({ email, password, name: String(form.get("name")) });
+        : await authClient.signUp.email({ email, password, name: String(form.get("name")).trim(), phone: phone || undefined });
 
     setPending(false);
     if (error) {
@@ -53,6 +66,10 @@ export function AuthForm({ mode, onModeChange, onSuccess, callbackURL, googleEna
         return;
       }
       setError(error.message ?? "Something went wrong. Please try again.");
+      return;
+    }
+    if (data && "twoFactorRedirect" in data && data.twoFactorRedirect) {
+      setTwoFactor(true);
       return;
     }
     onSuccess();
@@ -103,24 +120,34 @@ export function AuthForm({ mode, onModeChange, onSuccess, callbackURL, googleEna
         {mode === "register" && (
           <div>
             <Label htmlFor="auth-name">Full name</Label>
-            <Input id="auth-name" name="name" autoComplete="name" required />
+            <Input id="auth-name" name="name" autoComplete="name" maxLength={100} required />
           </div>
         )}
         <div>
           <Label htmlFor="auth-email">Email</Label>
           <Input id="auth-email" name="email" type="email" autoComplete="email" required />
         </div>
+        {mode === "register" && (
+          <div>
+            <Label htmlFor="auth-phone">
+              Phone or WhatsApp <span className="font-normal text-muted">(optional)</span>
+            </Label>
+            <Input id="auth-phone" name="phone" type="tel" autoComplete="tel" maxLength={30} placeholder="+44 7700 900123" />
+          </div>
+        )}
         <div>
           <Label htmlFor="auth-password">Password</Label>
-          <Input
+          <PasswordInput
             id="auth-password"
             name="password"
-            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
             autoComplete={mode === "login" ? "current-password" : "new-password"}
             minLength={8}
+            maxLength={128}
             required
           />
-          {mode === "register" && <p className="mt-1.5 text-xs text-muted">At least 8 characters.</p>}
+          {mode === "register" && <PasswordStrength password={password} />}
           {mode === "login" && resetEnabled && (
             <button type="button" onClick={() => setForgot(true)} className="mt-1.5 text-xs font-semibold text-brand-700 hover:underline">
               Forgot password?
@@ -128,11 +155,25 @@ export function AuthForm({ mode, onModeChange, onSuccess, callbackURL, googleEna
           )}
         </div>
 
-        {error && (
-          <p role="alert" className="rounded-xl border border-red-500/25 bg-red-500/10 px-4 py-2.5 text-sm text-red-800">
-            {error}
-          </p>
+        {mode === "register" && (
+          <>
+            <div>
+              <Label htmlFor="auth-confirm">Confirm password</Label>
+              <PasswordInput id="auth-confirm" name="confirm" autoComplete="new-password" minLength={8} maxLength={128} required />
+            </div>
+            <label className="flex items-start gap-2.5 text-sm text-muted">
+              <input type="checkbox" name="terms" required className="mt-0.5 size-4 shrink-0 accent-brand-600" />
+              <span>
+                I agree to the{" "}
+                <Link href="/terms" target="_blank" className="font-semibold text-brand-700 hover:underline">terms of use</Link>
+                {" "}and{" "}
+                <Link href="/privacy" target="_blank" className="font-semibold text-brand-700 hover:underline">privacy policy</Link>.
+              </span>
+            </label>
+          </>
         )}
+
+        <ErrorMessage error={error} />
 
         <Button type="submit" variant="accent" disabled={pending}>
           {pending ? "Please wait…" : mode === "login" ? "Sign in" : "Create account"}
@@ -183,17 +224,85 @@ function ForgotPassword({ onBack }: { onBack: () => void }) {
             <Label htmlFor="forgot-email">Email</Label>
             <Input id="forgot-email" name="email" type="email" autoComplete="email" required />
           </div>
-          {error && (
-            <p role="alert" className="rounded-xl border border-red-500/25 bg-red-500/10 px-4 py-2.5 text-sm text-red-800">
-              {error}
-            </p>
-          )}
+          <ErrorMessage error={error} />
           <Button type="submit" variant="accent" disabled={state === "pending"}>
             {state === "pending" ? "Sending…" : "Send reset link"}
           </Button>
         </form>
       )}
       <button type="button" onClick={onBack} className="justify-self-center text-sm font-semibold text-brand-700 hover:underline">
+        Back to sign in
+      </button>
+    </div>
+  );
+}
+
+function ErrorMessage({ error }: { error: string | null }) {
+  if (!error) return null;
+  return (
+    <p role="alert" className="rounded-xl border border-red-500/25 bg-red-500/10 px-4 py-2.5 text-sm text-red-800">
+      {error}
+    </p>
+  );
+}
+
+// Second step of signing in for accounts with two-step sign-in on: a code from the authenticator
+// app, or one of the backup codes. The password step left a 10-minute cookie these calls check.
+function TwoFactorStep({ onSuccess, onBack }: { onSuccess: () => void; onBack: () => void }) {
+  const [useBackup, setUseBackup] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [pending, setPending] = useState(false);
+
+  async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setError(null);
+    setPending(true);
+    const form = new FormData(event.currentTarget);
+    const code = String(form.get("code")).replace(/\s/g, "");
+    const trustDevice = form.get("trust") === "on";
+    const { error } = useBackup
+      ? await authClient.twoFactor.verifyBackupCode({ code, trustDevice })
+      : await authClient.twoFactor.verifyTotp({ code, trustDevice });
+    setPending(false);
+    if (error) {
+      setError(error.message ?? "That code did not work. Please try again.");
+      return;
+    }
+    onSuccess();
+  }
+
+  return (
+    <div className="grid gap-4">
+      <form key={String(useBackup)} onSubmit={onSubmit} className="grid gap-4">
+        <p className="text-sm text-muted">
+          {useBackup
+            ? "Enter one of the backup codes you saved when you turned on two-step sign-in. Each code works once."
+            : "Open your authenticator app and enter the 6-digit code for NRC Educational Consultants."}
+        </p>
+        <div>
+          <Label htmlFor="tf-code">{useBackup ? "Backup code" : "6-digit code"}</Label>
+          <Input
+            id="tf-code"
+            name="code"
+            autoComplete="one-time-code"
+            inputMode={useBackup ? "text" : "numeric"}
+            maxLength={useBackup ? 32 : 9}
+            autoFocus
+            required
+            className="text-center font-mono text-lg tracking-[0.3em]"
+          />
+        </div>
+        <label className="flex items-center gap-2.5 text-sm text-muted">
+          <input type="checkbox" name="trust" className="size-4 accent-brand-600" />
+          Trust this device for 30 days
+        </label>
+        <ErrorMessage error={error} />
+        <Button type="submit" variant="accent" disabled={pending}>{pending ? "Checking…" : "Verify and sign in"}</Button>
+      </form>
+      <button type="button" onClick={() => { setError(null); setUseBackup(!useBackup); }} className="justify-self-center text-sm font-semibold text-brand-700 hover:underline">
+        {useBackup ? "Use the authenticator app instead" : "Lost your phone? Use a backup code"}
+      </button>
+      <button type="button" onClick={onBack} className="justify-self-center text-sm text-muted hover:underline">
         Back to sign in
       </button>
     </div>

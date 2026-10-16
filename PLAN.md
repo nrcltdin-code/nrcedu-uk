@@ -170,6 +170,11 @@ New → Documents pending → Submitted to university → Offer received → Dep
   - [x] Email verification: registering sends a confirmation link (Better Auth, via the email queue); until confirmed, the dashboard shows an amber bar with "Send again" (5 per hour). Sign-in does not require it. Google sign-ins and invite-link students already count as confirmed. Hidden while email is switched off
     - [ ] Register a new student: the email arrives, the bar shows; open the link: lands on the dashboard signed in, bar gone
     - [ ] Press "Send again": "A new link is on its way" and a second email arrives
+  - [x] Fuller sign-up: optional phone (copied to the student record), confirm password, Show/Hide, strength meter, agree to `/terms` and `/privacy` (placeholder wording; the client's own text needed)
+  - [x] Account and security page (`/dashboard/account`, every role): name and phone, change email (old address approves, new one confirms), change password (signs out other devices; Google-only accounts get an "add a password" email), signed-in devices with sign out one / all others, students can close their own account (refused while they have applications; their document files are deleted)
+  - [x] Two-step sign-in (Better Auth `twoFactor` plugin): authenticator app with QR code, 10 one-time backup codes, "trust this device for 30 days"; code step in the sign-in panel. Required for admins and staff who sign in with a password: the dashboard shows only the Account page until it is on. Google sign-ins skip it
+    - Checked against a local production build: sign-up with phone, enabling, password-only sign-in held for a code, wrong and reused codes refused, backup code sign-in, device list and sign-out of others, password change, account deletion
+    - [ ] Sign in as admin: the dashboard asks for two-step set-up; scan the QR code, enter the code, save the backup codes; sign out and back in with a code
 - [ ] 1.5 Vercel preview deployment (skipped for now; needs the client's Vercel account)
 
 ### Phase 2 — Public website (week 2)

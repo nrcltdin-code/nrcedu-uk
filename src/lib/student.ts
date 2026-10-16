@@ -7,9 +7,14 @@ import { requireRole } from "@/lib/session";
 // Google) have no profile row until they first open the portal, so it is created here.
 export async function requireMyStudentId(): Promise<string> {
   const user = await requireRole("STUDENT");
+  const existing = await db.studentProfile.findUnique({ where: { userId: user.id }, select: { id: true } });
+  if (existing) return existing.id;
+
+  // First visit: start the record with the phone number given when they signed up.
+  const { phone } = await db.user.findUniqueOrThrow({ where: { id: user.id }, select: { phone: true } });
   const profile = await db.studentProfile.upsert({
     where: { userId: user.id },
-    create: { userId: user.id },
+    create: { userId: user.id, phone },
     update: {},
     select: { id: true },
   });

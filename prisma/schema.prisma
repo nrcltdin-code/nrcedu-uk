@@ -46,6 +46,8 @@ model User {
   emailVerified Boolean   @default(false)
   phone        String?
   image        String?
+  // Set by Better Auth's two-factor plugin once an authenticator app is confirmed.
+  twoFactorEnabled Boolean @default(false)
   role         Role       @default(STUDENT)
   status       UserStatus @default(ACTIVE)
   createdAt    DateTime   @default(now())
@@ -77,6 +79,7 @@ model User {
   activityLogs         ActivityLog[]
   uploads              Upload[]
   notifications        Notification[]
+  twoFactor            TwoFactor?
 
   @@index([role, status])
   @@index([agentTeamId])
@@ -117,6 +120,21 @@ model Account {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+}
+
+// Authenticator-app secret and one-time backup codes (Better Auth two-factor plugin; stored encrypted).
+model TwoFactor {
+  id                      String    @id @default(cuid())
+  userId                  String    @unique
+  secret                  String
+  backupCodes             String
+  verified                Boolean   @default(true)
+  failedVerificationCount Int       @default(0)
+  lockedUntil             DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([secret])
 }
 
 model Verification {

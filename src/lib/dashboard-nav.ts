@@ -23,6 +23,7 @@ const groups: { label: string; entries: Entry[] }[] = [
     entries: [
       { label: "Overview", href: "/dashboard", icon: "home", roles: ["ADMIN", "STAFF", "AGENT", "STUDENT"] },
       { label: "Notifications", href: "/dashboard/notifications", icon: "bell", roles: ["ADMIN", "STAFF", "AGENT", "STUDENT"] },
+      { label: "Account and security", href: "/dashboard/account", icon: "shield", roles: ["ADMIN", "STAFF", "AGENT", "STUDENT"] },
     ],
   },
   {
