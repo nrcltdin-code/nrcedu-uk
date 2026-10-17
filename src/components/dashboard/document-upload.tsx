@@ -7,7 +7,9 @@ import { Label, Select } from "@/components/ui/field";
 
 type Props = {
   studentId: string;
-  types: { value: string; label: string }[];
+  // Upload into one document request: its type and application come from the request.
+  requestId?: string;
+  types?: { value: string; label: string }[];
   applications?: { id: string; name: string }[];
   enabled: boolean;
 };
@@ -24,7 +26,7 @@ async function post(url: string, body: unknown) {
 
 // Three steps: ask the server for an upload link, send the file straight to storage, then ask
 // the server to check it. The server repeats every check; the ones here only save a wasted upload.
-export function DocumentUpload({ studentId, types, applications = [], enabled }: Props) {
+export function DocumentUpload({ studentId, requestId, types = [], applications = [], enabled }: Props) {
   const router = useRouter();
   const fileRef = useRef<HTMLInputElement>(null);
   const [status, setStatus] = useState<{ busy?: string; error?: string; done?: string }>({});
@@ -39,6 +41,7 @@ export function DocumentUpload({ studentId, types, applications = [], enabled }:
       setStatus({ busy: "Preparing…" });
       const { uploadUrl, ticket } = await post("/api/documents/start", {
         studentId,
+        requestId: requestId ?? null,
         applicationId: form.get("applicationId") || null,
         type: form.get("type"),
         name: file.name,
@@ -66,29 +69,30 @@ export function DocumentUpload({ studentId, types, applications = [], enabled }:
 
   return (
     <form action={upload} className="grid gap-3">
-      <div className="grid gap-3 sm:grid-cols-2">
+      {!requestId && <div className="grid gap-3 sm:grid-cols-2">
         <div>
-          <Label htmlFor="d-type">Document</Label>
-          <Select id="d-type" name="type" defaultValue="" required>
+          <Label htmlFor={`d-type-${studentId}`}>Document</Label>
+          <Select id={`d-type-${studentId}`} name="type" defaultValue="" required>
             <option value="" disabled>Choose…</option>
             {types.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
           </Select>
         </div>
         {applications.length > 0 && (
           <div>
-            <Label htmlFor="d-app">For application</Label>
-            <Select id="d-app" name="applicationId" defaultValue="">
+            <Label htmlFor={`d-app-${studentId}`}>For application</Label>
+            <Select id={`d-app-${studentId}`} name="applicationId" defaultValue="">
               <option value="">General</option>
               {applications.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
             </Select>
           </div>
         )}
-      </div>
+      </div>}
       <input
         ref={fileRef}
         type="file"
         accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"
         required
+        aria-label="File"
         className="text-sm file:mr-3 file:rounded-full file:border-0 file:bg-brand-600/10 file:px-4 file:py-2 file:font-semibold file:text-brand-800"
       />
       <p className="text-xs text-muted">PDF, JPG or PNG, up to 10 MB.</p>

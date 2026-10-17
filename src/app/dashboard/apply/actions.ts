@@ -17,7 +17,7 @@ export async function applyForCourse(_previous: FormState, form: FormData): Prom
   const published = await db.course.count({ where: { id: courseId, isPublished: true, university: { isPublished: true } } });
   if (!published) return { error: "This course is not open for applications." };
 
-  const result = await startApplication({ studentId, courseId, intakeId: text(form, "intakeId") || null, byUserId: user.id });
+  const result = await startApplication({ studentId, courseId, intakeId: text(form, "intakeId") || null, byUserId: user.id, byStudent: true });
   if ("error" in result) return { error: result.error };
   redirect(`/dashboard/my-applications?started=${result.id}`);
 }

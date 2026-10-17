@@ -1,8 +1,11 @@
 "use server";
 
-import { updateTag } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { redirect } from "next/navigation";
+import type { ApplicationStage, DocumentType } from "@/generated/prisma/client";
+import { skippableStages } from "@/lib/application-flow";
 import { db } from "@/lib/db";
+import { documentTypeLabels } from "@/lib/documents";
 import { releaseImages } from "@/lib/uploads";
 import { isStudyLevel } from "@/lib/data/catalogue";
 import {
@@ -219,4 +222,46 @@ export async function deleteIntake(universityId: string, id: string) {
   await db.intake.delete({ where: { id, universityId } });
   updateTag("universities");
   redirect(`${base(universityId)}#intakes`);
+}
+
+// ───────────── Application process ─────────────
+// How this university's applications differ: the checklist copied onto each new
+// application, steps that do not apply, and what it calls its confirmation of enrolment.
+
+export async function saveProcess(_previous: FormState, form: FormData): Promise<FormState> {
+  await requirePermission("CONTENT", "edit");
+  const id = text(form, "universityId");
+  const confirmationName = text(form, "confirmationName") || "CAS";
+  const processNotes = text(form, "processNotes") || null;
+  const skippedStages = form.getAll("skippedStages").map(String).filter((s): s is ApplicationStage => skippableStages.includes(s as ApplicationStage));
+  if (confirmationName.length > 20) return { error: "Keep the name short, e.g. CAS, I-20, CoE or LOA." };
+  if (processNotes && processNotes.length > 3000) return { error: "Keep the notes under 3,000 characters." };
+
+  await db.university.update({ where: { id }, data: { confirmationName, processNotes, skippedStages } });
+  revalidatePath(base(id));
+  return { saved: true };
+}
+
+export async function addRequirement(_previous: FormState, form: FormData): Promise<FormState> {
+  await requirePermission("CONTENT", "edit");
+  const universityId = text(form, "universityId");
+  const type = text(form, "type") as DocumentType;
+  const label = text(form, "label") || documentTypeLabels[type];
+  const instructions = text(form, "instructions") || null;
+  if (!(type in documentTypeLabels)) return { error: "Choose what kind of document it is." };
+  if (label.length > 120) return { error: "Keep the name under 120 characters." };
+  if (instructions && instructions.length > 1000) return { error: "Keep the instructions under 1,000 characters." };
+
+  const last = await db.universityRequirement.aggregate({ where: { universityId }, _max: { sortOrder: true } });
+  await db.universityRequirement.create({
+    data: { universityId, type, label, instructions, required: checked(form, "required"), sortOrder: (last._max.sortOrder ?? 0) + 1 },
+  });
+  redirect(`${base(universityId)}#process`);
+}
+
+// Applications already started keep their requests; only new ones are affected.
+export async function deleteRequirement(universityId: string, id: string) {
+  await requirePermission("CONTENT", "edit");
+  await db.universityRequirement.delete({ where: { id, universityId } });
+  redirect(`${base(universityId)}#process`);
 }

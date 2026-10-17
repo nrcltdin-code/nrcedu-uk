@@ -1,7 +1,7 @@
 import "server-only";
 import { createHmac, timingSafeEqual } from "node:crypto";
 import sharp from "sharp";
-import type { DocumentType } from "@/generated/prisma/client";
+import type { DocumentStatus, DocumentType } from "@/generated/prisma/client";
 import { findAgentScope } from "@/lib/agent";
 import { db } from "@/lib/db";
 import { can } from "@/lib/session";
@@ -57,6 +57,7 @@ export type UploadTicket = {
   key: string;
   studentId: string;
   applicationId: string | null;
+  requestId: string | null;
   type: DocumentType;
   name: string;
   size: number;
@@ -134,4 +135,19 @@ export async function sweepAbandonedDocuments() {
   }
   if (batch.length) await flush();
   return removed;
+}
+
+// A request's status follows its files: any approved file means approved (and the upload
+// closes); otherwise a file waiting for review means uploaded; only rejected files means
+// upload again. Waived stays waived. Call after any file on the request changes.
+export async function syncRequestStatus(requestId: string | null) {
+  if (!requestId) return;
+  const request = await db.documentRequest.findUnique({ where: { id: requestId }, select: { status: true, documents: { select: { status: true } } } });
+  if (!request || request.status === "WAIVED") return;
+  const has = (status: DocumentStatus) => request.documents.some((d) => d.status === status);
+  const status = has("APPROVED") ? "APPROVED" : has("PENDING") ? "UPLOADED" : has("REJECTED") ? "NEEDS_REUPLOAD" : "REQUESTED";
+  await db.documentRequest.update({
+    where: { id: requestId },
+    data: { status, ...(status === "APPROVED" ? { isOpen: false } : status === "NEEDS_REUPLOAD" ? { isOpen: true } : {}) },
+  });
 }

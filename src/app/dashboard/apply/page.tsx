@@ -57,6 +57,19 @@ async function Apply({ searchParams }: Pick<PageProps<"/dashboard/apply">, "sear
     );
   }
 
+  const profile = await db.studentProfile.findUnique({ where: { userId: user.id }, select: { canStartApplications: true } });
+  if (profile && !profile.canStartApplications) {
+    return (
+      <Card tone="solid" className="max-w-2xl">
+        <h2 className="text-2xl font-bold">{course.name}</h2>
+        <p className="mt-3 text-muted">
+          New applications are paused on your account while your counsellor works on the ones you have. To add {course.university.name}, send your counsellor a message and they will add it for you.
+        </p>
+        <Link href="/dashboard/my-applications" className={buttonStyles({ className: "mt-4" })}>My applications</Link>
+      </Card>
+    );
+  }
+
   const intakes = await db.intake.findMany({
     where: { isOpen: true, universityId: course.universityId, OR: [{ courseId: null }, { courseId: course.id }] },
     orderBy: { startDate: "asc" },

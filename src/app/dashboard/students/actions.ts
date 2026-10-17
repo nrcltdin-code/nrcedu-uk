@@ -173,3 +173,13 @@ export async function makePortalInvite(_previous: InviteState, form: FormData): 
   });
   return { url: invite.url, expires: invite.expiresAt.toISOString(), emailedTo: emailed ? student.user.email : undefined };
 }
+
+// Whether the student can start applications themselves from the website. Staff can always add them.
+export async function setCanStartApplications(studentId: string, allowed: boolean) {
+  const user = await requirePermission("STUDENTS", "edit");
+  await db.$transaction([
+    db.studentProfile.update({ where: { id: studentId }, data: { canStartApplications: allowed } }),
+    log(user.id, "student.update", "StudentProfile", studentId, { canStartApplications: allowed }),
+  ]);
+  revalidatePath(`/dashboard/students/${studentId}`);
+}

@@ -1,6 +1,8 @@
+import { acceptsUpload } from "@/lib/application-flow";
+import { applicationEvent } from "@/lib/applications";
 import { db } from "@/lib/db";
 import { counsellorOrStaff, notify, studentSide } from "@/lib/notifications";
-import { canAccessStudent, cleanDocumentImage, documentTypeLabels, documentContentTypes, MAX_DOCUMENT_BYTES, readTicket, sniffDocument } from "@/lib/documents";
+import { canAccessStudent, cleanDocumentImage, documentTypeLabels, documentContentTypes, MAX_DOCUMENT_BYTES, readTicket, sniffDocument, syncRequestStatus } from "@/lib/documents";
 import { isSameOrigin } from "@/lib/same-origin";
 import { getCurrentUser } from "@/lib/session";
 import { deletePrivateObject, getPrivateObject, headPrivateObject, privateStorageEnabled, putPrivateObject } from "@/lib/storage";
@@ -28,6 +30,14 @@ export async function POST(request: Request) {
   // Access could have been removed in the minutes since the upload started.
   if (!(await canAccessStudent(user, ticket.studentId, "edit"))) return fail(403, "You cannot add documents for this student.");
   if (await db.document.count({ where: { fileKey: ticket.key } })) return fail(409, "This upload was already saved.");
+  // Staff may have closed the upload in the minutes since it started.
+  const slot = ticket.requestId
+    ? await db.documentRequest.findUnique({ where: { id: ticket.requestId }, select: { label: true, isOpen: true, status: true } })
+    : null;
+  if (ticket.requestId && (!slot || (user.role !== "ADMIN" && user.role !== "STAFF" && !acceptsUpload(slot)))) {
+    await deletePrivateObject(ticket.key).catch(() => {});
+    return fail(403, "This upload was closed while you were uploading. Ask your counsellor to open it again.");
+  }
 
   const reject = async (status: number, error: string) => {
     await deletePrivateObject(ticket.key).catch(() => {});
@@ -63,6 +73,7 @@ export async function POST(request: Request) {
     data: {
       studentId: ticket.studentId,
       applicationId: ticket.applicationId,
+      requestId: ticket.requestId,
       type: ticket.type,
       name,
       fileKey: ticket.key,
@@ -72,6 +83,17 @@ export async function POST(request: Request) {
     select: { id: true },
   });
   await db.activityLog.create({ data: { userId: user.id, action: "document.upload", entityType: "Document", entityId: document.id } });
+  await syncRequestStatus(ticket.requestId);
+  if (ticket.applicationId) {
+    await applicationEvent({
+      applicationId: ticket.applicationId,
+      actorId: user.id,
+      type: "document.uploaded",
+      note: `${slot?.label ?? documentTypeLabels[ticket.type]}: ${name}`,
+      visibleToStudent: true,
+      meta: { documentId: document.id, requestId: ticket.requestId },
+    });
+  }
 
   // Uploads from the student or their agent go to the counsellor (or the students team) to check.
   if (user.role === "STUDENT" || user.role === "AGENT") {

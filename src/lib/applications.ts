@@ -1,16 +1,30 @@
 import "server-only";
-import type { ApplicationStage } from "@/generated/prisma/client";
+import type { Prisma } from "@/generated/prisma/client";
 import { db } from "@/lib/db";
 import { counsellorOrStaff, notify, studentSide } from "@/lib/notifications";
 
+export { nextStepText } from "@/lib/application-flow";
+
 // Shared by staff (student page), students (portal Apply page) and later agents.
-export async function startApplication(input: { studentId: string; courseId: string; intakeId: string | null; byUserId: string }) {
+export async function startApplication(input: { studentId: string; courseId: string; intakeId: string | null; byUserId: string; byStudent?: boolean }) {
   const [student, course] = await Promise.all([
-    db.studentProfile.findUnique({ where: { id: input.studentId }, select: { id: true, counsellorId: true, agentId: true } }),
-    db.course.findFirst({ where: { id: input.courseId }, select: { id: true, universityId: true, name: true, university: { select: { name: true } } } }),
+    db.studentProfile.findUnique({ where: { id: input.studentId }, select: { id: true, counsellorId: true, agentId: true, canStartApplications: true } }),
+    db.course.findFirst({
+      where: { id: input.courseId },
+      select: {
+        id: true,
+        universityId: true,
+        name: true,
+        university: { select: { name: true, requirements: { orderBy: [{ sortOrder: "asc" }, { label: "asc" }] } } },
+      },
+    }),
   ]);
   if (!student) return { error: "This student no longer exists." };
   if (!course) return { error: "Choose a course from the list." };
+  // Staff can switch off self-service applications for a student; staff can still add them.
+  if (input.byStudent && !student.canStartApplications) {
+    return { error: "New applications are paused on your account. Message your counsellor to add another university." };
+  }
   if (input.intakeId) {
     // The intake must be open and belong to the course, or to the whole university.
     const intake = await db.intake.count({
@@ -19,7 +33,7 @@ export async function startApplication(input: { studentId: string; courseId: str
     if (!intake) return { error: "That intake is not open for this course." };
   }
   const duplicate = await db.application.count({
-    where: { studentId: student.id, courseId: course.id, intakeId: input.intakeId, stage: { notIn: ["WITHDRAWN", "VISA_REFUSED"] } },
+    where: { studentId: student.id, courseId: course.id, intakeId: input.intakeId, stage: { notIn: ["WITHDRAWN", "REJECTED", "OFFER_DECLINED", "VISA_REFUSED"] } },
   });
   if (duplicate) return { error: "There is already an open application for that course and intake." };
 
@@ -31,7 +45,18 @@ export async function startApplication(input: { studentId: string; courseId: str
       assignedStaffId: student.counsellorId,
       agentId: student.agentId,
       submittedById: input.byUserId,
-      stageHistory: { create: { stage: "NEW", changedById: input.byUserId } },
+      events: { create: { type: "created", toStage: "NEW", actorId: input.byUserId, visibleToStudent: true } },
+      // The university's own checklist becomes this application's document requests.
+      documentRequests: {
+        create: course.university.requirements.map((r) => ({
+          studentId: student.id,
+          type: r.type,
+          label: r.label,
+          instructions: r.instructions,
+          required: r.required,
+          createdById: input.byUserId,
+        })),
+      },
     },
     select: { id: true },
   });
@@ -53,16 +78,11 @@ export async function startApplication(input: { studentId: string; courseId: str
   return { id: application.id };
 }
 
-// Plain-language "what happens now" for students and agents, per stage.
-export const nextStepText: Record<ApplicationStage, string> = {
-  NEW: "Your counsellor will review this application and contact you about the next steps.",
-  DOCUMENTS_PENDING: "Upload the documents your counsellor asked for on the Documents page.",
-  SUBMITTED_TO_UNIVERSITY: "The university has your application. Decisions usually take 2 to 6 weeks.",
-  OFFER_RECEIVED: "You have an offer. Your counsellor will explain any conditions and the deposit.",
-  DEPOSIT_CAS: "Pay the deposit if you have not yet. The university then issues your CAS or acceptance letter.",
-  VISA_APPLIED: "Your visa application is with the embassy. Keep your passport ready for collection.",
-  VISA_GRANTED: "Visa granted. Book your travel and check the university's arrival and enrolment dates.",
-  VISA_REFUSED: "Your counsellor will talk you through the refusal and your options.",
-  ENROLLED: "You are enrolled. Good luck with your studies!",
-  WITHDRAWN: "This application was withdrawn.",
-};
+type EventInput = Omit<Prisma.ApplicationEventUncheckedCreateInput, "id" | "createdAt">;
+
+// One line in an application's history. Put it in the same transaction as the change it records.
+export const applicationEvent = (event: EventInput) => db.applicationEvent.create({ data: event });
+
+// Required requests on an application that still lack an approved file.
+export const missingRequiredDocuments = (applicationId: string) =>
+  db.documentRequest.count({ where: { applicationId, required: true, status: { notIn: ["APPROVED", "WAIVED"] } } });

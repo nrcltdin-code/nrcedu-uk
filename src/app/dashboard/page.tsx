@@ -176,7 +176,7 @@ async function AgentOverview() {
   const where = scope.students;
   const [students, open, enrolled, due] = await Promise.all([
     db.studentProfile.count({ where }),
-    db.application.count({ where: { student: where, stage: { notIn: ["ENROLLED", "VISA_REFUSED", "WITHDRAWN"] } } }),
+    db.application.count({ where: { student: where, stage: { notIn: closedStages } } }),
     db.application.count({ where: { student: where, stage: "ENROLLED" } }),
     // Commission is paid to the agency, so only the owner sees it.
     scope.isOwner ? db.commission.count({ where: { agentId: scope.agentId, direction: "NRC_TO_AGENT", status: "PENDING" } }) : 0,

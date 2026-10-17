@@ -1,19 +1,27 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import { InfoTip } from "@/components/ui/info-tip";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ApplicationTimeline, eventSelect } from "@/components/dashboard/application-timeline";
+import { DocumentRequestList, requestSelect, WhatsAppButton } from "@/components/dashboard/document-requests";
 import { DeleteButton } from "@/components/dashboard/form-bits";
 import { NoteForm } from "@/components/dashboard/note-form";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { allowedMoves, isClosed, stageLabel, stages, stageTones } from "@/lib/application-flow";
 import { getAssigneeOptions } from "@/lib/assignees";
 import { db } from "@/lib/db";
+import { documentTypeLabels } from "@/lib/documents";
 import { formatDate, formatMoney } from "@/lib/format";
 import { can, requirePermission } from "@/lib/session";
+import { privateStorageEnabled } from "@/lib/storage";
+import { whatsappNumber } from "@/lib/whatsapp";
 import { RemindersCard } from "../../reminders/reminders-card";
-import { addApplicationNote, deleteApplication } from "../actions";
-import { AssignForm, StageForm } from "../application-forms";
-import { stageLabels, stageTones } from "../labels";
+import { RequestForm } from "../../students/request-form";
+import { addApplicationNote, deleteApplication, deleteCondition, setConditionMet } from "../actions";
+import { AssignForm, ConditionForm, DetailsForm, StageForm } from "../application-forms";
 import { AddCommissionForm, CommissionRowForm, ExpectedCommissionsButton } from "../../commissions/commission-forms";
 import { commissionStatusLabels, commissionStatusTones, directionLabels } from "../../commissions/labels";
 
@@ -36,8 +44,9 @@ export default function ApplicationPage({ params, searchParams }: PageProps<"/da
 
 async function ApplicationDetail({ params, searchParams }: Pick<PageProps<"/dashboard/applications/[id]">, "params" | "searchParams">) {
   const user = await requirePermission("APPLICATIONS", "view");
-  const [canEdit, canSeeMoney, canEditMoney] = await Promise.all([
+  const [canEdit, canEditDocs, canSeeMoney, canEditMoney] = await Promise.all([
     can(user, "APPLICATIONS", "edit"),
+    can(user, "STUDENTS", "edit"),
     can(user, "COMMISSIONS", "view"),
     can(user, "COMMISSIONS", "edit"),
   ]);
@@ -46,16 +55,27 @@ async function ApplicationDetail({ params, searchParams }: Pick<PageProps<"/dash
   const app = await db.application.findUnique({
     where: { id },
     include: {
-      student: { select: { id: true, user: { select: { name: true, email: true } } } },
-      course: { select: { name: true, level: true, currency: true, university: { select: { name: true } } } },
+      student: { select: { id: true, phone: true, user: { select: { name: true, email: true, phone: true } } } },
+      course: {
+        select: {
+          name: true,
+          level: true,
+          currency: true,
+          university: { select: { id: true, name: true, confirmationName: true, skippedStages: true, processNotes: true } },
+        },
+      },
       intake: { select: { name: true, startDate: true, applicationDeadline: true } },
       agent: { select: { user: { select: { name: true } } } },
       submittedBy: { select: { name: true } },
-      stageHistory: { orderBy: { createdAt: "desc" }, include: { changedBy: { select: { name: true } } } },
+      events: { orderBy: { createdAt: "desc" }, select: eventSelect },
+      documentRequests: { orderBy: { createdAt: "asc" }, select: requestSelect },
+      conditions: { orderBy: { createdAt: "asc" }, include: { metBy: { select: { name: true } } } },
       notes: { orderBy: { createdAt: "desc" }, include: { author: { select: { name: true } } } },
     },
   });
   if (!app) notFound();
+  const { confirmationName, skippedStages, processNotes } = app.course.university;
+
   const [people, commissions] = await Promise.all([
     canEdit ? getAssigneeOptions() : { staff: [] },
     canSeeMoney
@@ -67,9 +87,17 @@ async function ApplicationDetail({ params, searchParams }: Pick<PageProps<"/dash
       : [],
   ]);
 
+  const options = allowedMoves(app.stage, skippedStages, user.role === "ADMIN").map((s) => ({ value: s, label: stageLabel(s, confirmationName), closed: isClosed(s) }));
+  const path = stages.filter((s) => !isClosed(s) && !skippedStages.includes(s)).concat("ENROLLED");
+  const step = path.indexOf(app.stage);
+  const required = app.documentRequests.filter((r) => r.required);
+  const done = required.filter((r) => r.status === "APPROVED" || r.status === "WAIVED").length;
+  const showConditions = app.conditions.length > 0 || stages.indexOf(app.stage) >= stages.indexOf("SUBMITTED_TO_UNIVERSITY");
+  const whatsapp = Boolean(whatsappNumber(app.student.phone ?? app.student.user.phone));
+
   const details = [
     ["Student", <Link key="s" href={`/dashboard/students/${app.student.id}`} className="text-brand-700 hover:underline">{app.student.user.name}</Link>],
-    ["University", app.course.university.name],
+    ["University", <Link key="u" href={`/dashboard/universities/${app.course.university.id}`} className="text-brand-700 hover:underline">{app.course.university.name}</Link>],
     ["Intake", app.intake ? `${app.intake.name} (starts ${formatDate(app.intake.startDate)})` : null],
     ["Deadline", app.intake?.applicationDeadline ? formatDate(app.intake.applicationDeadline) : null],
     ["Agent", app.agent?.user.name],
@@ -80,12 +108,23 @@ async function ApplicationDetail({ params, searchParams }: Pick<PageProps<"/dash
     <>
       <div className="mt-2 flex flex-wrap items-center gap-3">
         <h1 className="text-3xl font-bold">{app.course.name}</h1>
-        <Badge tone={stageTones[app.stage]}>{stageLabels[app.stage]}</Badge>
+        <Badge tone={stageTones[app.stage]}>{stageLabel(app.stage, confirmationName)}</Badge>
+        <WhatsAppButton href={`/api/whatsapp?student=${app.student.id}`} enabled={whatsapp} purpose="student" />
       </div>
       {error === "has-commission" && (
         <p role="alert" className="mt-4 rounded-xl border border-red-500/25 bg-red-500/10 px-4 py-2.5 text-sm text-red-800">
           This application has commission records, so it cannot be deleted. Set it to Withdrawn instead.
         </p>
+      )}
+
+      {step >= 0 && (
+        <ol className="mt-5 flex gap-1" aria-label="Progress">
+          {path.map((s, i) => (
+            <li key={s} title={stageLabel(s, confirmationName)} className={`h-2 flex-1 rounded-full ${i <= step ? "bg-brand-600" : "bg-brand-900/10"}`}>
+              <span className="sr-only">{stageLabel(s, confirmationName)}{i <= step ? " (done)" : ""}</span>
+            </li>
+          ))}
+        </ol>
       )}
 
       <div className="mt-6 grid items-start gap-6 lg:grid-cols-[1.5fr_1fr]">
@@ -99,24 +138,74 @@ async function ApplicationDetail({ params, searchParams }: Pick<PageProps<"/dash
                 </div>
               ))}
             </dl>
+            {processNotes && (
+              <div className="mt-4 rounded-xl bg-brand-600/8 px-4 py-3 text-sm">
+                <p className="font-semibold">How {app.course.university.name} works</p>
+                <p className="mt-1 whitespace-pre-line">{processNotes}</p>
+              </div>
+            )}
           </Card>
 
           <Card tone="solid">
-            <h2 className="mb-4 text-xl font-bold">Stage history</h2>
-            <ol className="grid gap-4">
-              {app.stageHistory.map((h) => (
-                <li key={h.id} className="border-l-2 border-brand-600/25 pl-4">
-                  <p className="text-xs text-muted">{dateTime.format(h.createdAt)} · {h.changedBy?.name ?? "Someone"}</p>
-                  <p className="mt-1"><Badge tone={stageTones[h.stage]}>{stageLabels[h.stage]}</Badge></p>
-                  {h.note && <p className="mt-1 text-sm">{h.note}</p>}
-                </li>
-              ))}
-            </ol>
+            <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
+              <h2 className="flex items-center gap-1 text-xl font-bold">Documents <InfoTip text="Documents this university needs for this application. Each one is an upload slot on the student's portal: open it to let them upload, then approve or send back what they send. Required ones must be approved or marked not needed before the application can be submitted." /></h2>
+              {required.length > 0 && <span className="text-sm text-muted">{done} of {required.length} required approved</span>}
+            </div>
+            <DocumentRequestList studentId={app.student.id} requests={app.documentRequests} canEdit={canEditDocs} whatsapp={whatsapp} storage={privateStorageEnabled} />
+            {canEditDocs && (
+              <details className="mt-4 border-t border-brand-900/10 pt-4">
+                <summary className="cursor-pointer font-semibold text-brand-700">Ask for another document</summary>
+                <div className="mt-4">
+                  <RequestForm
+                    key={app.documentRequests.length}
+                    studentId={app.student.id}
+                    applicationId={app.id}
+                    types={Object.entries(documentTypeLabels).map(([value, label]) => ({ value, label }))}
+                  />
+                </div>
+              </details>
+            )}
+            <p className="mt-3 text-xs text-muted">
+              General documents (passport, transcripts) are on the <Link href={`/dashboard/students/${app.student.id}`} className="text-brand-700 hover:underline">student’s page</Link>.
+            </p>
+          </Card>
+
+          {showConditions && (
+            <Card tone="solid">
+              <h2 className="flex items-center gap-1 mb-1 text-xl font-bold">Offer conditions <InfoTip text="Conditions from a conditional offer, e.g. an English test score. The student sees them. Tick each off when met; the application can only move to Unconditional offer once all are met." /></h2>
+              <p className="mb-4 text-xs text-muted">All must be met before moving to Unconditional offer. The student sees these.</p>
+              <ul className="grid gap-2">
+                {app.conditions.map((c) => (
+                  <li key={c.id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-brand-900/10 px-3 py-2">
+                    <span className="min-w-0 text-sm">
+                      <span aria-hidden className={c.metAt ? "text-emerald-600" : "text-muted"}>{c.metAt ? "✓ " : "○ "}</span>
+                      <span className={c.metAt ? "line-through decoration-brand-900/30" : ""}>{c.text}</span>
+                      {c.metAt && <span className="block text-xs text-muted">Met {formatDate(c.metAt)}{c.metBy && `, ticked by ${c.metBy.name}`}</span>}
+                    </span>
+                    {canEdit && (
+                      <span className="flex items-center gap-1">
+                        <form action={setConditionMet.bind(null, app.id, c.id, !c.metAt)}>
+                          <Button variant="ghost" size="sm">{c.metAt ? "Not met" : "Mark met"}</Button>
+                        </form>
+                        <DeleteButton action={deleteCondition.bind(null, app.id, c.id)} question="Remove this condition?" />
+                      </span>
+                    )}
+                  </li>
+                ))}
+                {app.conditions.length === 0 && <li className="text-sm text-muted">No conditions recorded.</li>}
+              </ul>
+              {canEdit && !isClosed(app.stage) && <div className="mt-4"><ConditionForm key={app.conditions.length} applicationId={app.id} /></div>}
+            </Card>
+          )}
+
+          <Card tone="solid">
+            <h2 className="flex items-center gap-1 mb-4 text-xl font-bold">History <InfoTip text="Everything that happened to this application, newest first: stage moves, document requests, uploads, reviews, conditions, detail changes and WhatsApp chats. Nothing here can be edited or deleted. Items marked internal are hidden from the student." /></h2>
+            <ApplicationTimeline events={app.events} confirmationName={confirmationName} staffView />
           </Card>
 
           {canSeeMoney && (
             <Card tone="solid">
-              <h2 className="mb-1 text-xl font-bold">Commission</h2>
+              <h2 className="flex items-center gap-1 mb-1 text-xl font-bold">Commission <InfoTip text="Money for this application. University to NRC is what the university pays us; NRC to agent is what we owe the referring agent. Agents only see their own part." /></h2>
               <p className="mb-4 text-xs text-muted">Staff only. Agents see only what NRC owes them.</p>
               <ul className="grid gap-4">
                 {commissions.map((c) => (
@@ -147,7 +236,8 @@ async function ApplicationDetail({ params, searchParams }: Pick<PageProps<"/dash
           <RemindersCard link={{ applicationId: app.id }} user={user} canEdit={canEdit} />
 
           <Card tone="solid">
-            <h2 className="mb-4 text-xl font-bold">Notes</h2>
+            <h2 className="flex items-center gap-1 mb-1 text-xl font-bold">Notes <InfoTip text="Internal notes for staff. The student and agents never see these. Adding one is also recorded in the history." /></h2>
+            <p className="mb-4 text-xs text-muted">Only staff see these notes.</p>
             {canEdit && <NoteForm key={app.notes.length} action={addApplicationNote} field={{ applicationId: app.id }} placeholder="Emailed admissions about the conditional offer…" />}
             <ol className="mt-5 grid gap-4">
               {app.notes.map((note) => (
@@ -162,20 +252,37 @@ async function ApplicationDetail({ params, searchParams }: Pick<PageProps<"/dash
         </div>
 
         {canEdit && (
-          <Card tone="solid" className="grid gap-6">
-            <div>
-              <h2 className="mb-4 text-xl font-bold">Move to a stage</h2>
-              <StageForm key={app.stageHistory.length} id={app.id} stage={app.stage} />
-            </div>
-            <div className="border-t border-brand-900/10 pt-5">
-              <AssignForm id={app.id} assignedStaffId={app.assignedStaffId} staff={people.staff} />
-            </div>
-            {user.role === "ADMIN" && (
-              <div className="border-t border-brand-900/10 pt-5">
-                <DeleteButton action={deleteApplication.bind(null, app.id)} question="Delete this application? For mistakes only; use Withdrawn otherwise." />
+          <div className="grid gap-6 lg:sticky lg:top-6">
+            <Card tone="solid" className="grid gap-6">
+              <div>
+                <h2 className="flex items-center gap-1 mb-4 text-xl font-bold">Move to a stage <InfoTip text="Only the stages allowed from where the application is now are listed: forward, back one step, or close it. Some moves need something first (approved documents, met conditions, the CAS number). The student is told about every move, along with your note." /></h2>
+                <StageForm key={app.events.length} id={app.id} options={options} />
               </div>
+              <div className="border-t border-brand-900/10 pt-5">
+                <AssignForm id={app.id} assignedStaffId={app.assignedStaffId} staff={people.staff} />
+              </div>
+            </Card>
+            <Card tone="solid">
+              <h2 className="flex items-center gap-1 mb-4 text-xl font-bold">Key details <InfoTip text="Reference numbers and the deposit, filled in as the application moves along. Every change is recorded in the history with the old and new value." /></h2>
+              <DetailsForm
+                key={app.updatedAt.getTime()}
+                details={{
+                  id: app.id,
+                  universityRef: app.universityRef,
+                  casNumber: app.casNumber,
+                  visaReference: app.visaReference,
+                  depositAmount: app.depositAmount?.toString() ?? null,
+                  currency: app.course.currency,
+                  confirmationName,
+                }}
+              />
+            </Card>
+            {user.role === "ADMIN" && (
+              <Card tone="solid">
+                <DeleteButton action={deleteApplication.bind(null, app.id)} question="Delete this application? For mistakes only; use Withdrawn otherwise." />
+              </Card>
             )}
-          </Card>
+          </div>
         )}
       </div>
     </>

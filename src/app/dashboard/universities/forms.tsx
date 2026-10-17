@@ -7,7 +7,7 @@ import { ImageField } from "@/components/dashboard/image-field";
 import { Button, buttonStyles } from "@/components/ui/button";
 import { Input, Label, Select, Textarea } from "@/components/ui/field";
 import type { FormState } from "@/lib/form";
-import { addIntake, saveCourse, saveUniversity } from "./actions";
+import { addIntake, addRequirement, saveCourse, saveProcess, saveUniversity } from "./actions";
 
 type Option = { id: string; name: string };
 
@@ -215,6 +215,68 @@ export function IntakeForm({ universityId, courses }: { universityId: string; co
       </div>
       <FormMessage state={state} />
       <Button type="submit" disabled={pending} className="justify-self-start">{pending ? "Adding…" : "Add intake"}</Button>
+    </form>
+  );
+}
+
+export function ProcessForm({ universityId, confirmationName, processNotes, skipped, stages }: {
+  universityId: string;
+  confirmationName: string;
+  processNotes: string | null;
+  skipped: string[];
+  stages: { value: string; label: string }[];
+}) {
+  const [state, action, pending] = useActionState<FormState, FormData>(saveProcess, {});
+
+  return (
+    <form action={action} className="grid gap-4">
+      <input type="hidden" name="universityId" value={universityId} />
+      <div className="max-w-xs">
+        <Label htmlFor="p-conf">Confirmation of enrolment is called</Label>
+        <Input id="p-conf" name="confirmationName" maxLength={20} defaultValue={confirmationName} placeholder="CAS, I-20, CoE, LOA" />
+      </div>
+      <fieldset>
+        <legend className="mb-2 text-sm font-semibold">Steps this university skips</legend>
+        <div className="grid gap-2 sm:grid-cols-2">
+          {stages.map((s) => <Checkbox key={s.value} name="skippedStages" value={s.value} defaultChecked={skipped.includes(s.value)}>{s.label}</Checkbox>)}
+        </div>
+      </fieldset>
+      <div>
+        <Label htmlFor="p-notes">How to apply (staff only)</Label>
+        <Textarea id="p-notes" name="processNotes" maxLength={3000} rows={4} defaultValue={processNotes ?? ""} placeholder="Portal link, who to email, typical decision time…" />
+      </div>
+      <FormMessage state={state} />
+      <Button type="submit" size="sm" disabled={pending} className="justify-self-start">{pending ? "Saving…" : "Save process"}</Button>
+    </form>
+  );
+}
+
+export function RequirementForm({ universityId, types }: { universityId: string; types: { value: string; label: string }[] }) {
+  const [state, action, pending] = useActionState<FormState, FormData>(addRequirement, {});
+
+  return (
+    <form action={action} className="grid gap-3">
+      <input type="hidden" name="universityId" value={universityId} />
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div>
+          <Label htmlFor="q-type">Kind of document</Label>
+          <Select id="q-type" name="type" defaultValue="" required>
+            <option value="" disabled>Choose…</option>
+            {types.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
+          </Select>
+        </div>
+        <div>
+          <Label htmlFor="q-label">Name shown to the student</Label>
+          <Input id="q-label" name="label" maxLength={120} placeholder="e.g. Portfolio (10 pieces)" />
+        </div>
+      </div>
+      <div>
+        <Label htmlFor="q-help">Instructions</Label>
+        <Input id="q-help" name="instructions" maxLength={1000} placeholder="Optional" />
+      </div>
+      <Checkbox name="required" defaultChecked>Required before submitting</Checkbox>
+      {state.error && <FormMessage state={state} />}
+      <Button type="submit" size="sm" variant="glass" disabled={pending} className="justify-self-start">{pending ? "Adding…" : "Add to checklist"}</Button>
     </form>
   );
 }

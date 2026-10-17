@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import { InfoTip } from "@/components/ui/info-tip";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { NoteForm } from "@/components/dashboard/note-form";
@@ -12,7 +13,11 @@ import { can, requirePermission } from "@/lib/session";
 import { RemindersCard } from "../../reminders/reminders-card";
 import { stageLabels, stageTones } from "../../applications/labels";
 import { studyLevelLabels } from "../../leads/labels";
-import { addStudentNote } from "../actions";
+import { addStudentNote, setCanStartApplications } from "../actions";
+import { RequestForm } from "../request-form";
+import { DocumentRequestList, requestSelect, WhatsAppButton } from "@/components/dashboard/document-requests";
+import { Button } from "@/components/ui/button";
+import { whatsappNumber } from "@/lib/whatsapp";
 import { deleteDocument } from "../document-actions";
 import { DocumentReview } from "../document-review";
 import { PortalInvite } from "../portal-invite";
@@ -57,7 +62,7 @@ async function StudentDetail({ params }: Pick<PageProps<"/dashboard/students/[id
   const student = await db.studentProfile.findUnique({
     where: { id },
     include: {
-      user: { select: { name: true, email: true, accounts: { select: { id: true }, take: 1 } } },
+      user: { select: { name: true, email: true, phone: true, accounts: { select: { id: true }, take: 1 } } },
       country: { select: { name: true } },
       counsellor: { select: { name: true } },
       agent: { select: { user: { select: { name: true } } } },
@@ -69,7 +74,10 @@ async function StudentDetail({ params }: Pick<PageProps<"/dashboard/students/[id
         include: { course: { select: { name: true, university: { select: { name: true } } } }, intake: { select: { name: true } } },
       },
       notes: { orderBy: { createdAt: "desc" }, include: { author: { select: { name: true } } } },
+      documentRequests: { where: { applicationId: null }, orderBy: { createdAt: "asc" }, select: requestSelect },
+      // Files outside any request (staff uploads); request files are shown under their request.
       documents: {
+        where: { requestId: null },
         orderBy: { createdAt: "desc" },
         include: { uploadedBy: { select: { name: true } }, reviewedBy: { select: { name: true } }, application: { select: { course: { select: { name: true } } } } },
       },
@@ -92,12 +100,16 @@ async function StudentDetail({ params }: Pick<PageProps<"/dashboard/students/[id
   ]);
 
   const hasLogin = student.user.accounts.length > 0;
+  const whatsapp = Boolean(whatsappNumber(student.phone ?? student.user.phone));
+  const documentTypes = Object.entries(documentTypeLabels).map(([value, label]) => ({ value, label }));
+  const applicationNames = student.applications.map((a) => ({ id: a.id, name: `${a.course.name}, ${a.course.university.name}` }));
 
   return (
     <>
       <div className="mt-2 flex flex-wrap items-center gap-3">
         <h1 className="text-3xl font-bold">{student.user.name}</h1>
         <Badge tone={hasLogin ? "success" : "neutral"}>{hasLogin ? "Has portal login" : "No portal login yet"}</Badge>
+        <WhatsAppButton href={`/api/whatsapp?student=${student.id}`} enabled={whatsapp} purpose="student" />
       </div>
       <p className="mt-1 text-muted">
         {student.user.email}
@@ -115,7 +127,7 @@ async function StudentDetail({ params }: Pick<PageProps<"/dashboard/students/[id
         <div className="grid gap-6">
           {canSeeApps && (
             <Card tone="solid">
-              <h2 className="mb-4 text-xl font-bold">Applications</h2>
+              <h2 className="flex items-center gap-1 mb-4 text-xl font-bold">Applications <InfoTip text="Every university this student applies to. Open one to manage its stages and documents. Pausing new applications stops the student starting more from the website; staff can still add them." /></h2>
               <ul className="divide-y divide-brand-900/10">
                 {student.applications.map((app) => (
                   <li key={app.id}>
@@ -130,6 +142,18 @@ async function StudentDetail({ params }: Pick<PageProps<"/dashboard/students/[id
                 ))}
                 {student.applications.length === 0 && <li className="py-2 text-muted">No applications yet.</li>}
               </ul>
+              <div className="mt-4 flex flex-wrap items-center justify-between gap-2 rounded-xl bg-brand-600/5 px-3 py-2 text-sm">
+                <span>
+                  {student.canStartApplications
+                    ? "The student can apply to more universities from the website."
+                    : "Paused: the student cannot start new applications. Staff still can."}
+                </span>
+                {canEdit && (
+                  <form action={setCanStartApplications.bind(null, student.id, !student.canStartApplications)}>
+                    <Button variant="ghost" size="sm">{student.canStartApplications ? "Pause new applications" : "Allow new applications"}</Button>
+                  </form>
+                )}
+              </div>
               {canStartApps && (
                 <details className="mt-4 border-t border-brand-900/10 pt-4" open={student.applications.length === 0}>
                   <summary className="cursor-pointer font-semibold text-brand-700">Start an application</summary>
@@ -146,43 +170,61 @@ async function StudentDetail({ params }: Pick<PageProps<"/dashboard/students/[id
           )}
 
           <Card tone="solid">
-            <h2 className="mb-4 text-xl font-bold">Documents</h2>
-            <ul className="divide-y divide-brand-900/10">
-              {student.documents.map((doc) => (
-                <li key={doc.id} className="py-3">
-                  <div className="flex flex-wrap items-start justify-between gap-2">
-                    <div className="min-w-0">
-                      <p className="font-semibold">{documentTypeLabels[doc.type]}</p>
-                      <p className="truncate text-sm text-muted">
-                        {[doc.name, doc.application?.course.name, `${doc.uploadedBy?.name ?? "Someone"}, ${formatDate(doc.createdAt)}`].filter(Boolean).join(" · ")}
-                      </p>
-                      {doc.reviewNote && <p className="mt-1 text-sm">“{doc.reviewNote}”{doc.reviewedBy && <span className="text-muted"> — {doc.reviewedBy.name}</span>}</p>}
-                    </div>
-                    <div className="flex flex-wrap items-center gap-2">
-                      <Badge tone={docTones[doc.status]}>{docLabels[doc.status]}</Badge>
-                      <a href={`/api/documents/${doc.id}`} className={buttonStyles({ variant: "glass", size: "sm" })}>Download</a>
-                      {canEdit && <DeleteButton action={deleteDocument.bind(null, doc.id)} question={`Delete ${doc.name}? The file is removed for good.`} />}
-                    </div>
-                  </div>
-                  {canEdit && doc.status === "PENDING" && <DocumentReview id={doc.id} />}
-                </li>
-              ))}
-              {student.documents.length === 0 && <li className="py-2 text-muted">No documents yet.</li>}
-            </ul>
+            <h2 className="flex items-center gap-1 mb-1 text-xl font-bold">Documents <InfoTip text="General documents used for every application, like passport and transcripts. Ask for a document to open an upload slot on the student's portal. Documents for a single university are on that application's page." /></h2>
+            <p className="mb-4 text-xs text-muted">
+              General documents. Ones for a single university are on that application’s page.
+              {!whatsapp && " Add a phone number with the country code (e.g. +44…) to chat on WhatsApp."}
+            </p>
+            <DocumentRequestList studentId={student.id} requests={student.documentRequests} canEdit={canEdit} whatsapp={whatsapp} storage={privateStorageEnabled} />
             {canEdit && (
-              <div className="mt-4 border-t border-brand-900/10 pt-4">
-                <DocumentUpload
-                  studentId={student.id}
-                  enabled={privateStorageEnabled}
-                  types={Object.entries(documentTypeLabels).map(([value, label]) => ({ value, label }))}
-                  applications={student.applications.map((a) => ({ id: a.id, name: `${a.course.name}, ${a.course.university.name}` }))}
-                />
-              </div>
+              <details className="mt-4 border-t border-brand-900/10 pt-4">
+                <summary className="cursor-pointer font-semibold text-brand-700">Ask for a document</summary>
+                <div className="mt-4">
+                  <RequestForm key={student.documentRequests.length} studentId={student.id} types={documentTypes} applications={applicationNames} />
+                </div>
+              </details>
+            )}
+
+            {(student.documents.length > 0 || canEdit) && (
+              <>
+                <h3 className="flex items-center gap-1 mb-2 mt-6 font-semibold">Other files <InfoTip text="Files staff uploaded directly, not in answer to a request." /></h3>
+                <ul className="divide-y divide-brand-900/10">
+                  {student.documents.map((doc) => (
+                    <li key={doc.id} className="py-3">
+                      <div className="flex flex-wrap items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <p className="font-semibold">{documentTypeLabels[doc.type]}</p>
+                          <p className="truncate text-sm text-muted">
+                            {[doc.name, doc.application?.course.name, `${doc.uploadedBy?.name ?? "Someone"}, ${formatDate(doc.createdAt)}`].filter(Boolean).join(" · ")}
+                          </p>
+                          {doc.reviewNote && <p className="mt-1 text-sm">“{doc.reviewNote}”{doc.reviewedBy && <span className="text-muted"> — {doc.reviewedBy.name}</span>}</p>}
+                        </div>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <Badge tone={docTones[doc.status]}>{docLabels[doc.status]}</Badge>
+                          <a href={`/api/documents/${doc.id}`} className={buttonStyles({ variant: "glass", size: "sm" })}>Download</a>
+                          <WhatsAppButton href={`/api/whatsapp?document=${doc.id}`} enabled={whatsapp} purpose="document" />
+                          {canEdit && <DeleteButton action={deleteDocument.bind(null, doc.id)} question={`Delete ${doc.name}? The file is removed for good.`} />}
+                        </div>
+                      </div>
+                      {canEdit && doc.status === "PENDING" && <DocumentReview id={doc.id} />}
+                    </li>
+                  ))}
+                  {student.documents.length === 0 && <li className="py-2 text-sm text-muted">None.</li>}
+                </ul>
+                {canEdit && (
+                  <details className="mt-3">
+                    <summary className="cursor-pointer text-sm font-semibold text-brand-700">Upload a file directly</summary>
+                    <div className="mt-3">
+                      <DocumentUpload studentId={student.id} enabled={privateStorageEnabled} types={documentTypes} applications={applicationNames} />
+                    </div>
+                  </details>
+                )}
+              </>
             )}
           </Card>
 
           <Card tone="solid">
-            <h2 className="mb-4 text-xl font-bold">Profile</h2>
+            <h2 className="flex items-center gap-1 mb-4 text-xl font-bold">Profile <InfoTip text="The student's personal details. The phone number needs its country code (e.g. +44…) for the WhatsApp buttons to work." /></h2>
             {canEdit ? (
               <StudentForm
                 student={{
@@ -223,7 +265,7 @@ async function StudentDetail({ params }: Pick<PageProps<"/dashboard/students/[id
           </Card>
 
           <Card tone="solid">
-            <h2 className="mb-4 text-xl font-bold">Education and test scores</h2>
+            <h2 className="flex items-center gap-1 mb-4 text-xl font-bold">Education and test scores <InfoTip text="Past study and test results (IELTS, PTE and so on), used when checking entry requirements." /></h2>
             <EducationAndScores
               studentId={student.id}
               canEdit={canEdit}
@@ -237,13 +279,13 @@ async function StudentDetail({ params }: Pick<PageProps<"/dashboard/students/[id
         <div className="grid gap-6">
         {canEdit && !hasLogin && (
           <Card tone="solid">
-            <h2 className="mb-3 text-xl font-bold">Portal access</h2>
+            <h2 className="flex items-center gap-1 mb-3 text-xl font-bold">Portal access <InfoTip text="The student has no login yet. Send an invite so they can upload documents and follow their applications." /></h2>
             <PortalInvite studentId={student.id} />
           </Card>
         )}
         <RemindersCard link={{ studentId: student.id }} user={user} canEdit={canEdit} />
         <Card tone="solid">
-          <h2 className="mb-4 text-xl font-bold">Notes</h2>
+          <h2 className="flex items-center gap-1 mb-4 text-xl font-bold">Notes <InfoTip text="Internal notes for staff. The student never sees these." /></h2>
           <p className="-mt-2 mb-4 text-xs text-muted">Only staff see these notes.</p>
           {canEdit && <NoteForm key={student.notes.length} action={addStudentNote} field={{ studentId: student.id }} />}
           <ol className="mt-5 grid gap-4">

@@ -32,10 +32,10 @@ function InlineMessage({ state }: { state: FormState }) {
   return null;
 }
 
-export function Checkbox({ name, defaultChecked, children }: { name: string; defaultChecked?: boolean; children: ReactNode }) {
+export function Checkbox({ name, value, defaultChecked, children }: { name: string; value?: string; defaultChecked?: boolean; children: ReactNode }) {
   return (
     <label className="flex items-center gap-3 text-sm font-medium">
-      <input type="checkbox" name={name} defaultChecked={defaultChecked} className="size-4 accent-brand-600" />
+      <input type="checkbox" name={name} value={value} defaultChecked={defaultChecked} className="size-4 accent-brand-600" />
       {children}
     </label>
   );

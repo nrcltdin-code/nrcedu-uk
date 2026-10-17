@@ -64,14 +64,17 @@ model User {
   agentTeam        AgentProfile?     @relation("AgentTeam", fields: [agentTeamId], references: [id], onDelete: Cascade)
   addedStudents    StudentProfile[]  @relation("StudentAddedBy")
 
-  approvedAgents       AgentProfile[]            @relation("AgentApprovedBy")
-  counselledStudents   StudentProfile[]          @relation("StudentCounsellor")
-  assignedLeads        Lead[]                    @relation("LeadAssignedStaff")
-  assignedApplications Application[]             @relation("ApplicationAssignedStaff")
-  submittedApps        Application[]             @relation("ApplicationSubmittedBy")
-  stageChanges         ApplicationStageHistory[]
-  uploadedDocuments    Document[]                @relation("DocumentUploadedBy")
-  reviewedDocuments    Document[]                @relation("DocumentReviewedBy")
+  approvedAgents       AgentProfile[]         @relation("AgentApprovedBy")
+  counselledStudents   StudentProfile[]       @relation("StudentCounsellor")
+  assignedLeads        Lead[]                 @relation("LeadAssignedStaff")
+  assignedApplications Application[]          @relation("ApplicationAssignedStaff")
+  submittedApps        Application[]          @relation("ApplicationSubmittedBy")
+  applicationEvents    ApplicationEvent[]
+  documentRequests     DocumentRequest[]      @relation("DocumentRequestCreatedBy")
+  conditionsAdded      ApplicationCondition[] @relation("ConditionCreatedBy")
+  conditionsMet        ApplicationCondition[] @relation("ConditionMetBy")
+  uploadedDocuments    Document[]             @relation("DocumentUploadedBy")
+  reviewedDocuments    Document[]             @relation("DocumentReviewedBy")
   notes                Note[]
   messages             Message[]
   reminders            Reminder[]
@@ -235,22 +238,24 @@ enum DocumentStatus {
 }
 
 model StudentProfile {
-  id             String    @id @default(cuid())
-  userId         String    @unique
-  dateOfBirth    DateTime? @db.Date
-  gender         String?
-  nationality    String?
-  passportNumber String?
-  passportExpiry DateTime? @db.Date
-  phone          String?
-  address        String?
-  countryId      String?
-  counsellorId   String?
-  agentId        String?
+  id                   String    @id @default(cuid())
+  userId               String    @unique
+  dateOfBirth          DateTime? @db.Date
+  gender               String?
+  nationality          String?
+  passportNumber       String?
+  passportExpiry       DateTime? @db.Date
+  phone                String?
+  address              String?
+  countryId            String?
+  counsellorId         String?
+  agentId              String?
   // Which agent account (the agency owner or a team member) added this student.
-  addedById      String?
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  addedById            String?
+  // Staff can stop a student starting more applications themselves; staff can still add them.
+  canStartApplications Boolean   @default(true)
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
 
   user       User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   addedBy    User?         @relation("StudentAddedBy", fields: [addedById], references: [id], onDelete: SetNull)
@@ -261,6 +266,7 @@ model StudentProfile {
   educationRecords EducationRecord[]
   testScores       TestScore[]
   documents        Document[]
+  documentRequests DocumentRequest[]
   applications     Application[]
   notes            Note[]
   messages         Message[]
@@ -303,6 +309,8 @@ model Document {
   id            String         @id @default(cuid())
   studentId     String
   applicationId String?
+  // The request (upload slot) this file answers, when there is one.
+  requestId     String?
   type          DocumentType
   name          String
   fileUrl       String
@@ -314,10 +322,47 @@ model Document {
   reviewedAt    DateTime?
   createdAt     DateTime       @default(now())
 
+  student     StudentProfile   @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  application Application?     @relation(fields: [applicationId], references: [id], onDelete: SetNull)
+  request     DocumentRequest? @relation(fields: [requestId], references: [id], onDelete: SetNull)
+  uploadedBy  User?            @relation("DocumentUploadedBy", fields: [uploadedById], references: [id], onDelete: SetNull)
+  reviewedBy  User?            @relation("DocumentReviewedBy", fields: [reviewedById], references: [id], onDelete: SetNull)
+
+  @@index([studentId])
+  @@index([applicationId])
+  @@index([requestId])
+}
+
+enum DocumentRequestStatus {
+  REQUESTED
+  UPLOADED
+  APPROVED
+  NEEDS_REUPLOAD
+  WAIVED
+}
+
+// One document staff need from a student: an upload slot on the student's portal.
+// Students can upload only into a slot that is open; approving a file closes it.
+// applicationId empty means a general document, not tied to one application.
+model DocumentRequest {
+  id            String                @id @default(cuid())
+  studentId     String
+  applicationId String?
+  type          DocumentType
+  label         String
+  instructions  String?
+  required      Boolean               @default(true)
+  status        DocumentRequestStatus @default(REQUESTED)
+  isOpen        Boolean               @default(true)
+  dueAt         DateTime?             @db.Date
+  createdById   String?
+  createdAt     DateTime              @default(now())
+  updatedAt     DateTime              @updatedAt
+
   student     StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  application Application?   @relation(fields: [applicationId], references: [id], onDelete: SetNull)
-  uploadedBy  User?          @relation("DocumentUploadedBy", fields: [uploadedById], references: [id], onDelete: SetNull)
-  reviewedBy  User?          @relation("DocumentReviewedBy", fields: [reviewedById], references: [id], onDelete: SetNull)
+  application Application?   @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  createdBy   User?          @relation("DocumentRequestCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  documents   Document[]
 
   @@index([studentId])
   @@index([applicationId])
@@ -341,16 +386,25 @@ enum LeadSource {
   MANUAL
 }
 
+// The order and the rules for moving between stages live in src/lib/application-flow.ts.
 enum ApplicationStage {
   NEW
   DOCUMENTS_PENDING
+  READY_TO_SUBMIT
   SUBMITTED_TO_UNIVERSITY
-  OFFER_RECEIVED
-  DEPOSIT_CAS
+  UNIVERSITY_QUERY
+  CONDITIONAL_OFFER
+  UNCONDITIONAL_OFFER
+  OFFER_ACCEPTED
+  DEPOSIT_PAID
+  CAS_REQUESTED
+  CAS_ISSUED
   VISA_APPLIED
   VISA_GRANTED
-  VISA_REFUSED
   ENROLLED
+  REJECTED
+  OFFER_DECLINED
+  VISA_REFUSED
   WITHDRAWN
 }
 
@@ -419,6 +473,11 @@ model Application {
   assignedStaffId String?
   agentId         String?
   submittedById   String?
+  // Filled in as the application moves along.
+  universityRef   String?
+  casNumber       String?
+  visaReference   String?
+  depositAmount   Decimal?         @db.Decimal(12, 2)
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
 
@@ -429,11 +488,13 @@ model Application {
   agent         AgentProfile?  @relation(fields: [agentId], references: [id], onDelete: SetNull)
   submittedBy   User?          @relation("ApplicationSubmittedBy", fields: [submittedById], references: [id], onDelete: SetNull)
 
-  stageHistory ApplicationStageHistory[]
-  documents    Document[]
-  notes        Note[]
-  reminders    Reminder[]
-  commissions  Commission[]
+  events           ApplicationEvent[]
+  documentRequests DocumentRequest[]
+  conditions       ApplicationCondition[]
+  documents        Document[]
+  notes            Note[]
+  reminders        Reminder[]
+  commissions      Commission[]
 
   @@index([studentId])
   @@index([courseId])
@@ -442,16 +503,41 @@ model Application {
   @@index([agentId])
 }
 
-model ApplicationStageHistory {
-  id            String           @id @default(cuid())
-  applicationId String
-  stage         ApplicationStage
-  note          String?
-  changedById   String?
-  createdAt     DateTime         @default(now())
+// Everything that happens to an application: stage moves, document requests, uploads and
+// reviews, conditions, detail changes, WhatsApp chats. Never edited or deleted.
+// Types and their wording are in src/lib/application-flow.ts.
+model ApplicationEvent {
+  id               String            @id @default(cuid())
+  applicationId    String
+  actorId          String?
+  type             String
+  fromStage        ApplicationStage?
+  toStage          ApplicationStage?
+  note             String?
+  visibleToStudent Boolean           @default(false)
+  meta             Json?
+  createdAt        DateTime          @default(now())
 
   application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
-  changedBy   User?       @relation(fields: [changedById], references: [id], onDelete: SetNull)
+  actor       User?       @relation(fields: [actorId], references: [id], onDelete: SetNull)
+
+  @@index([applicationId, createdAt])
+}
+
+// A condition on a conditional offer, e.g. "IELTS 6.5 overall". All must be met before
+// the application can move to Unconditional offer.
+model ApplicationCondition {
+  id            String    @id @default(cuid())
+  applicationId String
+  text          String
+  metAt         DateTime?
+  metById       String?
+  createdById   String?
+  createdAt     DateTime  @default(now())
+
+  application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  metBy       User?       @relation("ConditionMetBy", fields: [metById], references: [id], onDelete: SetNull)
+  createdBy   User?       @relation("ConditionCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
 
   @@index([applicationId])
 }
@@ -578,9 +664,9 @@ model Country {
 }
 
 model University {
-  id                  String   @id @default(cuid())
+  id                  String             @id @default(cuid())
   name                String
-  slug                String   @unique
+  slug                String             @unique
   countryId           String
   city                String?
   logoUrl             String?
@@ -588,18 +674,25 @@ model University {
   description         String?
   website             String?
   ranking             Int?
-  isOfficialPartner   Boolean  @default(false)
-  isFeatured          Boolean  @default(false)
-  isPublished         Boolean  @default(false)
+  isOfficialPartner   Boolean            @default(false)
+  isFeatured          Boolean            @default(false)
+  isPublished         Boolean            @default(false)
   // Internal only; never send these to public pages.
-  nrcCommissionRate   Decimal? @db.Decimal(5, 2)
-  agentCommissionRate Decimal? @db.Decimal(5, 2)
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
+  nrcCommissionRate   Decimal?           @db.Decimal(5, 2)
+  agentCommissionRate Decimal?           @db.Decimal(5, 2)
+  // How this university's process differs: the name of its confirmation of enrolment
+  // (CAS in the UK, I-20 in the US, CoE in Australia, LOA in Canada), steps that do not
+  // apply, and internal notes on how to apply.
+  confirmationName    String             @default("CAS")
+  skippedStages       ApplicationStage[]
+  processNotes        String?
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
 
-  country Country  @relation(fields: [countryId], references: [id], onDelete: Restrict)
-  courses Course[]
-  intakes Intake[]
+  country      Country                 @relation(fields: [countryId], references: [id], onDelete: Restrict)
+  courses      Course[]
+  intakes      Intake[]
+  requirements UniversityRequirement[]
 
   @@index([countryId])
   @@index([isPublished])
@@ -641,6 +734,22 @@ model Course {
   @@unique([universityId, slug])
   @@index([subjectId])
   @@index([level])
+}
+
+// A document this university always asks for. Copied onto each new application as a
+// document request, so the student sees the right checklist for that university.
+model UniversityRequirement {
+  id           String       @id @default(cuid())
+  universityId String
+  type         DocumentType
+  label        String
+  instructions String?
+  required     Boolean      @default(true)
+  sortOrder    Int          @default(0)
+
+  university University @relation(fields: [universityId], references: [id], onDelete: Cascade)
+
+  @@index([universityId])
 }
 
 // courseId empty means the intake applies to every course at the university.
