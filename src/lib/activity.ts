@@ -35,6 +35,13 @@ export const activityText: Record<string, string> = {
   "export.commissions": "downloaded commission (CSV)",
   "export.activity": "downloaded the activity log (CSV)",
   "auth.sign-in": "signed in",
+  "campaign.create": "added a marketing campaign",
+  "campaign.update": "updated a marketing campaign",
+  "campaign.delete": "deleted a marketing campaign",
+  "social-account.create": "added a social media page",
+  "social-account.update": "updated a social media page",
+  "social-account.delete": "removed a social media page",
+  "social-account.reveal": "viewed a social media password",
 };
 
 export const describeAction = (action: string) => activityText[action] ?? action;

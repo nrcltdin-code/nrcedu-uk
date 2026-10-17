@@ -10,7 +10,7 @@ import { SignOutButton } from "@/components/auth/sign-out-button";
 import { PageHelpButton } from "@/components/dashboard/page-help-button";
 import { Icon } from "@/components/ui/icon";
 import { cn } from "@/lib/cn";
-import type { NavGroup } from "@/lib/dashboard-nav";
+import type { NavGroup, NavItem } from "@/lib/dashboard-nav";
 import type { Role } from "@/generated/prisma/client";
 
 type ShellProps = {
@@ -26,6 +26,8 @@ export function DashboardShell({ nav, user, unreadNotifications, children }: She
   // The mobile menu remembers the page it was opened on, so it closes itself after navigating.
   const [openedOn, setOpenedOn] = useState<string | null>(null);
   const open = openedOn === pathname;
+  // Collapsible groups the person folded (true) or unfolded (false) by hand.
+  const [folded, setFolded] = useState<Record<string, boolean>>({});
   const setOpen = (value: boolean) => setOpenedOn(value ? pathname : null);
 
   useEffect(() => {
@@ -59,46 +61,37 @@ export function DashboardShell({ nav, user, unreadNotifications, children }: She
         </div>
 
         <nav className="scrollbar-thin flex-1 overflow-y-auto px-3 pb-4" aria-label="Dashboard">
-          {nav.map((group) => (
-            <div key={group.label || "main"} className="mt-4 first:mt-0">
-              {group.label && (
-                <p className="px-3 pb-1.5 text-xs font-semibold uppercase tracking-wider text-white/50">{group.label}</p>
-              )}
-              <ul className="grid gap-0.5">
-                {group.items.map((item) => {
-                  const active = item.href === "/dashboard" ? pathname === item.href : pathname.startsWith(item.href);
-                  const inner = (
-                    <>
-                      <Icon name={item.icon} className="size-5 shrink-0" />
-                      <span className="flex-1">{item.label}</span>
-                      {item.soon && <span className="rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-semibold">Soon</span>}
-                      {item.badge ? (
-                        <span className="rounded-full bg-accent-500 px-2 py-0.5 text-[11px] font-bold text-deep-900">
-                          {item.badge}<span className="sr-only"> unread</span>
-                        </span>
-                      ) : null}
-                    </>
-                  );
-                  const base = "flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium";
-                  return (
-                    <li key={item.href}>
-                      {item.soon ? (
-                        <span className={cn(base, "cursor-default text-white/40")}>{inner}</span>
-                      ) : (
-                        <Link
-                          href={item.href}
-                          aria-current={active ? "page" : undefined}
-                          className={cn(base, active ? "glass-dark text-white" : "text-white/80 hover:bg-white/10 hover:text-white")}
-                        >
-                          {inner}
-                        </Link>
-                      )}
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
-          ))}
+          {nav.map((group) => {
+            const key = group.label || "main";
+            const hasActive = group.items.some((item) => isActive(item.href, pathname));
+            // A folded group opens by itself while one of its pages is showing.
+            const expanded = !group.collapsible || (folded[key] ?? !hasActive) === false;
+            return (
+              <div key={key} className="mt-4 first:mt-0">
+                {group.label &&
+                  (group.collapsible ? (
+                    <button
+                      type="button"
+                      onClick={() => setFolded({ ...folded, [key]: expanded })}
+                      aria-expanded={expanded}
+                      className="flex w-full items-center justify-between rounded-lg px-3 pb-1.5 text-xs font-semibold uppercase tracking-wider text-white/50 hover:text-white/80"
+                    >
+                      {group.label}
+                      <Icon name="chevron" className={cn("size-4 transition-transform", expanded && "rotate-90")} />
+                    </button>
+                  ) : (
+                    <p className="px-3 pb-1.5 text-xs font-semibold uppercase tracking-wider text-white/50">{group.label}</p>
+                  ))}
+                {expanded && (
+                  <ul className="grid gap-0.5">
+                    {group.items.map((item) => (
+                      <NavLink key={item.href} item={item} active={isActive(item.href, pathname)} />
+                    ))}
+                  </ul>
+                )}
+              </div>
+            );
+          })}
         </nav>
 
         <div className="border-t border-white/15 px-5 py-4">
@@ -136,5 +129,40 @@ export function DashboardShell({ nav, user, unreadNotifications, children }: She
         <div className="flex-1 px-4 py-8 sm:px-6 lg:px-10">{children}</div>
       </div>
     </div>
+  );
+}
+
+function isActive(href: string, pathname: string) {
+  return href === "/dashboard" ? pathname === href : pathname === href || pathname.startsWith(href + "/");
+}
+
+function NavLink({ item, active }: { item: NavItem; active: boolean }) {
+  const inner = (
+    <>
+      <Icon name={item.icon} className="size-5 shrink-0" />
+      <span className="flex-1">{item.label}</span>
+      {item.soon && <span className="rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-semibold">Soon</span>}
+      {item.badge ? (
+        <span className="rounded-full bg-accent-500 px-2 py-0.5 text-[11px] font-bold text-deep-900">
+          {item.badge}<span className="sr-only"> unread</span>
+        </span>
+      ) : null}
+    </>
+  );
+  const base = "flex items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium";
+  return (
+    <li>
+      {item.soon ? (
+        <span className={cn(base, "cursor-default text-white/40")}>{inner}</span>
+      ) : (
+        <Link
+          href={item.href}
+          aria-current={active ? "page" : undefined}
+          className={cn(base, active ? "glass-dark text-white" : "text-white/80 hover:bg-white/10 hover:text-white")}
+        >
+          {inner}
+        </Link>
+      )}
+    </li>
   );
 }

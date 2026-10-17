@@ -26,6 +26,10 @@ export async function GET(request: Request) {
   await db.notification
     .deleteMany({ where: { readAt: { not: null }, createdAt: { lt: new Date(Date.now() - 90 * 86_400_000) } } })
     .catch((error) => console.error("Notification cleanup:", error));
+  // Page views are kept for 13 months, enough to compare a month with the same month last year.
+  await db.pageView
+    .deleteMany({ where: { createdAt: { lt: new Date(Date.now() - 396 * 86_400_000) } } })
+    .catch((error) => console.error("Page view cleanup:", error));
   // Uploaded images that no record uses any more are removed from storage.
   await sweepUnusedImages().catch((error) => console.error("Image sweep:", error));
   // Student documents whose upload was never finished are removed from the private bucket.

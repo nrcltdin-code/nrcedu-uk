@@ -31,6 +31,7 @@ enum PermissionModule {
   CONTENT
   USERS
   SETTINGS
+  MARKETING
 }
 
 enum ApprovalStatus {
@@ -40,18 +41,18 @@ enum ApprovalStatus {
 }
 
 model User {
-  id           String     @id @default(cuid())
-  name         String
-  email        String     @unique
-  emailVerified Boolean   @default(false)
-  phone        String?
-  image        String?
+  id               String     @id @default(cuid())
+  name             String
+  email            String     @unique
+  emailVerified    Boolean    @default(false)
+  phone            String?
+  image            String?
   // Set by Better Auth's two-factor plugin once an authenticator app is confirmed.
-  twoFactorEnabled Boolean @default(false)
-  role         Role       @default(STUDENT)
-  status       UserStatus @default(ACTIVE)
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
+  twoFactorEnabled Boolean    @default(false)
+  role             Role       @default(STUDENT)
+  status           UserStatus @default(ACTIVE)
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
 
   sessions         Session[]
   accounts         Account[]
@@ -60,8 +61,8 @@ model User {
   studentProfile   StudentProfile?
   // Set for an agent's team member: they sign in as AGENT and work under that agency.
   agentTeamId      String?
-  agentTeam        AgentProfile?    @relation("AgentTeam", fields: [agentTeamId], references: [id], onDelete: Cascade)
-  addedStudents    StudentProfile[] @relation("StudentAddedBy")
+  agentTeam        AgentProfile?     @relation("AgentTeam", fields: [agentTeamId], references: [id], onDelete: Cascade)
+  addedStudents    StudentProfile[]  @relation("StudentAddedBy")
 
   approvedAgents       AgentProfile[]            @relation("AgentApprovedBy")
   counselledStudents   StudentProfile[]          @relation("StudentCounsellor")
@@ -190,7 +191,7 @@ model AgentProfile {
   approvedBy User?    @relation("AgentApprovedBy", fields: [approvedById], references: [id], onDelete: SetNull)
 
   students           StudentProfile[]
-  team               User[]           @relation("AgentTeam")
+  team               User[]              @relation("AgentTeam")
   applications       Application[]
   leads              Lead[]
   commissions        Commission[]
@@ -806,4 +807,127 @@ model Notification {
 
   @@index([userId, readAt])
   @@index([userId, createdAt])
+}
+
+// ── Marketing ─────────────────────────────────────────────────────────────────
+
+enum SocialPlatform {
+  FACEBOOK
+  INSTAGRAM
+  TIKTOK
+  YOUTUBE
+  LINKEDIN
+  X
+  WHATSAPP
+  GOOGLE_BUSINESS
+  OTHER
+}
+
+enum CampaignChannel {
+  SOCIAL
+  EMAIL
+  SMS
+  ADS
+  EVENT
+  OTHER
+}
+
+enum CampaignStatus {
+  PLANNING
+  DESIGN
+  READY
+  LIVE
+  DONE
+  CANCELLED
+}
+
+enum ContentPostStatus {
+  IDEA
+  DESIGNING
+  READY
+  POSTED
+}
+
+// NRC's social media pages and who can get into them. The password is encrypted
+// (lib/secret-box.ts) and only admins can see or change it.
+model SocialAccount {
+  id                String         @id @default(cuid())
+  platform          SocialPlatform
+  name              String
+  url               String?
+  handle            String?
+  loginEmail        String?
+  passwordEncrypted String?
+  twoFactorNote     String?
+  managedBy         String?
+  followers         Int?
+  notes             String?
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+
+  @@index([platform])
+}
+
+// A marketing push over a period: a social series, an email or SMS blast, ads or an event.
+model Campaign {
+  id        String          @id @default(cuid())
+  name      String
+  channel   CampaignChannel
+  status    CampaignStatus  @default(PLANNING)
+  startDate DateTime?
+  endDate   DateTime?
+  budget    Decimal?        @db.Decimal(12, 2)
+  currency  String          @default("GBP")
+  goal      String?
+  audience  String?
+  message   String?
+  designUrl String?
+  owner     String?
+  results   String?
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+
+  posts ContentPost[]
+
+  @@index([status, startDate])
+}
+
+// One planned post in the content calendar, from idea through design to posted.
+model ContentPost {
+  id         String            @id @default(cuid())
+  title      String
+  platform   SocialPlatform
+  publishOn  DateTime
+  status     ContentPostStatus @default(IDEA)
+  caption    String?
+  designUrl  String?
+  postUrl    String?
+  assignee   String?
+  campaignId String?
+  createdAt  DateTime          @default(now())
+  updatedAt  DateTime          @updatedAt
+
+  campaign Campaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+
+  @@index([publishOn])
+}
+
+// One public page view, recorded by /api/track. No cookies: visitorHash is a hash of the
+// address, browser and day, so a visitor counts once a day and cannot be followed across days.
+model PageView {
+  id          String   @id @default(cuid())
+  path        String
+  source      String
+  referrer    String?
+  utmMedium   String?
+  utmCampaign String?
+  country     String?
+  region      String?
+  city        String?
+  device      String
+  browser     String
+  visitorHash String
+  createdAt   DateTime @default(now())
+
+  @@index([createdAt])
 }

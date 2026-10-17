@@ -428,6 +428,55 @@ const entries: Entry[] = [
     },
   },
   {
+    path: at("/analytics"),
+    help: {
+      title: "Website analytics",
+      summary: "How many people visit the public website, which pages they read, where they are and how they found us.",
+      points: [
+        "Visitors counts each person once a day (by network address and browser), without cookies, so it is a close estimate.",
+        "Sources come from the page the visitor clicked from. Tag your own links with ?utm_source=facebook&utm_campaign=… to see exactly which post or email brought people in.",
+        "Location is the country and city of the visitor's internet connection; it shows on the live site, not on a local copy.",
+        "Bots and the dashboard are not counted. Views are kept for 13 months.",
+      ],
+    },
+  },
+  {
+    path: at("/marketing/campaigns"),
+    help: {
+      title: "Campaigns",
+      summary: "Every marketing push: social series, email and SMS campaigns, paid ads and events.",
+      points: [
+        "Move a campaign through Planning, In design, Ready, Live and Finished as the work goes on.",
+        "Keep the copy in Message and the Canva or Drive folder in Design link, so everyone works from the same version.",
+        "Write what happened in Results when it ends, to plan the next one better.",
+        "Filter by status or channel with the buttons at the top.",
+      ],
+    },
+  },
+  {
+    path: at("/marketing/content"),
+    help: {
+      title: "Content plan",
+      summary: "The posting calendar for every social media page, one month at a time.",
+      points: [
+        "Add each post with its date, platform and caption, and link it to a campaign if it belongs to one.",
+        "Change the status as the design is made and the post goes out; add the live link once it is posted.",
+        "Use the arrows to move between months.",
+      ],
+    },
+  },
+  {
+    path: at("/marketing/accounts"),
+    help: {
+      title: "Social pages",
+      summary: "A list of NRC's social media pages and how to get into each one.",
+      points: [
+        "Record the login, where the two-step code goes, and who has access, so a page is never lost when someone leaves.",
+        "Passwords are stored encrypted. Only admins can see or change them, and every look is written to the Activity log.",
+      ],
+    },
+  },
+  {
     path: at(`/users/${id}`),
     help: {
       title: "User",

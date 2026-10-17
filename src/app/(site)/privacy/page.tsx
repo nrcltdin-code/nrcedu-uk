@@ -24,7 +24,7 @@ export default function PrivacyPage() {
         },
         {
           heading: "Cookies",
-          body: <p>We use only the cookies needed to keep you signed in and to keep your account secure. We do not use advertising or tracking cookies.</p>,
+          body: <p>We use only the cookies needed to keep you signed in and to keep your account secure. We do not use advertising or tracking cookies. To see how the website is used, we count page visits, the website that sent you and your approximate location (country and city, from your internet connection), without cookies and without identifying you.</p>,
         },
         {
           heading: "Why we use it",

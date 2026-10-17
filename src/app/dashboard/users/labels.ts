@@ -24,4 +24,5 @@ export const permissionModules: { module: PermissionModule; label: string }[] = 
   { module: "CONTENT", label: "Website content" },
   { module: "USERS", label: "Users" },
   { module: "SETTINGS", label: "Site settings" },
+  { module: "MARKETING", label: "Marketing" },
 ];
