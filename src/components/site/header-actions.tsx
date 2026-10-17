@@ -76,9 +76,17 @@ export function GuestAccount() {
 export async function HeaderAccount() {
   const user = await getCurrentUser();
   if (!user) return <GuestAccount />;
+  // A small pill: initial in a coloured circle, the first name, and a green "signed in" dot.
   return (
-    <Link href="/dashboard" className="inline-flex items-center gap-1.5 font-semibold text-brand-800 hover:text-brand-600">
-      <Icon name="users" className="size-3.5" />
+    <Link
+      href="/dashboard"
+      title="Signed in. Open your dashboard"
+      className="inline-flex items-center gap-2 rounded-full border border-brand-600/20 bg-white/80 py-0.5 pl-0.5 pr-3 font-semibold text-brand-900 shadow-sm transition hover:border-brand-600/40 hover:bg-white"
+    >
+      <span className="relative flex size-6 items-center justify-center rounded-full bg-gradient-to-br from-brand-500 to-violet-600 text-[0.7rem] font-bold uppercase text-white">
+        {user.name.charAt(0)}
+        <span aria-hidden className="absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full border-2 border-white bg-emerald-500" />
+      </span>
       {user.name.split(" ")[0]}
     </Link>
   );
