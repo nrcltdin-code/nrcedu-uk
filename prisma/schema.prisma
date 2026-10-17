@@ -885,6 +885,10 @@ model TestPrepPage {
   slug        String   @unique
   summary     String?
   content     String?
+  // Key facts shown as a list, e.g. [{"label":"Duration","value":"2 h 45 min"}].
+  facts       Json?
+  // Mark distribution tables: [{"title","columns":[...],"rows":[[...]],"note"}]. Edited in the dashboard.
+  tables      Json?
   imageUrl    String?
   sortOrder   Int      @default(0)
   isPublished Boolean  @default(false)

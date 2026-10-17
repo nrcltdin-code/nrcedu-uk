@@ -1,4 +1,5 @@
-export type NavItem = { label: string; href: string };
+// children: a dropdown under the item (the header fills Test Prep with the published guides).
+export type NavItem = { label: string; href: string; children?: NavItem[] };
 
 // Defaults only: the live menus are edited in Dashboard → Site settings (lib/settings.ts).
 export const mainNav: NavItem[] = [
@@ -7,7 +8,6 @@ export const mainNav: NavItem[] = [
   { label: "Test Prep", href: "/test-prep" },
   { label: "Services", href: "/services" },
   { label: "Blog", href: "/blog" },
-  { label: "About", href: "/about" },
   { label: "Contact", href: "/contact" },
 ];
 

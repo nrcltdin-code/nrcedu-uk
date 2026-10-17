@@ -5,11 +5,20 @@ import { GuestActions, HeaderActions } from "@/components/site/header-actions";
 import { MobileMenu } from "@/components/site/mobile-menu";
 import { ActiveNavList, NavList } from "@/components/site/nav-links";
 import { Container } from "@/components/ui/section";
+import { getTestPrepPages } from "@/lib/data/home";
 import { getSiteSettings } from "@/lib/settings";
 
 export async function Header() {
-  const { menus } = await getSiteSettings();
-  const mainNav = menus.main;
+  const [{ menus }, tests] = await Promise.all([getSiteSettings(), getTestPrepPages()]);
+  // About lives in the footer, to keep the header on one line. Test Prep opens a list of the
+  // published exam guides (managed in Dashboard → Test prep).
+  const mainNav = menus.main
+    .filter((item) => item.href !== "/about")
+    .map((item) =>
+      item.href === "/test-prep" && tests.length
+        ? { ...item, children: [...tests.map((t) => ({ label: t.name, href: `/test-prep/${t.slug}` })), { label: "All tests", href: "/test-prep" }] }
+        : item,
+    );
   const actions = (
     <Suspense fallback={<GuestActions />}>
       <HeaderActions />
@@ -27,7 +36,7 @@ export async function Header() {
             </span>
           </Link>
 
-          <nav aria-label="Main" className="hidden lg:block">
+          <nav aria-label="Main" className="hidden xl:block">
             <Suspense fallback={<NavList items={mainNav} />}>
               <ActiveNavList items={mainNav} />
             </Suspense>

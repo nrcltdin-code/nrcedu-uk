@@ -90,6 +90,7 @@ const groups: { label: string; collapsible?: boolean; entries: Entry[] }[] = [
     collapsible: true,
     entries: [
       { label: "Home slider", href: "/dashboard/slides", icon: "image", roles: staff, module: "CONTENT", action: "edit" },
+      { label: "Test prep", href: "/dashboard/test-prep", icon: "cap", roles: staff, module: "CONTENT", action: "edit" },
       { label: "Blog", href: "/dashboard/blog", icon: "pencil", roles: staff, module: "CONTENT", action: "edit" },
       { label: "Testimonials", href: "/dashboard/testimonials", icon: "star", roles: staff, module: "CONTENT", action: "edit" },
       { label: "Partners", href: "/dashboard/partners", icon: "handshake", roles: staff, module: "CONTENT", action: "edit" },

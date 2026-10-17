@@ -60,7 +60,7 @@ export async function getTestPrepPage(slug: string) {
 
   return db.testPrepPage.findFirst({
     where: { slug, isPublished: true },
-    select: { id: true, name: true, slug: true, summary: true, content: true, imageUrl: true },
+    select: { id: true, name: true, slug: true, summary: true, content: true, imageUrl: true, facts: true, tables: true },
   });
 }
 
