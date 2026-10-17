@@ -9,25 +9,28 @@ const photo = (seed: string, width = 1600, height = 900) =>
 
 const slides = [
   {
+    eyebrow: "Trusted study abroad and visa experts",
     title: "Your pathway to global education",
     subtitle: "Admissions, applications and visa support for universities in the UK, USA, Canada, Australia and Germany.",
     buttonLabel: "Book a free consultation",
     buttonHref: "/consultation",
-    imageUrl: photo("slide-1"),
+    imageUrl: "https://picsum.photos/id/823/900/1050",
   },
   {
+    eyebrow: "Limited places each intake",
     title: "Apply now for the September 2027 intake",
     subtitle: "Places fill early. Start your application today and let our counsellors handle the paperwork.",
     buttonLabel: "Browse universities",
     buttonHref: "/universities",
-    imageUrl: photo("slide-2"),
+    imageUrl: "https://picsum.photos/id/342/900/1050",
   },
   {
+    eyebrow: "Scholarships for international students",
     title: "Scholarships worth up to £5,000",
     subtitle: "We match your profile with universities that offer scholarships to international students.",
     buttonLabel: "Check your eligibility",
     buttonHref: "/consultation",
-    imageUrl: photo("slide-3"),
+    imageUrl: "https://picsum.photos/id/64/900/1050",
   },
 ];
 

@@ -15,7 +15,7 @@ export async function getHeroSlides() {
   return db.heroSlide.findMany({
     where: { isPublished: true },
     orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
-    select: { id: true, title: true, subtitle: true, imageUrl: true, buttonLabel: true, buttonHref: true },
+    select: { id: true, eyebrow: true, title: true, subtitle: true, imageUrl: true, buttonLabel: true, buttonHref: true },
   });
 }
 

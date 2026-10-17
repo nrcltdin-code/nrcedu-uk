@@ -866,6 +866,7 @@ model Office {
 // Slides in the home page hero slider, managed from the admin panel.
 model HeroSlide {
   id          String   @id @default(cuid())
+  eyebrow     String?
   title       String
   subtitle    String?
   imageUrl    String?

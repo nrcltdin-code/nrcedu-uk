@@ -25,6 +25,7 @@ export async function saveSlide(_previous: SlideFormState, form: FormData): Prom
   await requirePermission("CONTENT", "edit");
 
   const id = text(form, "id");
+  const eyebrow = text(form, "eyebrow");
   const title = text(form, "title");
   const subtitle = text(form, "subtitle");
   const imageUrl = text(form, "imageUrl");
@@ -34,6 +35,7 @@ export async function saveSlide(_previous: SlideFormState, form: FormData): Prom
 
   if (!title) return { error: "Enter a title." };
   if (title.length > 120) return { error: "Keep the title under 120 characters." };
+  if (eyebrow.length > 80) return { error: "Keep the line above the title under 80 characters." };
   if (subtitle.length > 300) return { error: "Keep the text under 300 characters." };
   if (imageUrl && !isAllowedImageUrl(imageUrl)) {
     return { error: `The image address must start with https:// and come from: ${imageHosts.join(", ")}.` };
@@ -47,6 +49,7 @@ export async function saveSlide(_previous: SlideFormState, form: FormData): Prom
   if (!Number.isInteger(sortOrder)) return { error: "Position must be a whole number." };
 
   const data = {
+    eyebrow: eyebrow || null,
     title,
     subtitle: subtitle || null,
     imageUrl: imageUrl || null,

@@ -24,6 +24,21 @@
   --color-ink: #0e2433;
   --color-muted: #4a6072;
   --color-surface: #eef4f9;
+
+  /* Slow pulse for the sparkles around the home page hero photo. */
+  --animate-twinkle: twinkle 3s ease-in-out infinite;
+
+  @keyframes twinkle {
+    0%,
+    100% {
+      opacity: 1;
+      transform: scale(1) rotate(0deg);
+    }
+    50% {
+      opacity: 0.55;
+      transform: scale(0.8) rotate(12deg);
+    }
+  }
 }
 
 @theme inline {
@@ -97,6 +112,13 @@ body::before {
     radial-gradient(32rem 26rem at 95% 100%, rgb(251 191 36 / 0.3), transparent 62%),
     radial-gradient(30rem 24rem at 70% 10%, rgb(192 132 252 / 0.35), transparent 62%),
     linear-gradient(125deg, var(--color-deep-700), var(--color-brand-600) 50%, #4f46e5);
+}
+
+/* Bright sky for the home page hero: deep brand blue at the top fading to a lighter blue. */
+@utility sky-backdrop {
+  background:
+    radial-gradient(40rem 24rem at 75% 15%, rgb(255 255 255 / 0.18), transparent 65%),
+    linear-gradient(180deg, var(--color-brand-600) 0%, var(--color-brand-500) 55%, #5b9fdc 100%);
 }
 
 /* Horizontal swipe row without a visible scrollbar. */

@@ -11,11 +11,13 @@ const glyphs: Record<keyof SocialSettings, string> = {
   x: "M17.8 3h3.1l-6.8 7.7 8 10.3h-6.3l-4.9-6.4L5.3 21H2.2l7.2-8.3L1.8 3h6.4l4.4 5.9zm-1.1 16.2h1.7L7.4 4.7H5.5z",
 };
 
-export function SocialIcons({ social, networks, className, tone = "light" }: {
+export function SocialIcons({ social, networks, className, tone = "light", size = "sm" }: {
   social: SocialSettings;
   networks: readonly { key: keyof SocialSettings; label: string }[];
   className?: string;
   tone?: "light" | "dark";
+  // "md": larger outlined circles, as used in the home page hero.
+  size?: "sm" | "md";
 }) {
   const links = networks.filter(({ key }) => social[key]);
   if (!links.length) return null;
@@ -30,11 +32,12 @@ export function SocialIcons({ social, networks, className, tone = "light" }: {
             aria-label={label}
             title={label}
             className={cn(
-              "flex size-7 items-center justify-center rounded-full transition-colors",
+              "flex items-center justify-center rounded-full transition-colors",
+              size === "sm" ? "size-7" : "size-9 border border-white/30 bg-white/5 hover:border-white/60",
               tone === "light" ? "text-ink/60 hover:bg-brand-600/10 hover:text-brand-700" : "text-white/75 hover:bg-white/10 hover:text-white",
             )}
           >
-            <svg viewBox="0 0 24 24" className="size-3.5" fill="currentColor" aria-hidden="true"><path d={glyphs[key]} /></svg>
+            <svg viewBox="0 0 24 24" className={size === "sm" ? "size-3.5" : "size-4"} fill="currentColor" aria-hidden="true"><path d={glyphs[key]} /></svg>
           </a>
         </li>
       ))}

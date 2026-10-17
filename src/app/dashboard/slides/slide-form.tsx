@@ -10,6 +10,7 @@ import type { SlideFormState } from "./actions";
 
 export type SlideValues = {
   id: string;
+  eyebrow: string | null;
   title: string;
   subtitle: string | null;
   imageUrl: string | null;
@@ -26,6 +27,10 @@ export function SlideForm({ slide, nextPosition }: { slide: SlideValues | null; 
     <form action={action} className="grid gap-4">
       {slide && <input type="hidden" name="id" value={slide.id} />}
       <div>
+        <Label htmlFor="slide-eyebrow">Small line above the title</Label>
+        <Input id="slide-eyebrow" name="eyebrow" defaultValue={slide?.eyebrow ?? ""} maxLength={80} placeholder="Trusted study abroad and visa experts" />
+      </div>
+      <div>
         <Label htmlFor="slide-title">Title</Label>
         <Input id="slide-title" name="title" defaultValue={slide?.title} maxLength={120} required />
       </div>
@@ -33,7 +38,7 @@ export function SlideForm({ slide, nextPosition }: { slide: SlideValues | null; 
         <Label htmlFor="slide-subtitle">Text under the title</Label>
         <Textarea id="slide-subtitle" name="subtitle" defaultValue={slide?.subtitle ?? ""} maxLength={300} />
       </div>
-      <ImageField name="imageUrl" label="Background image" defaultValue={slide?.imageUrl} hint="Wide photos work best (at least 1600 px across). Leave empty for the blue gradient." />
+      <ImageField name="imageUrl" label="Photo" defaultValue={slide?.imageUrl} hint="Shown in a framed card beside the text. Upright photos of a person work best (at least 900 × 1050 px). Leave empty for text only." />
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
           <Label htmlFor="slide-button-label">Button text</Label>

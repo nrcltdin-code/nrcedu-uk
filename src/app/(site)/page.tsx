@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { HeroSlider } from "@/components/site/hero-slider";
 import { Offices } from "@/components/site/offices";
+import { SocialIcons } from "@/components/site/social-icons";
 import { UniversityCard } from "@/components/site/university-card";
 import { Badge } from "@/components/ui/badge";
 import { buttonStyles } from "@/components/ui/button";
@@ -19,6 +20,7 @@ import {
   getPartners,
   getTestimonials,
 } from "@/lib/data/home";
+import { getSiteSettings, socialNetworks } from "@/lib/settings";
 
 type Feature = { title: string; text: string; icon: IconName; color: TileColor };
 
@@ -82,12 +84,15 @@ export default function Home() {
 }
 
 async function Hero() {
-  const slides = await getHeroSlides();
+  const [slides, { social }] = await Promise.all([getHeroSlides(), getSiteSettings()]);
 
   return (
     <Container className="pt-6">
       {slides.length > 0 ? (
-        <HeroSlider slides={slides} />
+        <HeroSlider
+          slides={slides}
+          socials={<SocialIcons social={social} networks={socialNetworks} tone="dark" size="md" className="gap-2.5" />}
+        />
       ) : (
         // Shown if every slide is unpublished, so the page never loses its main heading.
         <section className="bg-vivid rounded-[2rem] p-8 text-white sm:p-14">
