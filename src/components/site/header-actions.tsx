@@ -7,7 +7,7 @@ import { getCurrentUser } from "@/lib/session";
 const itemClass = "block w-full rounded-xl px-3 py-2.5 text-left hover:bg-brand-600/10";
 
 // "Apply" dropdown: students find a course (signing up first if needed); agents register.
-// A <details> menu, so it works without JavaScript and closes when an item is chosen.
+// A <details> menu, so it works without JavaScript.
 export function ApplyMenu({ signedIn }: { signedIn: boolean }) {
   const student = (
     <>
@@ -17,7 +17,7 @@ export function ApplyMenu({ signedIn }: { signedIn: boolean }) {
   );
   return (
     <details className="group relative">
-      <summary className={buttonStyles({ variant: "glass", size: "sm", className: "cursor-pointer list-none gap-1 [&::-webkit-details-marker]:hidden" })}>
+      <summary className={buttonStyles({ variant: "glass", size: "sm", className: "cursor-pointer list-none gap-1 whitespace-nowrap [&::-webkit-details-marker]:hidden" })}>
         Apply
         <Icon name="chevron" className="size-4 rotate-90 transition-transform group-open:-rotate-90" />
       </summary>
@@ -36,15 +36,13 @@ export function ApplyMenu({ signedIn }: { signedIn: boolean }) {
   );
 }
 
-// Shown to visitors, and as the instant placeholder while the session is being read.
+// The two buttons at the end of the main bar. Shown to visitors, and as the placeholder while
+// the session is read.
 export function GuestActions() {
   return (
     <>
       <ApplyMenu signedIn={false} />
-      <AuthTrigger mode="login" className={buttonStyles({ variant: "ghost", size: "sm" })}>
-        Sign in
-      </AuthTrigger>
-      <Link href="/consultation" className={buttonStyles({ variant: "accent", size: "sm" })}>
+      <Link href="/consultation" className={buttonStyles({ variant: "accent", size: "sm", className: "whitespace-nowrap" })}>
         Free consultation
       </Link>
     </>
@@ -55,13 +53,33 @@ export function GuestActions() {
 export async function HeaderActions() {
   const user = await getCurrentUser();
   if (!user) return <GuestActions />;
-
   return (
     <>
-      {user.role !== "AGENT" && user.role !== "ADMIN" && user.role !== "STAFF" && <ApplyMenu signedIn />}
-      <Link href="/dashboard" className={buttonStyles({ size: "sm" })}>
+      {user.role === "STUDENT" && <ApplyMenu signedIn />}
+      <Link href="/dashboard" className={buttonStyles({ size: "sm", className: "whitespace-nowrap" })}>
         Dashboard
       </Link>
     </>
+  );
+}
+
+// Sign in (or the signed-in name) in the top bar.
+export function GuestAccount() {
+  return (
+    <AuthTrigger mode="login" className="inline-flex items-center gap-1.5 font-semibold text-brand-800 hover:text-brand-600">
+      <Icon name="users" className="size-3.5" />
+      Sign in
+    </AuthTrigger>
+  );
+}
+
+export async function HeaderAccount() {
+  const user = await getCurrentUser();
+  if (!user) return <GuestAccount />;
+  return (
+    <Link href="/dashboard" className="inline-flex items-center gap-1.5 font-semibold text-brand-800 hover:text-brand-600">
+      <Icon name="users" className="size-3.5" />
+      {user.name.split(" ")[0]}
+    </Link>
   );
 }

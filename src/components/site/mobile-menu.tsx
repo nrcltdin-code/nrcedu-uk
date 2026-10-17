@@ -7,7 +7,8 @@ import { Drawer } from "@/components/ui/drawer";
 import type { NavItem } from "@/lib/nav";
 
 // Phone and tablet navigation, shown in the same slide-in panel as sign in.
-export function MobileMenu({ items, actions }: { items: NavItem[]; actions: ReactNode }) {
+// extras: account, contact and social links, which the top bar shows on larger screens.
+export function MobileMenu({ items, actions, extras }: { items: NavItem[]; actions: ReactNode; extras?: ReactNode }) {
   const [open, setOpen] = useState(false);
   const close = () => setOpen(false);
 
@@ -17,7 +18,7 @@ export function MobileMenu({ items, actions }: { items: NavItem[]; actions: Reac
         type="button"
         onClick={() => setOpen(true)}
         aria-label="Open menu"
-        className="flex size-10 items-center justify-center rounded-full text-brand-800 transition-colors hover:bg-brand-600/10 xl:hidden"
+        className="flex size-10 items-center justify-center rounded-full text-brand-800 transition-colors hover:bg-brand-600/10 lg:hidden"
       >
         <svg viewBox="0 0 24 24" className="size-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
           <path d="M4 7h16M4 12h16M4 17h16" />
@@ -33,6 +34,7 @@ export function MobileMenu({ items, actions }: { items: NavItem[]; actions: Reac
         {/* Any button or link in here closes the menu first, so panels never stack. */}
         <div onClick={close} className="mt-auto flex flex-col gap-3 pt-8">
           {actions}
+          {extras && <div className="mt-4 border-t border-brand-900/10 pt-5 md:hidden">{extras}</div>}
         </div>
       </Drawer>
     </>
