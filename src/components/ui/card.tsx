@@ -12,5 +12,6 @@ const tones: Record<Tone, string> = {
 type CardProps = ComponentProps<"div"> & { tone?: Tone };
 
 export function Card({ tone = "light", className, ...props }: CardProps) {
-  return <div className={cn("rounded-3xl p-6", tones[tone], className)} {...props} />;
+  // min-w-0: as a grid or flex item a card may shrink, so a long unbroken line inside cannot widen the page.
+  return <div className={cn("min-w-0 rounded-3xl p-6", tones[tone], className)} {...props} />;
 }

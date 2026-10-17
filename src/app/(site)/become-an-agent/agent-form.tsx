@@ -3,6 +3,7 @@
 import { useActionState, useState } from "react";
 import Link from "next/link";
 import { FormError, FormSuccess, SpamTrap } from "@/components/site/form-parts";
+import { KeepValuesOnError } from "@/components/ui/keep-values-on-error";
 import { Button } from "@/components/ui/button";
 import { Input, Label, Select, Textarea } from "@/components/ui/field";
 import { applyAsAgent } from "./actions";
@@ -106,6 +107,7 @@ export function AgentForm({ countries }: { countries: { id: string; name: string
       </div>
       <SpamTrap />
 
+      <KeepValuesOnError state={state} failed={state.status === "error"} />
       {state.status === "error" && <FormError>{state.error}</FormError>}
 
       <Button type="submit" variant="accent" size="lg" disabled={pending}>

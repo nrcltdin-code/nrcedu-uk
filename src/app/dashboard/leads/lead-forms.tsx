@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { FormMessage } from "@/components/dashboard/form-bits";
+import { KeepValuesOnError } from "@/components/ui/keep-values-on-error";
 import { Button } from "@/components/ui/button";
 import { Input, Label, Select, Textarea } from "@/components/ui/field";
 import type { FormState } from "@/lib/form";
@@ -134,6 +135,7 @@ export function RoutingForm({ country, countries = [], staffId, agentId, staff, 
         {agents.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
       </Select>
       <Button type="submit" size="sm" variant="glass" disabled={pending}>{pending ? "Saving…" : state.saved ? "Saved ✓" : "Save"}</Button>
+      <KeepValuesOnError state={state} failed={Boolean(state.error)} />
       {state.error && <div className="sm:col-span-4"><FormMessage state={state} /></div>}
     </form>
   );

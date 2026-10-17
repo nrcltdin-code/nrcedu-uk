@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { FormError, FormSuccess, SpamTrap } from "@/components/site/form-parts";
+import { KeepValuesOnError } from "@/components/ui/keep-values-on-error";
 import { Button } from "@/components/ui/button";
 import { Input, Label, Textarea } from "@/components/ui/field";
 import { sendContactMessage } from "./actions";
@@ -36,6 +37,7 @@ export function ContactForm() {
       </div>
       <SpamTrap />
 
+      <KeepValuesOnError state={state} failed={state.status === "error"} />
       {state.status === "error" && <FormError>{state.error}</FormError>}
 
       <Button type="submit" variant="accent" size="lg" disabled={pending}>

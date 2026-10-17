@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { FormMessage } from "@/components/dashboard/form-bits";
+import { KeepValuesOnError } from "@/components/ui/keep-values-on-error";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/field";
 import type { FormState } from "@/lib/form";
@@ -20,6 +21,7 @@ export function DocumentReview({ id }: { id: string }) {
           Ask again
         </Button>
       </div>
+      <KeepValuesOnError state={state} failed={Boolean(state.error)} />
       {state.error && <FormMessage state={state} />}
     </form>
   );

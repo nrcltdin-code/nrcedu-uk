@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { FormError } from "@/components/site/form-parts";
+import { KeepValuesOnError } from "@/components/ui/keep-values-on-error";
 import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/field";
 import { setPasswordFromInvite } from "./actions";
@@ -23,6 +24,7 @@ export function SetPasswordForm({ invite, email }: { invite: string; email: stri
         <Label htmlFor="sp-confirm">Type it again</Label>
         <Input id="sp-confirm" name="confirm" type="password" autoComplete="new-password" minLength={8} maxLength={128} required />
       </div>
+      <KeepValuesOnError state={state} failed={Boolean(state.error)} />
       {state.error && <FormError>{state.error}</FormError>}
       <Button type="submit" disabled={pending} className="justify-self-start">{pending ? "Saving…" : "Set password"}</Button>
     </form>

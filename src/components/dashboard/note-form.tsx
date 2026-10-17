@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { FormMessage } from "@/components/dashboard/form-bits";
+import { KeepValuesOnError } from "@/components/ui/keep-values-on-error";
 import { Button } from "@/components/ui/button";
 import { Label, Textarea } from "@/components/ui/field";
 import type { FormState } from "@/lib/form";
@@ -24,6 +25,7 @@ export function NoteForm({ action, field, placeholder = "Called, no answer. Try 
       <input type="hidden" name={name} value={value} />
       <Label htmlFor={`note-${value}`} className="sr-only">New note</Label>
       <Textarea id={`note-${value}`} name="body" maxLength={5000} placeholder={placeholder} required />
+      <KeepValuesOnError state={state} failed={Boolean(state.error)} />
       {state.error && <FormMessage state={state} />}
       <Button type="submit" size="sm" disabled={pending} className="justify-self-start">{pending ? "Adding…" : "Add note"}</Button>
     </form>

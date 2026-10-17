@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { AuthTrigger } from "@/components/auth/auth-drawer";
 import { buttonStyles } from "@/components/ui/button";
-import { getCurrentUser } from "@/lib/session";
+import { getSignedInUser } from "@/lib/session";
 
 type Size = "sm" | "md" | "lg";
 
@@ -26,7 +26,7 @@ export function ApplyButton({ courseId, size = "sm", label = "Apply" }: { course
 }
 
 async function ApplyLink({ courseId, size, label, guest }: { courseId: string; size: Size; label: string; guest: React.ReactNode }) {
-  const user = await getCurrentUser();
+  const user = await getSignedInUser();
   if (!user) return guest;
 
   return (

@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { FormMessage } from "@/components/dashboard/form-bits";
+import { KeepValuesOnError } from "@/components/ui/keep-values-on-error";
 import { Button } from "@/components/ui/button";
 import { Input, Label, Select } from "@/components/ui/field";
 import type { FormState } from "@/lib/form";
@@ -62,6 +63,7 @@ export function DetailsForm({ details }: { details: Details }) {
           <Input id="k-visa" name="visaReference" maxLength={80} defaultValue={details.visaReference ?? ""} />
         </div>
       </div>
+      <KeepValuesOnError state={state} failed={Boolean(state.error)} />
       {state.error && <FormMessage state={state} />}
       <Button type="submit" size="sm" variant="glass" disabled={pending} className="justify-self-start">{pending ? "Saving…" : "Save details"}</Button>
     </form>
@@ -79,6 +81,7 @@ export function ConditionForm({ applicationId }: { applicationId: string }) {
         <Input id="c-text" name="text" maxLength={300} placeholder="e.g. IELTS 6.5 overall, no band below 6.0" required />
         <Button type="submit" size="sm" variant="glass" disabled={pending}>{pending ? "…" : "Add"}</Button>
       </div>
+      <KeepValuesOnError state={state} failed={Boolean(state.error)} />
       {state.error && <FormMessage state={state} />}
     </form>
   );
@@ -98,6 +101,7 @@ export function AssignForm({ id, assignedStaffId, staff }: { id: string; assigne
         </Select>
         <Button type="submit" variant="glass" disabled={pending}>{pending ? "…" : "Save"}</Button>
       </div>
+      <KeepValuesOnError state={state} failed={Boolean(state.error)} />
       {state.error && <FormMessage state={state} />}
     </form>
   );

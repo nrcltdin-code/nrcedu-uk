@@ -69,7 +69,7 @@ async function UsersManager({ searchParams }: Pick<PageProps<"/dashboard/users">
 
   return (
     <div className="grid items-start gap-8 lg:grid-cols-[1.6fr_1fr]">
-      <div className="grid gap-6">
+      <div className="grid min-w-0 gap-6">
         {pendingAgents.length > 0 && (
           <Card tone="solid">
             <h2 className="text-xl font-bold">Agent applications waiting ({pendingAgents.length})</h2>

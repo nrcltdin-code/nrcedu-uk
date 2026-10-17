@@ -73,7 +73,7 @@ async function AgentLeads({ searchParams }: Pick<PageProps<"/dashboard/agent/lea
 
   return (
     <div className="grid items-start gap-8 xl:grid-cols-[1.8fr_1fr]">
-      <div>
+      <div className="min-w-0">
         <nav className="mb-4 flex flex-wrap gap-2" aria-label="Filter">
           {tabs.map((t) => (
             <Link key={t.href} href={t.href} aria-current={t.active ? "page" : undefined}

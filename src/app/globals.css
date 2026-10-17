@@ -168,6 +168,15 @@ h4 {
     inset 0 1px 0 rgb(255 255 255 / 0.15);
 }
 
+/* Each glass surface is its own stacking context (backdrop-filter), so a pop-up inside one, such as
+   an open "Delete" confirmation, would sit under the next card. Lift the surface holding it. */
+:is(.glass, .glass-solid, .glass-dark):has(details[open] > .absolute) {
+  z-index: 30;
+}
+:is(.glass, .glass-solid, .glass-dark):has(details[open] > .absolute):not(.absolute, .fixed, .sticky) {
+  position: relative;
+}
+
 /* Dark gradient backdrop for sections that hold glass-dark surfaces. */
 @utility bg-deep {
   background:

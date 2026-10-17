@@ -6,6 +6,7 @@ import { Checkbox, FormMessage } from "@/components/dashboard/form-bits";
 import { ImageField } from "@/components/dashboard/image-field";
 import { Button, buttonStyles } from "@/components/ui/button";
 import { Input, Label, Select, Textarea } from "@/components/ui/field";
+import { KeepValuesOnError } from "@/components/ui/keep-values-on-error";
 import type { FormState } from "@/lib/form";
 import { addIntake, addRequirement, saveCourse, saveProcess, saveUniversity } from "./actions";
 
@@ -275,6 +276,7 @@ export function RequirementForm({ universityId, types }: { universityId: string;
         <Input id="q-help" name="instructions" maxLength={1000} placeholder="Optional" />
       </div>
       <Checkbox name="required" defaultChecked>Required before submitting</Checkbox>
+      <KeepValuesOnError state={state} failed={Boolean(state.error)} />
       {state.error && <FormMessage state={state} />}
       <Button type="submit" size="sm" variant="glass" disabled={pending} className="justify-self-start">{pending ? "Adding…" : "Add to checklist"}</Button>
     </form>

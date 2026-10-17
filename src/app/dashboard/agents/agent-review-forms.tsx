@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { FormMessage } from "@/components/dashboard/form-bits";
+import { KeepValuesOnError } from "@/components/ui/keep-values-on-error";
 import { Button } from "@/components/ui/button";
 import { Input, Label, Textarea } from "@/components/ui/field";
 import type { FormState } from "@/lib/form";
@@ -17,6 +18,7 @@ export function AgentDocumentReview({ id }: { id: string }) {
         <Button size="sm" name="decision" value="APPROVED" disabled={pending}>Approve</Button>
         <Button size="sm" variant="ghost" name="decision" value="REJECTED" disabled={pending} className="text-red-700 hover:bg-red-500/10">Send back</Button>
       </div>
+      <KeepValuesOnError state={state} failed={Boolean(state.error)} />
       {state.error && <FormMessage state={state} />}
     </form>
   );

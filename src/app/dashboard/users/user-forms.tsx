@@ -3,17 +3,22 @@
 import { useActionState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input, Label, Select } from "@/components/ui/field";
+import { KeepValuesOnError } from "@/components/ui/keep-values-on-error";
 import type { Role, UserStatus } from "@/generated/prisma/client";
 import { createStaffUser, updateStaffPermissions, updateUserAccess } from "./actions";
 import type { UserFormState } from "./actions";
 import { permissionModules, roleLabels, statusLabels } from "./labels";
 
 function FormError({ state }: { state: UserFormState }) {
-  if (!state.error) return null;
   return (
-    <p role="alert" className="rounded-xl border border-red-500/25 bg-red-500/10 px-4 py-2.5 text-sm text-red-800">
-      {state.error}
-    </p>
+    <>
+      <KeepValuesOnError state={state} failed={Boolean(state.error)} />
+      {state.error && (
+        <p role="alert" className="rounded-xl border border-red-500/25 bg-red-500/10 px-4 py-2.5 text-sm text-red-800">
+          {state.error}
+        </p>
+      )}
+    </>
   );
 }
 

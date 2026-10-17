@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from "react";
 import { FormMessage } from "@/components/dashboard/form-bits";
+import { KeepValuesOnError } from "@/components/ui/keep-values-on-error";
 import { Button } from "@/components/ui/button";
 import { Input, Label, Select, Textarea } from "@/components/ui/field";
 import type { FormState } from "@/lib/form";
@@ -92,6 +93,7 @@ export function SubmitForReview({ again }: { again: boolean }) {
   if (state.saved) return <p role="status" className="text-sm text-emerald-800">Sent. We will email you when we have reviewed it.</p>;
   return (
     <form action={action} className="grid gap-3">
+      <KeepValuesOnError state={state} failed={Boolean(state.error)} />
       {state.error && <FormMessage state={state} />}
       <Button type="submit" disabled={pending} className="justify-self-start">{pending ? "Sending…" : again ? "Send for review again" : "Send for review"}</Button>
     </form>

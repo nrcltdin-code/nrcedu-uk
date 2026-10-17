@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { FormMessage } from "@/components/dashboard/form-bits";
+import { KeepValuesOnError } from "@/components/ui/keep-values-on-error";
 import { Button } from "@/components/ui/button";
 import { Input, Label, Select } from "@/components/ui/field";
 import type { FormState } from "@/lib/form";
@@ -15,6 +16,7 @@ export function ExpectedCommissionsButton({ applicationId }: { applicationId: st
   return (
     <form action={action} className="grid gap-2">
       <Button size="sm" disabled={pending} className="justify-self-start">{pending ? "Working out…" : "Add expected amounts from the rates"}</Button>
+      <KeepValuesOnError state={state} failed={Boolean(state.error)} />
       {state.error && <FormMessage state={state} />}
     </form>
   );
@@ -67,6 +69,7 @@ export function CommissionRowForm({ row }: { row: Row }) {
         <Input id={`c-note-${row.id}`} name="note" defaultValue={row.note ?? ""} maxLength={300} placeholder="e.g. invoice number" />
       </div>
       <Button size="sm" variant="glass" disabled={pending}>{pending ? "…" : state.saved ? "Saved ✓" : "Save"}</Button>
+      <KeepValuesOnError state={state} failed={Boolean(state.error)} />
       {state.error && <div className="sm:col-span-4"><FormMessage state={state} /></div>}
     </form>
   );

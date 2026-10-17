@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import Link from "next/link";
 import { ImageField } from "@/components/dashboard/image-field";
+import { KeepValuesOnError } from "@/components/ui/keep-values-on-error";
 import { Button, buttonStyles } from "@/components/ui/button";
 import { Input, Label, Textarea } from "@/components/ui/field";
 import { saveSlide } from "./actions";
@@ -60,6 +61,7 @@ export function SlideForm({ slide, nextPosition }: { slide: SlideValues | null; 
         </label>
       </div>
 
+      <KeepValuesOnError state={state} failed={Boolean(state.error)} />
       {state.error && (
         <p role="alert" className="rounded-xl border border-red-500/25 bg-red-500/10 px-4 py-2.5 text-sm text-red-800">
           {state.error}

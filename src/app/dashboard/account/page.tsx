@@ -2,13 +2,14 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { headers } from "next/headers";
 import { PageHeader } from "@/components/dashboard/page-header";
+import { VerifyEmailBanner } from "@/components/dashboard/verify-email-banner";
 import { Card } from "@/components/ui/card";
 import { emailChangeBlockedReason } from "@/lib/account";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { describeDevice, isMobileDevice } from "@/lib/device";
 import { emailEnabled } from "@/lib/email";
-import { requireUser } from "@/lib/session";
+import { requireSignedInUser } from "@/lib/session";
 import { DeleteAccount, DetailsForm, Devices, EmailForm, PasswordForm, TwoFactorPanel } from "./account-forms";
 import type { DeviceSession } from "./account-forms";
 
@@ -28,7 +29,7 @@ export default function AccountPage() {
 }
 
 async function Account() {
-  const user = await requireUser();
+  const user = await requireSignedInUser();
   const requestHeaders = await headers();
   const [record, current, sessions, history, emailBlockedReason] = await Promise.all([
     db.user.findUniqueOrThrow({
@@ -66,7 +67,12 @@ async function Account() {
 
   return (
     <div className="grid items-start gap-6 xl:grid-cols-2">
-      {twoFactorRequired && !user.twoFactorEnabled && (
+      {user.gate === "confirm-email" && (
+        <div className="xl:col-span-2 [&>div]:mb-0">
+          <VerifyEmailBanner email={user.email} />
+        </div>
+      )}
+      {user.gate === "two-factor" && (
         <Card tone="solid" className="border-amber-500/40 bg-amber-500/10 xl:col-span-2">
           <p className="text-sm text-amber-900">
             <strong>Two-step sign-in is required for admin and staff accounts.</strong> Set it up below to use the rest of the dashboard.

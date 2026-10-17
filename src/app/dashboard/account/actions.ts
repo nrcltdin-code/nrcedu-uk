@@ -4,12 +4,12 @@ import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
 import { text } from "@/lib/form";
 import type { FormState } from "@/lib/form";
-import { requireUser } from "@/lib/session";
+import { requireSignedInUser } from "@/lib/session";
 
 // Name and phone for any role. A student's phone is also kept on their student record,
 // which is what counsellors see.
 export async function saveAccountDetails(_previous: FormState, form: FormData): Promise<FormState> {
-  const user = await requireUser();
+  const user = await requireSignedInUser();
   const name = text(form, "name");
   const phone = text(form, "phone");
 

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { AuthTrigger } from "@/components/auth/auth-drawer";
 import { buttonStyles } from "@/components/ui/button";
 import { Icon } from "@/components/ui/icon";
-import { getCurrentUser } from "@/lib/session";
+import { getSignedInUser } from "@/lib/session";
 
 const itemClass = "block w-full rounded-xl px-3 py-2.5 text-left hover:bg-brand-600/10";
 
@@ -51,7 +51,7 @@ export function GuestActions() {
 
 // Reads the session, so it must be rendered inside <Suspense>.
 export async function HeaderActions() {
-  const user = await getCurrentUser();
+  const user = await getSignedInUser();
   if (!user) return <GuestActions />;
   return (
     <>
@@ -74,7 +74,7 @@ export function GuestAccount() {
 }
 
 export async function HeaderAccount() {
-  const user = await getCurrentUser();
+  const user = await getSignedInUser();
   if (!user) return <GuestAccount />;
   // A small pill: initial in a coloured circle, the first name, and a green "signed in" dot.
   return (

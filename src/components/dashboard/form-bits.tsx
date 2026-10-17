@@ -2,12 +2,15 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { Button, buttonStyles } from "@/components/ui/button";
 import type { FormState } from "@/lib/form";
+import { KeepValuesOnError } from "@/components/ui/keep-values-on-error";
 import { FormToast } from "@/components/ui/toaster";
 
 // Shows the result under the form and as a toast, so a save is noticed wherever the button is.
+// After an error the form keeps what was typed.
 export function FormMessage({ state }: { state: FormState }) {
   return (
     <>
+      <KeepValuesOnError state={state} failed={Boolean(state.error)} />
       <FormToast state={state} />
       <InlineMessage state={state} />
     </>
