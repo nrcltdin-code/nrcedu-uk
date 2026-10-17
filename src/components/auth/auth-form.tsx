@@ -16,12 +16,21 @@ type AuthFormProps = {
   // Where Google sends the person back to after signing in.
   callbackURL: string;
   googleEnabled: boolean;
+  // Error code in the URL after Google sign-in was refused, e.g. "account_not_linked".
+  oauthError?: string | null;
   // "Forgot password" needs email to be set up.
   resetEnabled: boolean;
 };
 
-export function AuthForm({ mode, onModeChange, onSuccess, callbackURL, googleEnabled, resetEnabled }: AuthFormProps) {
-  const [error, setError] = useState<string | null>(null);
+function googleErrorMessage(code: string) {
+  if (code === "account_not_linked") {
+    return "This email already has an account with a password. Please sign in with your email and password below.";
+  }
+  return "Google sign-in did not work. Please try again.";
+}
+
+export function AuthForm({ mode, onModeChange, onSuccess, callbackURL, googleEnabled, oauthError, resetEnabled }: AuthFormProps) {
+  const [error, setError] = useState<string | null>(oauthError ? googleErrorMessage(oauthError) : null);
   const [pending, setPending] = useState(false);
   const [forgot, setForgot] = useState(false);
   // Set after a correct password when the account has two-step sign-in on.
@@ -101,7 +110,11 @@ export function AuthForm({ mode, onModeChange, onSuccess, callbackURL, googleEna
 
   async function onGoogle() {
     setError(null);
-    const { error } = await authClient.signIn.social({ provider: "google", callbackURL });
+    const { error } = await authClient.signIn.social({
+      provider: "google",
+      callbackURL,
+      errorCallbackURL: `/?auth=login&next=${encodeURIComponent(callbackURL)}`,
+    });
     if (error) setError(error.message ?? "Google sign-in failed. Please try again.");
   }
 

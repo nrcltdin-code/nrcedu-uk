@@ -80,8 +80,9 @@ export const auth = betterAuth({
     ? { google: { clientId: googleClientId!, clientSecret: googleClientSecret! } }
     : {},
   account: {
-    // Lets someone who registered with a password also sign in with Google on the same email.
-    accountLinking: { enabled: true, trustedProviders: ["google"] },
+    // Google never takes over an existing password account by itself: that sign-in is refused
+    // with "account_not_linked" and the person is asked to use their password (auth-form.tsx).
+    accountLinking: { enabled: true, disableImplicitLinking: true },
   },
   user: {
     // A new address must be confirmed by the link sent to it (the emailVerification sender above);

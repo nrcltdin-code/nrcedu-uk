@@ -75,6 +75,8 @@ function AuthDrawer({
   const active = request ?? fromUrl;
   const mode = switchedMode ?? active?.mode ?? "login";
   const next = safeNext(active?.next);
+  // Set by Better Auth when Google sign-in fails and sends the person back here.
+  const oauthError = fromUrl ? searchParams.get("error") : null;
 
   function close() {
     onClose();
@@ -105,6 +107,7 @@ function AuthDrawer({
         onModeChange={setSwitchedMode}
         onSuccess={onSuccess}
         callbackURL={next}
+        oauthError={oauthError}
         googleEnabled={googleEnabled}
         resetEnabled={resetEnabled}
       />
