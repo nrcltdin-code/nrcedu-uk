@@ -72,24 +72,6 @@ CREATE TABLE "ContentPost" (
     CONSTRAINT "ContentPost_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
-CREATE TABLE "PageView" (
-    "id" TEXT NOT NULL,
-    "path" TEXT NOT NULL,
-    "source" TEXT NOT NULL,
-    "referrer" TEXT,
-    "utmMedium" TEXT,
-    "utmCampaign" TEXT,
-    "country" TEXT,
-    "region" TEXT,
-    "city" TEXT,
-    "device" TEXT NOT NULL,
-    "browser" TEXT NOT NULL,
-    "visitorHash" TEXT NOT NULL,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-
-    CONSTRAINT "PageView_pkey" PRIMARY KEY ("id")
-);
 
 -- CreateIndex
 CREATE INDEX "SocialAccount_platform_idx" ON "SocialAccount"("platform");
@@ -100,8 +82,6 @@ CREATE INDEX "Campaign_status_startDate_idx" ON "Campaign"("status", "startDate"
 -- CreateIndex
 CREATE INDEX "ContentPost_publishOn_idx" ON "ContentPost"("publishOn");
 
--- CreateIndex
-CREATE INDEX "PageView_createdAt_idx" ON "PageView"("createdAt");
 
 -- AddForeignKey
 ALTER TABLE "ContentPost" ADD CONSTRAINT "ContentPost_campaignId_fkey" FOREIGN KEY ("campaignId") REFERENCES "Campaign"("id") ON DELETE SET NULL ON UPDATE CASCADE;
