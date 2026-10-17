@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CtaBand } from "@/components/site/cta-band";
@@ -26,7 +27,18 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default async function TestPrepPage({ params }: Props) {
+// Params are read inside <Suspense>: with Partial Prefetching, an address that was not built ahead of
+// time (a new record, or a page whose cache a content change refreshed) is generated on request, and
+// reading params above the boundary makes that render fail.
+export default function TestPrepPage({ params }: Props) {
+  return (
+    <Suspense fallback={<main className="min-h-dvh" />}>
+      <TestPrepContent params={params} />
+    </Suspense>
+  );
+}
+
+async function TestPrepContent({ params }: Pick<Props, "params">) {
   const { slug } = await params;
   const [test, tests] = await Promise.all([getTestPrepPage(slug), getTestPrepPages()]);
   if (!test) notFound();

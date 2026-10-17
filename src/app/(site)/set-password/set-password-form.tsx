@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
+import { rememberSignInEmail } from "@/components/auth/auth-form";
 import { FormError } from "@/components/site/form-parts";
 import { KeepValuesOnError } from "@/components/ui/keep-values-on-error";
 import { Button } from "@/components/ui/button";
@@ -12,7 +13,7 @@ export function SetPasswordForm({ invite, email }: { invite: string; email: stri
   const [state, action, pending] = useActionState<SetPasswordState, FormData>(setPasswordFromInvite, {});
 
   return (
-    <form action={action} className="grid gap-4">
+    <form action={action} onSubmit={() => rememberSignInEmail(email)} className="grid gap-4">
       <input type="hidden" name="invite" value={invite} />
       {/* Helps password managers save the right username. */}
       <input type="email" name="username" value={email} autoComplete="username" readOnly hidden />

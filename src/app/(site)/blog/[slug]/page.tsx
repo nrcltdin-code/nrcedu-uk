@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -27,7 +28,18 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default async function BlogPostPage({ params }: Props) {
+// Params are read inside <Suspense>: with Partial Prefetching, an address that was not built ahead of
+// time (a new record, or a page whose cache a content change refreshed) is generated on request, and
+// reading params above the boundary makes that render fail.
+export default function BlogPostPage({ params }: Props) {
+  return (
+    <Suspense fallback={<main className="min-h-dvh" />}>
+      <BlogPostContent params={params} />
+    </Suspense>
+  );
+}
+
+async function BlogPostContent({ params }: Pick<Props, "params">) {
   const post = await getPost((await params).slug);
   if (!post) notFound();
 

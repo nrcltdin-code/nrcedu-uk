@@ -32,7 +32,7 @@ export function ResetPasswordForm({ token }: { token: string }) {
       );
       return;
     }
-    router.push("/?auth=login&next=/dashboard");
+    router.push("/?auth=login&next=/dashboard&notice=password-set");
   }
 
   return (

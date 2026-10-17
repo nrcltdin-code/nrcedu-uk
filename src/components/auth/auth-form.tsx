@@ -1,13 +1,40 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { PasswordInput, PasswordStrength } from "@/components/auth/password-field";
 import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/field";
 
 export type AuthMode = "login" | "register";
+
+// The set-password page hands the address to the sign-in panel here (this tab only), so the person
+// does not type it again. Kept out of the URL so it does not end up in history or server logs.
+const signInEmailKey = "nrc:sign-in-email";
+export function rememberSignInEmail(email: string) {
+  try {
+    sessionStorage.setItem(signInEmailKey, email);
+  } catch {}
+}
+
+// Deferred so React has finished setting up the field, which would otherwise put back its empty default.
+function fillRememberedEmail(input: HTMLInputElement) {
+  setTimeout(() => {
+    if (!input.isConnected || input.value) return;
+    try {
+      const email = sessionStorage.getItem(signInEmailKey);
+      if (!email) return;
+      sessionStorage.removeItem(signInEmailKey);
+      input.value = email;
+    } catch {}
+  });
+}
+
+// Shown above the sign-in form after ?notice=… in the link that opened it.
+const notices: Record<string, string> = {
+  "password-set": "Your password is saved. Sign in with it below.",
+};
 
 type AuthFormProps = {
   mode: AuthMode;
@@ -20,6 +47,7 @@ type AuthFormProps = {
   oauthError?: string | null;
   // "Forgot password" needs email to be set up.
   resetEnabled: boolean;
+  notice?: string | null;
 };
 
 function googleErrorMessage(code: string) {
@@ -29,7 +57,7 @@ function googleErrorMessage(code: string) {
   return "Google sign-in did not work. Please try again.";
 }
 
-export function AuthForm({ mode, onModeChange, onSuccess, callbackURL, googleEnabled, oauthError, resetEnabled }: AuthFormProps) {
+export function AuthForm({ mode, onModeChange, onSuccess, callbackURL, googleEnabled, oauthError, resetEnabled, notice }: AuthFormProps) {
   const [error, setError] = useState<string | null>(oauthError ? googleErrorMessage(oauthError) : null);
   const [pending, setPending] = useState(false);
   const [forgot, setForgot] = useState(false);
@@ -38,6 +66,15 @@ export function AuthForm({ mode, onModeChange, onSuccess, callbackURL, googleEna
   const [password, setPassword] = useState("");
   // Address the confirmation link went to, after signing up or a refused sign-in.
   const [checkInbox, setCheckInbox] = useState<string | null>(null);
+  const emailInput = useRef<HTMLInputElement>(null);
+
+  // Only right after a new password was saved. The panel stays mounted across pages, so this runs
+  // when it is opened with that notice, not whenever it mounts.
+  useEffect(() => {
+    if (mode === "login" && notice === "password-set" && emailInput.current) fillRememberedEmail(emailInput.current);
+  }, [mode, notice]);
+
+  const noticeText = mode === "login" && notice ? notices[notice] : undefined;
 
   function switchMode(next: AuthMode) {
     setError(null);
@@ -152,6 +189,12 @@ export function AuthForm({ mode, onModeChange, onSuccess, callbackURL, googleEna
         </>
       )}
 
+      {noticeText && !error && (
+        <p role="status" className="mb-4 rounded-xl border border-emerald-500/25 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-900">
+          {noticeText}
+        </p>
+      )}
+
       {/* key resets the fields when switching between sign in and sign up */}
       <form key={mode} onSubmit={onSubmit} className="grid gap-4">
         {mode === "register" && (
@@ -162,7 +205,7 @@ export function AuthForm({ mode, onModeChange, onSuccess, callbackURL, googleEna
         )}
         <div>
           <Label htmlFor="auth-email">Email</Label>
-          <Input id="auth-email" name="email" type="email" autoComplete="email" required />
+          <Input id="auth-email" name="email" type="email" autoComplete="email" ref={emailInput} required />
         </div>
         {mode === "register" && (
           <div>

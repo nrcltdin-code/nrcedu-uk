@@ -57,3 +57,12 @@ export function optionalDate(value: string): Date | null | undefined {
   const date = new Date(`${value}T00:00:00Z`);
   return Number.isNaN(date.getTime()) ? undefined : date;
 }
+
+// A date of birth must be in the past and less than 100 years ago (catches typos like 2030 or 1900).
+export function birthDateError(date: Date | null | undefined) {
+  if (!date) return null;
+  const now = Date.now();
+  if (date.getTime() >= now) return "The date of birth must be in the past.";
+  if (date.getTime() < now - 100 * 365.25 * 86_400_000) return "Check the year of the date of birth.";
+  return null;
+}

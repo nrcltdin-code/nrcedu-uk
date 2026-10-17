@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -26,7 +27,18 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default async function DestinationPage({ params }: Props) {
+// Params are read inside <Suspense>: with Partial Prefetching, an address that was not built ahead of
+// time (a new record, or a page whose cache a content change refreshed) is generated on request, and
+// reading params above the boundary makes that render fail.
+export default function DestinationPage({ params }: Props) {
+  return (
+    <Suspense fallback={<main className="min-h-dvh" />}>
+      <DestinationContent params={params} />
+    </Suspense>
+  );
+}
+
+async function DestinationContent({ params }: Pick<Props, "params">) {
   const country = await getDestination((await params).slug);
   if (!country) notFound();
 

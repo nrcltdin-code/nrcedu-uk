@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import { connection } from "next/server";
 import { PageHero } from "@/components/site/page-hero";
 import { Card } from "@/components/ui/card";
 import { Section } from "@/components/ui/section";
@@ -29,6 +30,8 @@ export default function SetPasswordPage({ searchParams }: PageProps<"/set-passwo
 async function InviteForm({ searchParams }: Pick<PageProps<"/set-password">, "searchParams">) {
   const { invite } = await searchParams;
   const token = typeof invite === "string" ? invite : "";
+  // The expiry check reads the current time, so it must run per request.
+  await connection();
   const userId = token ? await checkInvite(token) : null;
   const user = userId ? await db.user.findUnique({ where: { id: userId }, select: { name: true, email: true } }) : null;
 

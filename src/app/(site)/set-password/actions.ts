@@ -38,5 +38,5 @@ export async function setPasswordFromInvite(_previous: SetPasswordState, form: F
     db.activityLog.create({ data: { userId, action: "student.password-set", entityType: "User", entityId: userId } }),
   ]);
   await consumeInvite(userId);
-  redirect("/?auth=login&next=/dashboard");
+  redirect("/?auth=login&next=/dashboard&notice=password-set");
 }

@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import type { Prisma } from "@/generated/prisma/client";
 import { db } from "@/lib/db";
 import { sendEmail } from "@/lib/email";
-import { optionalDate, text } from "@/lib/form";
+import { birthDateError, optionalDate, text } from "@/lib/form";
 import type { FormState } from "@/lib/form";
 import { createInvite } from "@/lib/invites";
 import { findOrCreateStudent } from "@/lib/student";
@@ -103,6 +103,8 @@ export async function updateStudent(_previous: FormState, form: FormData): Promi
   if (name.length < 2 || name.length > 100) return { error: "Enter the student's name." };
   if (phone.length > 30) return { error: "The phone number is too long." };
   if (dateOfBirth === undefined || passportExpiry === undefined) return { error: "Check the dates." };
+  const badBirthDate = birthDateError(dateOfBirth);
+  if (badBirthDate) return { error: badBirthDate };
   if (fields.gender.length > 30 || fields.nationality.length > 60 || fields.passportNumber.length > 30) return { error: "One of the fields is too long." };
   if (fields.address.length > 300) return { error: "Keep the address under 300 characters." };
   if (countryId && !(await db.country.count({ where: { id: countryId } }))) return { error: "Choose a country from the list." };

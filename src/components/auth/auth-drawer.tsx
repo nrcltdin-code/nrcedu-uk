@@ -77,6 +77,8 @@ function AuthDrawer({
   const next = safeNext(active?.next);
   // Set by Better Auth when Google sign-in fails and sends the person back here.
   const oauthError = fromUrl ? searchParams.get("error") : null;
+  // E.g. "password-set" after choosing a new password; the form shows a matching message.
+  const notice = fromUrl ? searchParams.get("notice") : null;
 
   function close() {
     onClose();
@@ -108,6 +110,7 @@ function AuthDrawer({
         onSuccess={onSuccess}
         callbackURL={next}
         oauthError={oauthError}
+        notice={notice}
         googleEnabled={googleEnabled}
         resetEnabled={resetEnabled}
       />

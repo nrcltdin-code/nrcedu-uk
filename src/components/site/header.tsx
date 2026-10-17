@@ -23,13 +23,15 @@ export async function Header() {
         ? { ...item, children: [...tests.map((t) => ({ label: t.name, href: `/test-prep/${t.slug}` })), { label: "All tests", href: "/test-prep" }] }
         : item,
     );
+  // While the session is read, the visitor versions hold the space but stay invisible, so a
+  // signed-in person never sees "Sign in" flash before their name.
   const actions = (
-    <Suspense fallback={<GuestActions />}>
+    <Suspense fallback={<span className="invisible contents"><GuestActions /></span>}>
       <HeaderActions />
     </Suspense>
   );
   const account = (
-    <Suspense fallback={<GuestAccount />}>
+    <Suspense fallback={<span className="invisible contents"><GuestAccount /></span>}>
       <HeaderAccount />
     </Suspense>
   );

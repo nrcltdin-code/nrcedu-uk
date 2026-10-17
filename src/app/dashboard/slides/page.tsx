@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonStyles } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { SubmitButton } from "@/components/ui/submit-button";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { db } from "@/lib/db";
 import { requirePermission } from "@/lib/session";
@@ -78,9 +79,9 @@ async function SlidesManager({ searchParams }: Pick<PageProps<"/dashboard/slides
                     </summary>
                     <form action={deleteSlide.bind(null, slide.id)} className="glass-solid absolute left-0 top-full z-10 mt-1 w-56 rounded-2xl p-3">
                       <p className="text-sm">Delete this slide for good?</p>
-                      <Button size="sm" className="mt-2 bg-red-600 bg-none shadow-none hover:bg-red-700">
+                      <SubmitButton size="sm" pendingText="Deleting…" className="mt-2 bg-red-600 bg-none shadow-none hover:bg-red-700">
                         Yes, delete
-                      </Button>
+                      </SubmitButton>
                     </form>
                   </details>
                 </div>
