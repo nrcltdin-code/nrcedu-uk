@@ -36,8 +36,34 @@ enum PermissionModule {
 
 enum ApprovalStatus {
   PENDING
+  CHANGES_REQUESTED
   APPROVED
   REJECTED
+}
+
+enum AgentKind {
+  INDIVIDUAL
+  AGENCY
+}
+
+// What an agency owner lets each team member do. The owner can always do everything.
+enum AgentPermission {
+  ALL_STUDENTS
+  LEADS
+  APPLICATIONS
+  DOCUMENTS
+  COMMISSION
+  TEAM
+}
+
+enum AgentDocumentType {
+  ID_PROOF
+  ADDRESS_PROOF
+  BUSINESS_REGISTRATION
+  TAX_CERTIFICATE
+  OFFICE_PHOTO
+  REFERENCE_LETTER
+  OTHER
 }
 
 model User {
@@ -61,6 +87,8 @@ model User {
   studentProfile   StudentProfile?
   // Set for an agent's team member: they sign in as AGENT and work under that agency.
   agentTeamId      String?
+  // For team members: what the agency owner lets them do (see AgentPermission).
+  agentPermissions AgentPermission[]
   agentTeam        AgentProfile?     @relation("AgentTeam", fields: [agentTeamId], references: [id], onDelete: Cascade)
   addedStudents    StudentProfile[]  @relation("StudentAddedBy")
 
@@ -75,6 +103,8 @@ model User {
   conditionsMet        ApplicationCondition[] @relation("ConditionMetBy")
   uploadedDocuments    Document[]             @relation("DocumentUploadedBy")
   reviewedDocuments    Document[]             @relation("DocumentReviewedBy")
+  reviewedAgentDocs    AgentDocument[]        @relation("AgentDocumentReviewedBy")
+  agentLeads           Lead[]                 @relation("LeadAgentMember")
   notes                Note[]
   messages             Message[]
   reminders            Reminder[]
@@ -175,19 +205,31 @@ model StaffPermission {
 }
 
 // NRC's own sub-agents, who refer students from the country they operate in.
+// An agent registers as a single person (INDIVIDUAL) or on behalf of an agency (AGENCY,
+// which can add team members). They sign in straight away to an onboarding page, upload
+// verification documents, and get the full portal once an admin approves them.
 model AgentProfile {
-  id             String         @id @default(cuid())
-  userId         String         @unique
-  companyName    String?
-  countryId      String?
-  phone          String?
-  address        String?
-  about          String?
-  approvalStatus ApprovalStatus @default(PENDING)
-  approvedById   String?
-  approvedAt     DateTime?
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
+  id                 String         @id @default(cuid())
+  userId             String         @unique
+  kind               AgentKind      @default(INDIVIDUAL)
+  companyName        String?
+  registrationNumber String?
+  website            String?
+  yearsActive        Int?
+  studentsPerYear    Int?
+  countryId          String?
+  phone              String?
+  address            String?
+  about              String?
+  approvalStatus     ApprovalStatus @default(PENDING)
+  // What the admin asked to change, or why they rejected; shown to the agent.
+  reviewNote         String?
+  // When the agent last sent the profile for review.
+  submittedAt        DateTime?
+  approvedById       String?
+  approvedAt         DateTime?
+  createdAt          DateTime       @default(now())
+  updatedAt          DateTime       @updatedAt
 
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   country    Country? @relation(fields: [countryId], references: [id], onDelete: SetNull)
@@ -199,9 +241,31 @@ model AgentProfile {
   leads              Lead[]
   commissions        Commission[]
   countryAssignments CountryAssignment[]
+  verification       AgentDocument[]
+  notes              Note[]
 
   @@index([countryId])
   @@index([approvalStatus])
+}
+
+// A verification file an agent uploads during onboarding, checked by NRC staff.
+model AgentDocument {
+  id           String            @id @default(cuid())
+  agentId      String
+  type         AgentDocumentType
+  name         String
+  fileKey      String
+  contentType  String
+  status       DocumentStatus    @default(PENDING)
+  reviewNote   String?
+  reviewedById String?
+  reviewedAt   DateTime?
+  createdAt    DateTime          @default(now())
+
+  agent      AgentProfile @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  reviewedBy User?        @relation("AgentDocumentReviewedBy", fields: [reviewedById], references: [id], onDelete: SetNull)
+
+  @@index([agentId])
 }
 
 // ───────────────────────────── Students ─────────────────────────────
@@ -432,6 +496,9 @@ model Lead {
   status               LeadStatus  @default(NEW)
   assignedStaffId      String?
   assignedAgentId      String?
+  // Inside the agency: which agent account handles it, and when to follow up.
+  agentUserId          String?
+  followUpAt           DateTime?
   studentId            String?     @unique
   createdAt            DateTime    @default(now())
   updatedAt            DateTime    @updatedAt
@@ -441,6 +508,7 @@ model Lead {
   destination   Country?        @relation("LeadDestination", fields: [destinationCountryId], references: [id], onDelete: SetNull)
   assignedStaff User?           @relation("LeadAssignedStaff", fields: [assignedStaffId], references: [id], onDelete: SetNull)
   assignedAgent AgentProfile?   @relation(fields: [assignedAgentId], references: [id], onDelete: SetNull)
+  agentUser     User?           @relation("LeadAgentMember", fields: [agentUserId], references: [id], onDelete: SetNull)
   student       StudentProfile? @relation(fields: [studentId], references: [id], onDelete: SetNull)
 
   notes     Note[]
@@ -547,12 +615,15 @@ model Note {
   id            String   @id @default(cuid())
   authorId      String?
   body          String
+  // Set for notes written in an agency's CRM: that agency sees them; staff see all notes.
+  agentId       String?
   leadId        String?
   studentId     String?
   applicationId String?
   createdAt     DateTime @default(now())
 
   author      User?           @relation(fields: [authorId], references: [id], onDelete: SetNull)
+  agent       AgentProfile?   @relation(fields: [agentId], references: [id], onDelete: Cascade)
   lead        Lead?           @relation(fields: [leadId], references: [id], onDelete: Cascade)
   student     StudentProfile? @relation(fields: [studentId], references: [id], onDelete: Cascade)
   application Application?    @relation(fields: [applicationId], references: [id], onDelete: Cascade)

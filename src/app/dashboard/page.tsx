@@ -11,7 +11,8 @@ import { db } from "@/lib/db";
 import { can, requireUser } from "@/lib/session";
 import type { CurrentUser } from "@/lib/session";
 import { requireMyStudentId } from "@/lib/student";
-import { requireAgentScope } from "@/lib/agent";
+import { redirect } from "next/navigation";
+import { findAgentScope, findOnboardingAgent } from "@/lib/agent";
 import { closedStages, stageLabels, stageTones } from "./applications/labels";
 import { StaffOverview } from "./staff-overview";
 
@@ -38,7 +39,7 @@ async function getStats(user: CurrentUser): Promise<Stat[]> {
     leads ? db.lead.count({ where: { status: "NEW" } }) : 0,
     students ? db.document.count({ where: { status: "PENDING" } }) : 0,
     applications ? db.application.count({ where: { stage: { notIn: closedStages } } }) : 0,
-    agents ? db.agentProfile.count({ where: { approvalStatus: "PENDING" } }) : 0,
+    agents ? db.agentProfile.count({ where: { approvalStatus: "PENDING", submittedAt: { not: null } } }) : 0,
   ]);
 
   const stats: Stat[] = [];
@@ -51,6 +52,8 @@ async function getStats(user: CurrentUser): Promise<Stat[]> {
 
 async function Overview() {
   const user = await requireUser();
+  // Agents finish onboarding (profile and verification documents) before anything else.
+  if (user.role === "AGENT" && (await findOnboardingAgent(user))) redirect("/dashboard/agent/onboarding");
   const stats = await getStats(user);
   const firstName = user.name.split(" ")[0];
 
@@ -83,7 +86,7 @@ async function Overview() {
 
       {(user.role === "ADMIN" || user.role === "STAFF") && <StaffOverview user={user} />}
       {user.role === "STUDENT" && <StudentOverview />}
-      {user.role === "AGENT" && <AgentOverview />}
+      {user.role === "AGENT" && <AgentOverview user={user} />}
     </>
   );
 }
@@ -171,21 +174,31 @@ async function StudentOverview() {
   );
 }
 
-async function AgentOverview() {
-  const scope = await requireAgentScope();
-  const where = scope.students;
-  const [students, open, enrolled, due] = await Promise.all([
-    db.studentProfile.count({ where }),
-    db.application.count({ where: { student: where, stage: { notIn: closedStages } } }),
-    db.application.count({ where: { student: where, stage: "ENROLLED" } }),
-    // Commission is paid to the agency, so only the owner sees it.
-    scope.isOwner ? db.commission.count({ where: { agentId: scope.agentId, direction: "NRC_TO_AGENT", status: "PENDING" } }) : 0,
+async function AgentOverview({ user }: { user: CurrentUser }) {
+  const scope = await findAgentScope(user);
+  if (!scope) {
+    return <Card tone="solid">Your agency&apos;s account is not active right now. Contact the agency owner or NRC.</Card>;
+  }
+  const now = new Date();
+  const [students, open, enrolled, due, newLeads, followUps] = await Promise.all([
+    db.studentProfile.count({ where: scope.students }),
+    db.application.count({ where: { ...scope.applications, stage: { notIn: closedStages } } }),
+    db.application.count({ where: { ...scope.applications, stage: "ENROLLED" } }),
+    scope.can("COMMISSION") ? db.commission.count({ where: { agentId: scope.agentId, direction: "NRC_TO_AGENT", status: "PENDING" } }) : 0,
+    scope.can("LEADS") ? db.lead.count({ where: { ...scope.leads, status: "NEW" } }) : 0,
+    scope.can("LEADS") ? db.lead.count({ where: { ...scope.leads, status: { notIn: ["CONVERTED", "LOST"] }, followUpAt: { lte: now } } }) : 0,
   ]);
   const tiles = [
+    ...(scope.can("LEADS")
+      ? [
+          { label: "New leads", value: newLeads, href: "/dashboard/agent/leads?status=NEW" },
+          { label: "Follow-ups due", value: followUps, href: "/dashboard/agent/leads?due=1" },
+        ]
+      : []),
     { label: "Students", value: students, href: "/dashboard/agent/students" },
-    { label: "Applications in progress", value: open, href: "/dashboard/agent/students" },
-    { label: "Enrolled", value: enrolled, href: "/dashboard/agent/students" },
-    ...(scope.isOwner ? [{ label: "Commission payments due", value: due, href: "/dashboard/agent/commissions" }] : []),
+    { label: "Applications in progress", value: open, href: "/dashboard/agent/applications" },
+    { label: "Enrolled", value: enrolled, href: "/dashboard/agent/applications?status=ENROLLED" },
+    ...(scope.can("COMMISSION") ? [{ label: "Commission payments due", value: due, href: "/dashboard/agent/commissions" }] : []),
   ];
   return (
     <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">

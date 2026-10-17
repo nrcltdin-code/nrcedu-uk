@@ -1,6 +1,7 @@
 "use server";
 
 import { hashPassword } from "better-auth/crypto";
+import { requiredAgentDocuments } from "@/lib/agent";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
@@ -138,9 +139,14 @@ export async function decideAgent(userId: string, decision: "APPROVED" | "REJECT
 
   const profile = await db.agentProfile.findUnique({
     where: { userId },
-    select: { approvalStatus: true, user: { select: { name: true, email: true } } },
+    select: { kind: true, approvalStatus: true, user: { select: { name: true, email: true } }, verification: { where: { status: "APPROVED" }, select: { type: true } } },
   });
   if (!profile) return;
+  // Approval needs the verification documents checked first, on the agent's review page.
+  if (decision === "APPROVED") {
+    const approved = new Set(profile.verification.map((d) => d.type));
+    if (requiredAgentDocuments(profile.kind).some((t) => !approved.has(t))) redirect(`/dashboard/agents/${(await db.agentProfile.findUnique({ where: { userId }, select: { id: true } }))?.id ?? ""}`);
+  }
 
   await db.$transaction([
     db.agentProfile.update({

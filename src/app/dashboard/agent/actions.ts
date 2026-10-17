@@ -14,7 +14,7 @@ import { findOrCreateStudent } from "@/lib/student";
 
 export async function addMyStudent(_previous: FormState, form: FormData): Promise<FormState> {
   const user = await requireUser();
-  const scope = await requireAgentScope();
+  const scope = await requireAgentScope("APPLICATIONS");
 
   const name = text(form, "name");
   const email = text(form, "email").toLowerCase();
@@ -61,7 +61,7 @@ export async function addMyStudent(_previous: FormState, form: FormData): Promis
 }
 
 export async function updateMyStudent(_previous: FormState, form: FormData): Promise<FormState> {
-  const scope = await requireAgentScope();
+  const scope = await requireAgentScope("APPLICATIONS");
   const id = text(form, "id");
   const student = await db.studentProfile.findFirst({ where: { id, ...scope.students }, select: { userId: true } });
   if (!student) return { error: "This student is not on your list." };
@@ -107,7 +107,7 @@ export async function updateMyStudent(_previous: FormState, form: FormData): Pro
 
 export async function applyForMyStudent(_previous: FormState, form: FormData): Promise<FormState> {
   const user = await requireUser();
-  const scope = await requireAgentScope();
+  const scope = await requireAgentScope("APPLICATIONS");
   const studentId = text(form, "studentId");
   const courseId = text(form, "courseId");
   if (!(await findMyStudent(scope, studentId))) return { error: "This student is not on your list." };

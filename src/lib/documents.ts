@@ -5,7 +5,7 @@ import type { DocumentStatus, DocumentType } from "@/generated/prisma/client";
 import { findAgentScope } from "@/lib/agent";
 import { db } from "@/lib/db";
 import { can } from "@/lib/session";
-import { deletePrivateObject, listPrivateObjects, privateStorageEnabled } from "@/lib/storage";
+import { deletePrivateObject, getPrivateObject, headPrivateObject, listPrivateObjects, privateStorageEnabled, putPrivateObject } from "@/lib/storage";
 import type { CurrentUser } from "@/lib/session";
 
 export const MAX_DOCUMENT_BYTES = 10 * 1024 * 1024;
@@ -72,19 +72,19 @@ const secret = () => {
 };
 const sign = (payload: string) => createHmac("sha256", secret()).update(`document-ticket:${payload}`).digest("base64url");
 
-export function createTicket(ticket: UploadTicket) {
+export function createTicket<T extends { userId: string; expires: number } = UploadTicket>(ticket: T) {
   const payload = Buffer.from(JSON.stringify(ticket)).toString("base64url");
   return `${payload}.${sign(payload)}`;
 }
 
-export function readTicket(token: string, userId: string): UploadTicket | null {
+export function readTicket<T extends { userId: string; expires: number } = UploadTicket>(token: string, userId: string): T | null {
   const [payload, signature] = token.split(".");
   if (!payload || !signature) return null;
   const expected = Buffer.from(sign(payload));
   const given = Buffer.from(signature);
   if (expected.length !== given.length || !timingSafeEqual(expected, given)) return null;
   try {
-    const ticket = JSON.parse(Buffer.from(payload, "base64url").toString()) as UploadTicket;
+    const ticket = JSON.parse(Buffer.from(payload, "base64url").toString()) as T;
     if (ticket.userId !== userId || ticket.expires < Date.now()) return null;
     return ticket;
   } catch {
@@ -102,7 +102,8 @@ export async function canAccessStudent(user: CurrentUser, studentId: string, act
   }
   if (user.role === "AGENT") {
     const scope = await findAgentScope(user);
-    return Boolean(scope) && (await db.studentProfile.count({ where: { id: studentId, ...scope!.students } })) > 0;
+    if (!scope || (action === "edit" && !scope.can("DOCUMENTS"))) return false;
+    return (await db.studentProfile.count({ where: { id: studentId, ...scope.students } })) > 0;
   }
   return false;
 }
@@ -150,4 +151,30 @@ export async function syncRequestStatus(requestId: string | null) {
     where: { id: requestId },
     data: { status, ...(status === "APPROVED" ? { isOpen: false } : status === "NEEDS_REUPLOAD" ? { isOpen: true } : {}) },
   });
+}
+
+// The checks run on every uploaded file where it landed: right size, really a PDF, JPG or PNG;
+// images are re-encoded. Anything that fails is deleted. Returns the stored name and type.
+export async function checkUploadedFile(key: string, size: number, name: string): Promise<{ name: string; contentType: string } | { status: number; error: string }> {
+  const reject = async (status: number, error: string) => {
+    await deletePrivateObject(key).catch(() => {});
+    return { status, error };
+  };
+  const head = await headPrivateObject(key);
+  if (!head) return { status: 400, error: "The file did not arrive. Please try again." };
+  if (head.size !== size || head.size > MAX_DOCUMENT_BYTES) return reject(413, "The file is too large. The limit is 10 MB.");
+  try {
+    const kind = sniffDocument(await getPrivateObject(key, "bytes=0-15"));
+    if (!kind) return reject(415, "Only PDF, JPG or PNG files can be uploaded.");
+    if (kind !== "pdf") {
+      const clean = await cleanDocumentImage(await getPrivateObject(key)).catch(() => null);
+      if (!clean) return reject(415, "This image could not be read. It may be damaged.");
+      await putPrivateObject(key, clean, "image/jpeg");
+    }
+    const base = name.replace(/.(pdf|jpe?g|png)$/i, "");
+    return kind === "pdf" ? { name: `${base}.pdf`, contentType: documentContentTypes.pdf } : { name: `${base}.jpg`, contentType: "image/jpeg" };
+  } catch (error) {
+    console.error("Document check:", error);
+    return reject(502, "The file could not be checked. Please try again.");
+  }
 }

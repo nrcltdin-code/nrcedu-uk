@@ -1,7 +1,10 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { requireAgentOwner } from "@/lib/agent";
+import { redirect } from "next/navigation";
+import type { AgentPermission } from "@/generated/prisma/client";
+import { agentPermissions, requireAgentScope } from "@/lib/agent";
+import type { AgentScope } from "@/lib/agent";
 import { db } from "@/lib/db";
 import { sendEmail } from "@/lib/email";
 import { text } from "@/lib/form";
@@ -11,6 +14,20 @@ import { isEmail } from "@/lib/leads";
 import { requireUser } from "@/lib/session";
 
 export type TeamInviteState = FormState & { url?: string; emailedTo?: string };
+
+// The owner, or a member given Team access, manages the team of an agency.
+async function requireTeamManager(): Promise<AgentScope> {
+  const scope = await requireAgentScope("TEAM");
+  if (scope.kind !== "AGENCY") redirect("/dashboard");
+  return scope;
+}
+
+// Only the owner can hand out Team access itself.
+function readPermissions(form: FormData, scope: AgentScope): AgentPermission[] {
+  return form.getAll("permissions").map(String)
+    .filter((p): p is AgentPermission => agentPermissions.includes(p as AgentPermission))
+    .filter((p) => scope.isOwner || p !== "TEAM");
+}
 
 async function inviteMember(owner: { name: string; email: string }, member: { id: string; name: string; email: string }) {
   const invite = await createInvite(member.id);
@@ -27,7 +44,7 @@ async function inviteMember(owner: { name: string; email: string }, member: { id
 // they added themselves; the owner sees everyone's.
 export async function addTeamMember(_previous: TeamInviteState, form: FormData): Promise<TeamInviteState> {
   const user = await requireUser();
-  const scope = await requireAgentOwner();
+  const scope = await requireTeamManager();
   const name = text(form, "name");
   const email = text(form, "email").toLowerCase();
   const phone = text(form, "phone");
@@ -38,7 +55,7 @@ export async function addTeamMember(_previous: TeamInviteState, form: FormData):
   if (await db.user.count({ where: { email } })) return { error: "This email is already registered with NRC. Use a different one." };
 
   const member = await db.user.create({
-    data: { name, email, phone: phone || null, role: "AGENT", status: "ACTIVE", agentTeamId: scope.agentId },
+    data: { name, email, phone: phone || null, role: "AGENT", status: "ACTIVE", agentTeamId: scope.agentId, agentPermissions: readPermissions(form, scope) },
     select: { id: true, name: true, email: true },
   });
   await db.activityLog.create({ data: { userId: user.id, action: "agent.team-add", entityType: "User", entityId: member.id, meta: { agentId: scope.agentId } } });
@@ -50,13 +67,30 @@ export async function addTeamMember(_previous: TeamInviteState, form: FormData):
 async function findMember(agentId: string, memberId: string) {
   return db.user.findFirst({
     where: { id: memberId, agentTeamId: agentId },
-    select: { id: true, name: true, email: true, status: true, accounts: { select: { id: true }, take: 1 } },
+    select: { id: true, name: true, email: true, status: true, agentPermissions: true, accounts: { select: { id: true }, take: 1 } },
   });
+}
+
+export async function setMemberPermissions(_previous: FormState, form: FormData): Promise<FormState> {
+  const user = await requireUser();
+  const scope = await requireTeamManager();
+  const member = await findMember(scope.agentId, text(form, "memberId"));
+  if (!member) return { error: "This person is not on your team." };
+  if (member.id === user.id) return { error: "You cannot change your own access." };
+  // A non-owner keeps whatever Team access the owner gave, but cannot add or remove it.
+  let next = readPermissions(form, scope);
+  if (!scope.isOwner) next = [...next.filter((p) => p !== "TEAM"), ...(member.agentPermissions.includes("TEAM") ? (["TEAM"] as const) : [])];
+  await db.$transaction([
+    db.user.update({ where: { id: member.id }, data: { agentPermissions: next } }),
+    db.activityLog.create({ data: { userId: user.id, action: "agent.team-permissions", entityType: "User", entityId: member.id, meta: { from: member.agentPermissions, to: next } } }),
+  ]);
+  revalidatePath("/dashboard/agent/team");
+  return { saved: true };
 }
 
 export async function reinviteTeamMember(_previous: TeamInviteState, form: FormData): Promise<TeamInviteState> {
   const user = await requireUser();
-  const scope = await requireAgentOwner();
+  const scope = await requireTeamManager();
   const member = await findMember(scope.agentId, text(form, "memberId"));
   if (!member) return { error: "This person is not on your team." };
   if (member.accounts.length) return { error: "They can already sign in." };
@@ -68,9 +102,9 @@ export async function reinviteTeamMember(_previous: TeamInviteState, form: FormD
 // Turning access off keeps the students they added; the owner still sees them.
 export async function setTeamMemberActive(memberId: string, active: boolean) {
   const user = await requireUser();
-  const scope = await requireAgentOwner();
+  const scope = await requireTeamManager();
   const member = await findMember(scope.agentId, memberId);
-  if (!member) return;
+  if (!member || member.id === user.id) return;
   await db.$transaction([
     db.user.update({ where: { id: member.id }, data: { status: active ? "ACTIVE" : "SUSPENDED" } }),
     ...(active ? [] : [db.session.deleteMany({ where: { userId: member.id } })]),

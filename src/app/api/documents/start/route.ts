@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import type { DocumentType } from "@/generated/prisma/client";
 import { acceptsUpload } from "@/lib/application-flow";
+import { findAgentScope } from "@/lib/agent";
 import { db } from "@/lib/db";
 import { canAccessStudent, createTicket, documentTypeLabels, MAX_DOCUMENT_BYTES } from "@/lib/documents";
 import { isSameOrigin } from "@/lib/same-origin";
@@ -45,9 +46,14 @@ export async function POST(request: Request) {
     const request = await db.documentRequest.findFirst({ where: { id: requestId, studentId }, select: { type: true, applicationId: true, isOpen: true, status: true } });
     if (!request) return fail(400, "That document request no longer exists.");
     if (user.role !== "ADMIN" && user.role !== "STAFF" && !acceptsUpload(request)) return fail(403, uploadClosed);
+    // Agents only work on the applications their agency started.
+    if (user.role === "AGENT" && request.applicationId) {
+      const scope = await findAgentScope(user);
+      if (!scope || !(await db.application.count({ where: { id: request.applicationId, ...scope.applications } }))) return fail(403, "This document belongs to an application you do not handle.");
+    }
     type = request.type;
     applicationId = request.applicationId;
-  } else if (user.role === "STUDENT") {
+  } else if (user.role === "STUDENT" || user.role === "AGENT") {
     return fail(403, "Upload into one of the documents your counsellor asked for.");
   }
 

@@ -35,6 +35,12 @@ export const activityText: Record<string, string> = {
   "agent.team-invite": "made a team member invite",
   "agent.team-status": "changed a team member's access",
   "agent.rejected": "rejected an agent",
+  "agent.changes-requested": "asked an agent for changes",
+  "agent.submitted": "sent their agent profile for review",
+  "agent.document-upload": "uploaded a verification document",
+  "agent.document-approved": "approved an agent's document",
+  "agent.document-rejected": "sent back an agent's document",
+  "agent.team-permissions": "changed a team member's access",
   "export.leads": "downloaded leads (CSV)",
   "export.students": "downloaded students (CSV)",
   "export.applications": "downloaded applications (CSV)",
@@ -65,6 +71,7 @@ export const activityAreas: Record<string, string> = {
   Country: "Lead routing",
   Export: "Downloads",
   Session: "Sign-ins",
+  AgentProfile: "Agents",
 };
 
 const pages: Record<string, string> = {

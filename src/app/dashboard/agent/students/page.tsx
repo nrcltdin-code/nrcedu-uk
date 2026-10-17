@@ -15,7 +15,7 @@ export const metadata: Metadata = { title: "My students", robots: { index: false
 export default function AgentStudentsPage({ searchParams }: PageProps<"/dashboard/agent/students">) {
   return (
     <>
-      <PageHeader title="My students" description="Students you (and your team, if you are the agency owner) referred to NRC. Add their details and documents, and apply for courses on their behalf." />
+      <PageHeader title="My students" description="Students your agency referred to NRC. Add their details, upload the documents NRC asks for, and apply for courses on their behalf." />
       <Suspense fallback={<Card tone="solid">Loading…</Card>}>
         <AgentStudents searchParams={searchParams} />
       </Suspense>
@@ -26,7 +26,7 @@ export default function AgentStudentsPage({ searchParams }: PageProps<"/dashboar
 async function AgentStudents({ searchParams }: { searchParams: PageProps<"/dashboard/agent/students">["searchParams"] }) {
   const scope = await requireAgentScope();
   const { by } = await searchParams;
-  const addedBy = scope.isOwner && typeof by === "string" && by ? by : undefined;
+  const addedBy = scope.can("ALL_STUDENTS") && typeof by === "string" && by ? by : undefined;
   const [students, countries, team] = await Promise.all([
     db.studentProfile.findMany({
       where: { ...scope.students, ...(addedBy && { addedById: addedBy }) },
@@ -36,12 +36,12 @@ async function AgentStudents({ searchParams }: { searchParams: PageProps<"/dashb
         createdAt: true,
         user: { select: { name: true, email: true } },
         addedBy: { select: { id: true, name: true } },
-        applications: { orderBy: { updatedAt: "desc" }, take: 1, select: { stage: true, course: { select: { name: true } } } },
-        _count: { select: { applications: true } },
+        applications: { where: scope.applications, orderBy: { updatedAt: "desc" }, take: 1, select: { stage: true, course: { select: { name: true } } } },
+        _count: { select: { applications: { where: scope.applications } } },
       },
     }),
     db.country.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true } }),
-    scope.isOwner ? db.user.findMany({ where: { agentTeamId: scope.agentId }, orderBy: { name: "asc" }, select: { id: true, name: true } }) : [],
+    scope.can("ALL_STUDENTS") ? db.user.findMany({ where: { OR: [{ id: scope.ownerUserId }, { agentTeamId: scope.agentId }], NOT: { id: scope.userId } }, orderBy: { name: "asc" }, select: { id: true, name: true } }) : [],
   ]);
   const people = team.length ? [{ id: scope.userId, name: "Me" }, ...team] : [];
 
@@ -96,10 +96,12 @@ async function AgentStudents({ searchParams }: { searchParams: PageProps<"/dashb
           {students.length === 0 && <li className="py-3 text-muted">No students yet. Add your first one.</li>}
         </ul>
       </Card>
-      <Card tone="solid">
-        <h2 className="mb-4 text-xl font-bold">Add a student</h2>
-        <AddStudentForm countries={countries} />
-      </Card>
+      {scope.can("APPLICATIONS") && (
+        <Card tone="solid">
+          <h2 className="mb-4 text-xl font-bold">Add a student</h2>
+          <AddStudentForm countries={countries} />
+        </Card>
+      )}
     </div>
   );
 }

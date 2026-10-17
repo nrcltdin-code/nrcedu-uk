@@ -1,7 +1,7 @@
 import "server-only";
 import type { IconName } from "@/components/ui/icon";
-import type { PermissionModule, Role } from "@/generated/prisma/client";
-import { findAgentScope } from "@/lib/agent";
+import type { AgentPermission, PermissionModule, Role } from "@/generated/prisma/client";
+import { findAgentScope, findOnboardingAgent } from "@/lib/agent";
 import { staffUnreadCount, studentUnreadCount } from "@/lib/messages";
 import { unreadNotificationCount } from "@/lib/notifications";
 import { dueReminderCount } from "@/lib/reminders";
@@ -11,7 +11,9 @@ import type { CurrentUser } from "@/lib/session";
 export type NavItem = { label: string; href: string; icon: IconName; soon?: boolean; badge?: number };
 export type NavGroup = { label: string; collapsible?: boolean; items: NavItem[] };
 
-type Entry = NavItem & { roles: Role[]; module?: PermissionModule; action?: "view" | "edit" };
+// agent: the agency permission the item needs ("approved" = any approved agent account,
+// "onboarding" = only while the agent is still being verified).
+type Entry = NavItem & { roles: Role[]; module?: PermissionModule; action?: "view" | "edit"; agent?: AgentPermission | "approved" | "onboarding" | "agency-team" };
 
 const staff: Role[] = ["ADMIN", "STAFF"];
 
@@ -41,9 +43,12 @@ const groups: { label: string; collapsible?: boolean; entries: Entry[] }[] = [
   {
     label: "My agency",
     entries: [
-      { label: "My students", href: "/dashboard/agent/students", icon: "cap", roles: ["AGENT"] },
-      { label: "My commission", href: "/dashboard/agent/commissions", icon: "coins", roles: ["AGENT"] },
-      { label: "My team", href: "/dashboard/agent/team", icon: "users", roles: ["AGENT"] },
+      { label: "Get verified", href: "/dashboard/agent/onboarding", icon: "shield", roles: ["AGENT"], agent: "onboarding" },
+      { label: "Leads", href: "/dashboard/agent/leads", icon: "inbox", roles: ["AGENT"], agent: "LEADS" },
+      { label: "Students", href: "/dashboard/agent/students", icon: "cap", roles: ["AGENT"], agent: "approved" },
+      { label: "Applications", href: "/dashboard/agent/applications", icon: "document", roles: ["AGENT"], agent: "approved" },
+      { label: "Commission", href: "/dashboard/agent/commissions", icon: "coins", roles: ["AGENT"], agent: "COMMISSION" },
+      { label: "Team", href: "/dashboard/agent/team", icon: "users", roles: ["AGENT"], agent: "agency-team" },
     ],
   },
   {
@@ -109,10 +114,18 @@ const groups: { label: string; collapsible?: boolean; entries: Entry[] }[] = [
 
 export async function getDashboardNav(user: CurrentUser): Promise<NavGroup[]> {
   const result: NavGroup[] = [];
+  const agentScope = user.role === "AGENT" ? await findAgentScope(user) : null;
+  const onboarding = user.role === "AGENT" && !agentScope ? Boolean(await findOnboardingAgent(user)) : false;
   for (const group of groups) {
     const items: NavItem[] = [];
-    for (const { roles, module, action, ...item } of group.entries) {
+    for (const { roles, module, action, agent, ...item } of group.entries) {
       if (!roles.includes(user.role)) continue;
+      if (agent === "onboarding" && !onboarding) continue;
+      if (agent && agent !== "onboarding") {
+        if (!agentScope) continue;
+        if (agent === "agency-team" && (agentScope.kind !== "AGENCY" || !agentScope.can("TEAM"))) continue;
+        if (agent !== "approved" && agent !== "agency-team" && !agentScope.can(agent)) continue;
+      }
       // Module limits apply to staff; agents and students only ever see their own records.
       if (module && (user.role === "ADMIN" || user.role === "STAFF") && !(await can(user, module, action))) continue;
       if (item.href === "/dashboard/reminders") {
@@ -129,10 +142,6 @@ export async function getDashboardNav(user: CurrentUser): Promise<NavGroup[]> {
         const unread = user.role === "STUDENT" ? await studentUnreadCount(user.id) : await staffUnreadCount(user.id);
         items.push(unread ? { ...item, badge: unread } : item);
         continue;
-      }
-      // Commission and team belong to the agency owner, not to team members.
-      if (user.role === "AGENT" && (item.href === "/dashboard/agent/commissions" || item.href === "/dashboard/agent/team")) {
-        if (!(await findAgentScope(user))?.isOwner) continue;
       }
       items.push(item);
     }

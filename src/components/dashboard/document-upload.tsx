@@ -7,6 +7,8 @@ import { Label, Select } from "@/components/ui/field";
 
 type Props = {
   studentId: string;
+  // Where the upload goes: student documents (default) or an agent's own verification documents.
+  api?: "/api/documents" | "/api/agent-documents";
   // Upload into one document request: its type and application come from the request.
   requestId?: string;
   types?: { value: string; label: string }[];
@@ -26,7 +28,7 @@ async function post(url: string, body: unknown) {
 
 // Three steps: ask the server for an upload link, send the file straight to storage, then ask
 // the server to check it. The server repeats every check; the ones here only save a wasted upload.
-export function DocumentUpload({ studentId, requestId, types = [], applications = [], enabled }: Props) {
+export function DocumentUpload({ studentId, api = "/api/documents", requestId, types = [], applications = [], enabled }: Props) {
   const router = useRouter();
   const fileRef = useRef<HTMLInputElement>(null);
   const [status, setStatus] = useState<{ busy?: string; error?: string; done?: string }>({});
@@ -39,7 +41,7 @@ export function DocumentUpload({ studentId, requestId, types = [], applications 
 
     try {
       setStatus({ busy: "Preparing…" });
-      const { uploadUrl, ticket } = await post("/api/documents/start", {
+      const { uploadUrl, ticket } = await post(`${api}/start`, {
         studentId,
         requestId: requestId ?? null,
         applicationId: form.get("applicationId") || null,
@@ -53,7 +55,7 @@ export function DocumentUpload({ studentId, requestId, types = [], applications 
       if (!put.ok) throw new Error("The upload did not go through. Please try again.");
 
       setStatus({ busy: "Checking the file…" });
-      await post("/api/documents/finish", { ticket });
+      await post(`${api}/finish`, { ticket });
 
       if (fileRef.current) fileRef.current.value = "";
       setStatus({ done: `${file.name} uploaded.` });

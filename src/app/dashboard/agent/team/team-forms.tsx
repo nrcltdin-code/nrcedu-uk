@@ -3,7 +3,41 @@
 import { useActionState, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/field";
-import { addTeamMember, reinviteTeamMember, setTeamMemberActive } from "./actions";
+import { FormMessage } from "@/components/dashboard/form-bits";
+import { InfoTip } from "@/components/ui/info-tip";
+import type { FormState } from "@/lib/form";
+import { addTeamMember, reinviteTeamMember, setMemberPermissions, setTeamMemberActive } from "./actions";
+
+export type PermissionOption = { value: string; label: string; help: string };
+
+function PermissionBoxes({ options, checked, idPrefix }: { options: PermissionOption[]; checked: string[]; idPrefix: string }) {
+  return (
+    <fieldset className="grid gap-2">
+      <legend className="mb-1 text-sm font-semibold">Can</legend>
+      {options.map((o) => (
+        <span key={o.value} className="flex items-center gap-1">
+          <label htmlFor={`${idPrefix}-${o.value}`} className="flex items-center gap-3 text-sm font-medium">
+            <input id={`${idPrefix}-${o.value}`} type="checkbox" name="permissions" value={o.value} defaultChecked={checked.includes(o.value)} className="size-4 accent-brand-600" />
+            {o.label}
+          </label>
+          <InfoTip text={o.help} />
+        </span>
+      ))}
+    </fieldset>
+  );
+}
+
+export function PermissionsForm({ memberId, options, checked }: { memberId: string; options: PermissionOption[]; checked: string[] }) {
+  const [state, action, pending] = useActionState<FormState, FormData>(setMemberPermissions, {});
+  return (
+    <form action={action} className="grid gap-3">
+      <input type="hidden" name="memberId" value={memberId} />
+      <PermissionBoxes options={options} checked={checked} idPrefix={`p-${memberId}`} />
+      <FormMessage state={state} />
+      <Button type="submit" size="sm" variant="glass" disabled={pending} className="justify-self-start">{pending ? "Saving…" : "Save access"}</Button>
+    </form>
+  );
+}
 import type { TeamInviteState } from "./actions";
 
 function InviteLink({ state }: { state: TeamInviteState }) {
@@ -31,7 +65,7 @@ function InviteLink({ state }: { state: TeamInviteState }) {
   );
 }
 
-export function AddTeamMemberForm() {
+export function AddTeamMemberForm({ options }: { options: PermissionOption[] }) {
   const [state, action, pending] = useActionState<TeamInviteState, FormData>(addTeamMember, {});
   return (
     <div className="grid gap-4">
@@ -48,6 +82,7 @@ export function AddTeamMemberForm() {
           <Label htmlFor="tm-phone">Phone</Label>
           <Input id="tm-phone" name="phone" type="tel" maxLength={30} />
         </div>
+        <PermissionBoxes options={options} checked={["APPLICATIONS", "DOCUMENTS"]} idPrefix="new" />
         {state.error && <p role="alert" className="text-sm text-red-700">{state.error}</p>}
         <Button type="submit" disabled={pending} className="justify-self-start">{pending ? "Adding…" : "Add team member"}</Button>
       </form>

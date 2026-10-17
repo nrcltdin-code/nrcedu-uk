@@ -1,19 +1,17 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { notFound } from "next/navigation";
-import { DocumentUpload } from "@/components/dashboard/document-upload";
+import Link from "next/link";
 import { EducationAndScores } from "@/components/dashboard/education-scores";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { Badge } from "@/components/ui/badge";
-import { buttonStyles } from "@/components/ui/button";
+import { InfoTip } from "@/components/ui/info-tip";
 import { Card } from "@/components/ui/card";
 import { requireAgentScope } from "@/lib/agent";
-import { nextStepText } from "@/lib/applications";
+import { nextStepText, stageLabel, stageTones } from "@/lib/application-flow";
 import { db } from "@/lib/db";
-import { documentTypeLabels } from "@/lib/documents";
-import { formatDate } from "@/lib/format";
 import { privateStorageEnabled } from "@/lib/storage";
-import { stageLabels, stageTones } from "../../../applications/labels";
+import { AgentRequestList, agentRequestSelect } from "../../request-list";
 import { studyLevelLabels } from "../../../leads/labels";
 import { MyDetailsForm } from "../../../profile/details-form";
 import { NewApplicationForm } from "../../../students/student-forms";
@@ -22,8 +20,6 @@ import { applyForMyStudent, updateMyStudent } from "../../actions";
 export const metadata: Metadata = { title: "Student", robots: { index: false } };
 
 const isoDate = (date: Date | null) => (date ? date.toISOString().slice(0, 10) : "");
-const docLabels = { PENDING: "Being checked", APPROVED: "Approved", REJECTED: "Upload again" } as const;
-const docTones = { PENDING: "accent", APPROVED: "success", REJECTED: "danger" } as const;
 
 export default function AgentStudentPage({ params }: PageProps<"/dashboard/agent/students/[id]">) {
   return (
@@ -45,11 +41,13 @@ async function AgentStudent({ params }: Pick<PageProps<"/dashboard/agent/student
       user: { select: { name: true, email: true } },
       educationRecords: { orderBy: { yearCompleted: "desc" } },
       testScores: { orderBy: { takenAt: "desc" } },
-      documents: { orderBy: { createdAt: "desc" }, select: { id: true, type: true, name: true, status: true, reviewNote: true, createdAt: true } },
+      // Only applications this agency started; the requests shown are general ones and those of these applications.
       applications: {
+        where: scope.applications,
         orderBy: { createdAt: "desc" },
-        select: { id: true, stage: true, course: { select: { name: true, university: { select: { name: true } } } }, intake: { select: { name: true } } },
+        select: { id: true, stage: true, course: { select: { name: true, university: { select: { name: true, confirmationName: true } } } }, intake: { select: { name: true } } },
       },
+      documentRequests: { where: { OR: [{ applicationId: null }, { application: scope.applications }] }, orderBy: { createdAt: "asc" }, select: agentRequestSelect },
     },
   });
   if (!student) notFound();
@@ -70,23 +68,25 @@ async function AgentStudent({ params }: Pick<PageProps<"/dashboard/agent/student
       <div className="grid items-start gap-6 xl:grid-cols-2">
         <div className="grid gap-6">
           <Card tone="solid">
-            <h2 className="mb-4 text-xl font-bold">Applications</h2>
+            <h2 className="mb-4 flex items-center gap-1 text-xl font-bold">Applications <InfoTip text="Applications your agency started for this student. Open one to see its stages, documents and history. NRC moves the stages and emails you at each step." /></h2>
             <ul className="grid gap-4">
               {student.applications.map((app) => (
-                <li key={app.id} className="rounded-2xl border border-brand-900/10 p-4">
-                  <div className="flex flex-wrap items-start justify-between gap-2">
-                    <span>
-                      <span className="block font-semibold">{app.course.name}</span>
-                      <span className="block text-sm text-muted">{[app.course.university.name, app.intake?.name].filter(Boolean).join(" · ")}</span>
+                <li key={app.id}>
+                  <Link href={`/dashboard/agent/applications/${app.id}`} className="block rounded-2xl border border-brand-900/10 p-4 hover:bg-brand-600/5">
+                    <span className="flex flex-wrap items-start justify-between gap-2">
+                      <span>
+                        <span className="block font-semibold">{app.course.name}</span>
+                        <span className="block text-sm text-muted">{[app.course.university.name, app.intake?.name].filter(Boolean).join(" · ")}</span>
+                      </span>
+                      <Badge tone={stageTones[app.stage]}>{stageLabel(app.stage, app.course.university.confirmationName)}</Badge>
                     </span>
-                    <Badge tone={stageTones[app.stage]}>{stageLabels[app.stage]}</Badge>
-                  </div>
-                  <p className="mt-2 text-sm text-muted">{nextStepText[app.stage]}</p>
+                    <span className="mt-2 block text-sm text-muted">{nextStepText[app.stage].replace("CAS", app.course.university.confirmationName)}</span>
+                  </Link>
                 </li>
               ))}
               {student.applications.length === 0 && <li className="text-muted">No applications yet.</li>}
             </ul>
-            <details className="mt-4 border-t border-brand-900/10 pt-4" open={student.applications.length === 0}>
+            {scope.can("APPLICATIONS") && <details className="mt-4 border-t border-brand-900/10 pt-4" open={student.applications.length === 0}>
               <summary className="cursor-pointer font-semibold text-brand-700">Apply for a course</summary>
               <div className="mt-4">
                 <NewApplicationForm
@@ -96,35 +96,12 @@ async function AgentStudent({ params }: Pick<PageProps<"/dashboard/agent/student
                   intakes={intakes}
                 />
               </div>
-            </details>
+            </details>}
           </Card>
 
           <Card tone="solid">
-            <h2 className="mb-4 text-xl font-bold">Documents</h2>
-            <ul className="divide-y divide-brand-900/10">
-              {student.documents.map((doc) => (
-                <li key={doc.id} className="flex flex-wrap items-start justify-between gap-3 py-3">
-                  <div className="min-w-0">
-                    <p className="font-semibold">{documentTypeLabels[doc.type]}</p>
-                    <p className="truncate text-sm text-muted">{doc.name} · {formatDate(doc.createdAt)}</p>
-                    {doc.status === "REJECTED" && doc.reviewNote && <p className="mt-1 text-sm text-red-800">NRC says: {doc.reviewNote}</p>}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Badge tone={docTones[doc.status]}>{docLabels[doc.status]}</Badge>
-                    <a href={`/api/documents/${doc.id}`} className={buttonStyles({ variant: "glass", size: "sm" })}>Download</a>
-                  </div>
-                </li>
-              ))}
-              {student.documents.length === 0 && <li className="py-2 text-muted">No documents yet.</li>}
-            </ul>
-            <div className="mt-4 border-t border-brand-900/10 pt-4">
-              <DocumentUpload
-                studentId={student.id}
-                enabled={privateStorageEnabled}
-                types={Object.entries(documentTypeLabels).map(([value, label]) => ({ value, label }))}
-                applications={student.applications.map((a) => ({ id: a.id, name: `${a.course.name}, ${a.course.university.name}` }))}
-              />
-            </div>
+            <h2 className="mb-4 flex items-center gap-1 text-xl font-bold">Documents <InfoTip text="What NRC needs from this student. Upload into each document while it is open; NRC checks every file and tells you here if something needs redoing." /></h2>
+            <AgentRequestList studentId={student.id} requests={student.documentRequests} canUpload={scope.can("DOCUMENTS")} storage={privateStorageEnabled} />
           </Card>
         </div>
 
