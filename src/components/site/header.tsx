@@ -60,7 +60,11 @@ export async function Header() {
           <div className="flex shrink-0 items-center gap-4">
             <SocialIcons social={social} networks={socialNetworks} />
             <span aria-hidden className="h-4 w-px bg-brand-900/15" />
-            <Link href="/become-an-agent" className="font-medium hover:text-brand-700">Become an agent</Link>
+            <Link href="/become-an-agent" className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-brand-600 to-violet-600 px-3.5 py-1.5 font-semibold text-white shadow-sm shadow-brand-600/30 transition hover:-translate-y-px hover:shadow-md">
+              <Icon name="briefcase" className="size-3.5" />
+              Become an agent
+              <Icon name="arrowRight" className="size-3.5" />
+            </Link>
             {account}
           </div>
         </Container>
@@ -90,7 +94,10 @@ export async function Header() {
                 extras={
                   <div className="grid gap-3 text-sm text-ink/75">
                     {account}
-                    <Link href="/become-an-agent" className="font-medium hover:text-brand-700">Become an agent</Link>
+                    <Link href="/become-an-agent" className="inline-flex items-center justify-center gap-1.5 rounded-full bg-gradient-to-r from-brand-600 to-violet-600 px-4 py-2.5 font-semibold text-white">
+                      <Icon name="briefcase" className="size-4" />
+                      Become an agent: earn commission
+                    </Link>
                     <div className="grid gap-2">{contactLinks}</div>
                     <SocialIcons social={social} networks={socialNetworks} />
                   </div>
