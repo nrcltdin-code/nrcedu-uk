@@ -13,8 +13,10 @@ import type { CurrentUser } from "@/lib/session";
 import { requireMyStudentId } from "@/lib/student";
 import { redirect } from "next/navigation";
 import { findAgentScope, findOnboardingAgent } from "@/lib/agent";
-import { closedStages, stageLabels, stageTones } from "./applications/labels";
+import { closedStages, stageTones } from "./applications/labels";
 import { StaffOverview } from "./staff-overview";
+import { stageLabel } from "@/lib/application-flow";
+import { formatDate } from "@/lib/format";
 
 export const metadata: Metadata = { title: "Dashboard", robots: { index: false } };
 
@@ -103,22 +105,50 @@ async function StudentOverview() {
       passportNumber: true,
       counsellor: { select: { name: true, email: true } },
       _count: { select: { educationRecords: true, testScores: true } },
-      documents: { where: { status: "REJECTED" }, select: { id: true } },
+      // Requests the student can act on now: open for upload and waiting on them.
+      documentRequests: {
+        where: { isOpen: true, status: { in: ["REQUESTED", "NEEDS_REUPLOAD"] } },
+        orderBy: [{ dueAt: { sort: "asc", nulls: "last" } }, { createdAt: "asc" }],
+        select: { id: true, label: true, status: true, required: true, dueAt: true, application: { select: { course: { select: { university: { select: { name: true } } } } } } },
+      },
       applications: {
         where: { stage: { notIn: ["WITHDRAWN"] } },
         orderBy: { updatedAt: "desc" },
-        select: { id: true, stage: true, course: { select: { name: true, university: { select: { name: true } } } } },
+        select: {
+          id: true,
+          stage: true,
+          course: { select: { name: true, university: { select: { name: true, confirmationName: true } } } },
+          conditions: { where: { metAt: null }, orderBy: { createdAt: "asc" }, select: { id: true, text: true } },
+        },
       },
     },
   });
 
-  const todo = [
-    { done: Boolean(student.phone && student.dateOfBirth && student.nationality), text: "Add your phone, date of birth and nationality", href: "/dashboard/profile" },
-    { done: Boolean(student.passportNumber), text: "Add your passport details", href: "/dashboard/profile" },
-    { done: student._count.educationRecords > 0, text: "Add your education history", href: "/dashboard/profile" },
-    { done: student._count.testScores > 0, text: "Add your English test score, if you have one", href: "/dashboard/profile" },
-    { done: student.documents.length === 0, text: `Upload ${student.documents.length} document${student.documents.length === 1 ? "" : "s"} again`, href: "/dashboard/documents" },
-  ].filter((item) => !item.done);
+  const now = new Date();
+  type Todo = { key: string; text: string; detail?: string; href: string; urgent?: boolean };
+  const todo: Todo[] = [];
+  for (const r of student.documentRequests) {
+    const overdue = r.dueAt ? r.dueAt < now : false;
+    todo.push({
+      key: `req-${r.id}`,
+      text: `${r.status === "NEEDS_REUPLOAD" ? "Upload again" : "Upload"}: ${r.label}${r.required ? "" : " (optional)"}`,
+      detail: [r.application?.course.university.name, r.dueAt && `${overdue ? "was due" : "due"} ${formatDate(r.dueAt)}`].filter(Boolean).join(" · ") || undefined,
+      href: "/dashboard/documents",
+      urgent: r.status === "NEEDS_REUPLOAD" || overdue,
+    });
+  }
+  for (const app of student.applications) {
+    for (const c of app.conditions) {
+      todo.push({ key: `cond-${c.id}`, text: `Offer condition: ${c.text}`, detail: app.course.university.name, href: "/dashboard/my-applications" });
+    }
+  }
+  const profileSteps = [
+    { done: Boolean(student.phone && student.dateOfBirth && student.nationality), text: "Add your phone, date of birth and nationality" },
+    { done: Boolean(student.passportNumber), text: "Add your passport details" },
+    { done: student._count.educationRecords > 0, text: "Add your education history" },
+    { done: student._count.testScores > 0, text: "Add your English test score, if you have one" },
+  ];
+  for (const step of profileSteps) if (!step.done) todo.push({ key: step.text, text: step.text, href: "/dashboard/profile" });
 
   return (
     <div className="grid items-start gap-6 lg:grid-cols-2">
@@ -131,7 +161,7 @@ async function StudentOverview() {
                 <span className="block font-semibold">{app.course.name}</span>
                 <span className="block text-sm text-muted">{app.course.university.name}</span>
               </span>
-              <Badge tone={stageTones[app.stage]}>{stageLabels[app.stage]}</Badge>
+              <Badge tone={stageTones[app.stage]}>{stageLabel(app.stage, app.course.university.confirmationName)}</Badge>
             </li>
           ))}
           {student.applications.length === 0 && <li className="py-2 text-muted">None yet. Find a course and press Apply on its page.</li>}
@@ -147,9 +177,13 @@ async function StudentOverview() {
           {todo.length ? (
             <ul className="mt-3 grid gap-2">
               {todo.map((item) => (
-                <li key={item.text}>
-                  <Link href={item.href} className="flex items-center gap-2 text-brand-700 hover:underline">
-                    <span aria-hidden>○</span> {item.text}
+                <li key={item.key}>
+                  <Link href={item.href} className={`flex items-start gap-2 hover:underline ${item.urgent ? "text-red-800" : "text-brand-700"}`}>
+                    <span aria-hidden>{item.urgent ? "!" : "○"}</span>
+                    <span>
+                      {item.text}
+                      {item.detail && <span className="block text-xs text-muted">{item.detail}</span>}
+                    </span>
                   </Link>
                 </li>
               ))}

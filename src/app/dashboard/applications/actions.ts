@@ -3,12 +3,10 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import type { ApplicationStage } from "@/generated/prisma/client";
-import { moveProblem, stageLabel } from "@/lib/application-flow";
-import { applicationEvent, missingRequiredDocuments, startApplication } from "@/lib/applications";
+import { applicationEvent, moveApplicationStage, startApplication } from "@/lib/applications";
 import { db } from "@/lib/db";
-import { link, queueEmail } from "@/lib/email";
 import { optionalNumber, text } from "@/lib/form";
-import { notify, studentSide } from "@/lib/notifications";
+import { notify } from "@/lib/notifications";
 import type { FormState } from "@/lib/form";
 import { requirePermission } from "@/lib/session";
 import { stageLabels } from "./labels";
@@ -52,74 +50,11 @@ export async function createApplications(_previous: FormState, form: FormData): 
 // (src/lib/application-flow.ts) and written to the history.
 export async function moveStage(_previous: FormState, form: FormData): Promise<FormState> {
   const user = await requirePermission("APPLICATIONS", "edit");
-
-  const id = text(form, "id");
   const stage = text(form, "stage") as ApplicationStage;
-  const note = text(form, "note");
   if (!(stage in stageLabels)) return { error: "Choose a stage from the list." };
-  if (note.length > 1000) return { error: "Keep the note under 1,000 characters." };
-
-  const application = await db.application.findUnique({
-    where: { id },
-    select: {
-      stage: true,
-      casNumber: true,
-      course: { select: { university: { select: { skippedStages: true, confirmationName: true } } } },
-      _count: { select: { conditions: { where: { metAt: null } } } },
-    },
-  });
-  if (!application) return { error: "This application no longer exists." };
-  const { skippedStages, confirmationName } = application.course.university;
-
-  const problem = moveProblem({
-    from: application.stage,
-    to: stage,
-    isAdmin: user.role === "ADMIN",
-    skippedStages,
-    note,
-    missingDocuments: await missingRequiredDocuments(id),
-    openConditions: application._count.conditions,
-    casNumber: application.casNumber,
-    confirmationName,
-  });
-  if (problem) return { error: problem };
-
-  const [updated] = await db.$transaction([
-    db.application.update({
-      where: { id },
-      data: { stage },
-      select: {
-        studentId: true,
-        student: { select: { userId: true, user: { select: { name: true, email: true } } } },
-        course: { select: { name: true, university: { select: { name: true } } } },
-        agent: { select: { user: { select: { email: true } } } },
-      },
-    }),
-    applicationEvent({ applicationId: id, actorId: user.id, type: "stage", fromStage: application.stage, toStage: stage, note: note || null, visibleToStudent: true }),
-  ]);
-
-  // The student (and their agent) hear about every stage change; the note is the one they see.
-  const label = stageLabel(stage, confirmationName);
-  const student = updated.student.user;
-  const course = `${updated.course.name}, ${updated.course.university.name}`;
-  const side = await studentSide(updated.studentId);
-  const stageText = `Now at “${label}”.${note ? ` ${note}` : ""}`;
-  notify([updated.student.userId], { type: "application.stage", title: `Your application for ${course}`, body: stageText, href: "/dashboard/my-applications" }, user.id);
-  notify(side?.agents ?? [], { type: "application.stage", title: `${student.name}: ${course}`, body: stageText, href: `/dashboard/agent/students/${updated.studentId}` }, user.id);
-  const update = `is now at the stage “${label}”.${note ? `\n\nNote from NRC: ${note}` : ""}`;
-  queueEmail({
-    to: student.email,
-    subject: `Your application: ${label}`,
-    text: `Hello ${student.name},\n\nYour application for ${course} ${update}\n\nSee the details: ${link("/dashboard/my-applications")}`,
-  });
-  if (updated.agent) {
-    queueEmail({
-      to: updated.agent.user.email,
-      subject: `${student.name}: ${label}`,
-      text: `The application of ${student.name} for ${course} ${update}\n\nSee the details: ${link(`/dashboard/agent/students/${updated.studentId}`)}`,
-    });
-  }
-  revalidatePath(page(id));
+  const result = await moveApplicationStage(user, { id: text(form, "id"), stage, note: text(form, "note") });
+  if (result.error) return result;
+  revalidatePath(page(text(form, "id")));
   return { saved: true };
 }
 
@@ -223,6 +158,7 @@ export async function assignApplication(_previous: FormState, form: FormData): P
     email: true,
   }, user.id);
   revalidatePath(page(id));
+  revalidatePath("/dashboard/applications");
   return { saved: true };
 }
 

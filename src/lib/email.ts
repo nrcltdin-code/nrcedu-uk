@@ -13,7 +13,8 @@ const from = rawFrom && !rawFrom.includes("<") ? `NRC Educational Consultants <$
 
 export const emailEnabled = Boolean(apiKey && from);
 
-export type Email = { to: string | string[]; subject: string; text: string; replyTo?: string };
+// attachments: base64 content. Resend caps a message at 40 MB after encoding.
+export type Email = { to: string | string[]; subject: string; text: string; replyTo?: string; cc?: string[]; attachments?: { filename: string; content: string }[] };
 
 const appUrl = () => (process.env.APP_URL ?? "").replace(/\/+$/, "");
 export const link = (path: string) => `${appUrl()}${path}`;
@@ -41,8 +42,8 @@ export async function sendEmail(email: Email): Promise<boolean> {
     const response = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ from, to, subject, text: email.text + signOff, reply_to: email.replyTo }),
-      signal: AbortSignal.timeout(10_000),
+      body: JSON.stringify({ from, to, subject, text: email.text + signOff, reply_to: email.replyTo, cc: email.cc?.length ? email.cc : undefined, attachments: email.attachments }),
+      signal: AbortSignal.timeout(email.attachments?.length ? 60_000 : 10_000),
     });
     if (!response.ok) {
       console.error(`Email "${subject}" failed: ${response.status} ${await response.text().catch(() => "")}`);

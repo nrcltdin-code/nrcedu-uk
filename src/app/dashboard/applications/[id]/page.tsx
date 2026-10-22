@@ -9,7 +9,7 @@ import { DocumentRequestList, requestSelect, WhatsAppButton } from "@/components
 import { DeleteButton } from "@/components/dashboard/form-bits";
 import { NoteForm } from "@/components/dashboard/note-form";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Button, buttonStyles } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { allowedMoves, isClosed, stageLabel, stages, stageTones } from "@/lib/application-flow";
 import { getAssigneeOptions } from "@/lib/assignees";
@@ -52,7 +52,7 @@ async function ApplicationDetail({ params, searchParams }: Pick<PageProps<"/dash
     can(user, "COMMISSIONS", "edit"),
   ]);
 
-  const [{ id }, { error }] = await Promise.all([params, searchParams]);
+  const [{ id }, { error, submitted }] = await Promise.all([params, searchParams]);
   const app = await db.application.findUnique({
     where: { id },
     include: {
@@ -112,6 +112,11 @@ async function ApplicationDetail({ params, searchParams }: Pick<PageProps<"/dash
         <Badge tone={stageTones[app.stage]}>{stageLabel(app.stage, confirmationName)}</Badge>
         <WhatsAppButton href={`/api/whatsapp?student=${app.student.id}`} enabled={whatsapp} purpose="student" />
       </div>
+      {submitted && (
+        <p role="status" className="mt-4 rounded-xl border border-emerald-500/25 bg-emerald-500/10 px-4 py-2.5 text-sm text-emerald-800">
+          {submitted === "email" ? "Application emailed to the university and moved to Submitted." : "Submission recorded and the application moved to Submitted."}
+        </p>
+      )}
       {error === "has-commission" && (
         <p role="alert" className="mt-4 rounded-xl border border-red-500/25 bg-red-500/10 px-4 py-2.5 text-sm text-red-800">
           This application has commission records, so it cannot be deleted. Set it to Withdrawn instead.
@@ -147,6 +152,9 @@ async function ApplicationDetail({ params, searchParams }: Pick<PageProps<"/dash
                 email={app.course.university.applicationEmail}
                 notes={processNotes}
               />
+              <Link href={`/dashboard/applications/${app.id}/submit`} className={buttonStyles({ size: "sm", className: "mt-3" })}>
+                {stages.indexOf(app.stage) < stages.indexOf("SUBMITTED_TO_UNIVERSITY") ? "Prepare submission" : "Submission details and documents"}
+              </Link>
             </div>
           </Card>
 
@@ -263,7 +271,7 @@ async function ApplicationDetail({ params, searchParams }: Pick<PageProps<"/dash
                 <StageForm key={app.events.length} id={app.id} options={options} />
               </div>
               <div className="border-t border-brand-900/10 pt-5">
-                <AssignForm id={app.id} assignedStaffId={app.assignedStaffId} staff={people.staff} />
+                <AssignForm key={app.assignedStaffId ?? "none"} id={app.id} assignedStaffId={app.assignedStaffId} staff={people.staff} />
               </div>
             </Card>
             <Card tone="solid">

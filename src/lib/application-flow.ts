@@ -194,4 +194,5 @@ export const eventText: Record<string, string> = {
   "assigned": "Counsellor changed",
   "whatsapp": "WhatsApp chat opened",
   note: "Note added",
+  "submission.emailed": "Application emailed to the university",
 };

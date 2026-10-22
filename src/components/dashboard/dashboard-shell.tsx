@@ -46,7 +46,7 @@ export function DashboardShell({ nav, user, unreadNotifications, children }: She
 
       <aside
         className={cn(
-          "bg-deep fixed inset-y-0 left-0 z-40 flex w-64 flex-col text-white transition-transform lg:sticky lg:top-0 lg:h-dvh lg:translate-x-0",
+          "bg-deep fixed inset-y-0 left-0 z-40 flex w-64 print:hidden flex-col text-white transition-transform lg:sticky lg:top-0 lg:h-dvh lg:translate-x-0",
           open ? "translate-x-0" : "-translate-x-full",
         )}
       >
@@ -101,7 +101,7 @@ export function DashboardShell({ nav, user, unreadNotifications, children }: She
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="glass sticky top-0 z-20 flex h-16 items-center gap-3 rounded-none border-x-0 border-t-0 px-4 sm:px-6">
+        <header className="glass sticky top-0 z-20 flex h-16 print:hidden items-center gap-3 rounded-none border-x-0 border-t-0 px-4 sm:px-6">
           <button type="button" className="rounded-lg p-2 text-brand-800 hover:bg-brand-600/10 lg:hidden" onClick={() => setOpen(true)} aria-label="Open menu">
             <Icon name="menu" className="size-5" />
           </button>
