@@ -145,10 +145,14 @@ export async function assignApplication(_previous: FormState, form: FormData): P
     db.application.update({
       where: { id },
       data: { assignedStaffId: assignedStaffId || null },
-      select: { student: { select: { user: { select: { name: true } } } }, course: { select: { name: true } }, assignedStaff: { select: { name: true } } },
+      select: { studentId: true, student: { select: { user: { select: { name: true } } } }, course:{ select: { name: true } }, assignedStaff: { select: { name: true } } },
     }),
     db.activityLog.create({ data: { userId: user.id, action: "application.assign", entityType: "Application", entityId: id, meta: { assignedStaffId } } }),
   ]);
+  // The student's pages show their main counsellor; the first person assigned becomes it.
+  if (assignedStaffId) {
+    await db.studentProfile.updateMany({ where: { id: assigned.studentId, counsellorId: null }, data: { counsellorId: assignedStaffId } });
+  }
   await applicationEvent({ applicationId: id, actorId: user.id, type: "assigned", note: assigned.assignedStaff?.name ?? "Nobody" });
   notify([assignedStaffId], {
     type: "application.assigned",
