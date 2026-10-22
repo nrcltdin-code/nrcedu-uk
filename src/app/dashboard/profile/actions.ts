@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import type { StudyLevel } from "@/generated/prisma/client";
 import { db } from "@/lib/db";
 import { canAccessStudent } from "@/lib/documents";
-import { birthDateError, optionalDate, text } from "@/lib/form";
+import { birthDateError, optionalDate, optionalNumber, text } from "@/lib/form";
 import type { FormState } from "@/lib/form";
 import { requireUser } from "@/lib/session";
 import { requireMyStudentId } from "@/lib/student";
@@ -74,8 +74,12 @@ export async function addEducation(_previous: FormState, form: FormData): Promis
   const result = text(form, "result");
   const year = text(form, "yearCompleted");
   const yearCompleted = year ? Number(year) : null;
+  const grade = optionalNumber(text(form, "grade"));
+  const gradeOutOf = optionalNumber(text(form, "gradeOutOf"));
 
   if (!(level in studyLevelLabels)) return { error: "Choose a level." };
+  if (grade === undefined || gradeOutOf === undefined) return { error: "The result must be a number." };
+  if (grade !== null && (!gradeOutOf || grade > gradeOutOf)) return { error: `The result cannot be more than ${gradeOutOf ?? "the scale"}.` };
   if (institution.length < 2 || institution.length > 150) return { error: "Enter the school, college or university." };
   if (fieldOfStudy.length > 100 || result.length > 60) return { error: "One of the fields is too long." };
   if (yearCompleted !== null && (!Number.isInteger(yearCompleted) || yearCompleted < 1950 || yearCompleted > 2100)) {
@@ -84,7 +88,16 @@ export async function addEducation(_previous: FormState, form: FormData): Promis
   if ((await db.educationRecord.count({ where: { studentId } })) >= 15) return { error: "That is the most entries allowed." };
 
   await db.educationRecord.create({
-    data: { studentId, level: level as StudyLevel, institution, fieldOfStudy: fieldOfStudy || null, result: result || null, yearCompleted },
+    data: {
+      studentId,
+      level: level as StudyLevel,
+      institution,
+      fieldOfStudy: fieldOfStudy || null,
+      result: result || null,
+      grade,
+      gradeOutOf: grade === null ? null : gradeOutOf,
+      yearCompleted,
+    },
   });
   refresh(studentId);
   return { saved: true };
@@ -104,16 +117,31 @@ export async function addTestScore(_previous: FormState, form: FormData): Promis
   if (!(await canAccessStudent(user, studentId, "edit"))) return { error: "You cannot change this record." };
 
   const test = text(form, "test");
-  const score = text(form, "score");
+  const notes = text(form, "score");
+  const overall = optionalNumber(text(form, "overall"));
+  const lowest = optionalNumber(text(form, "lowest"));
   const takenAt = optionalDate(text(form, "takenAt"));
-  if (test.length < 2 || test.length > 40) return { error: "Enter the test name, e.g. IELTS Academic." };
-  if (score.length < 1 || score.length > 60) return { error: "Enter the score, e.g. 7.0 overall." };
+  if (test.length < 2 || test.length > 40) return { error: "Choose the test." };
+  if (overall === undefined || lowest === undefined || (overall !== null && overall > 9999)) return { error: "Scores must be numbers." };
+  if (overall === null && !notes) return { error: "Enter the overall score." };
+  if (overall !== null && lowest !== null && lowest > overall + 30) return { error: "Check the lowest section score." };
+  if (test.toLowerCase().includes("ielts") && ((overall ?? 0) > 9 || (lowest ?? 0) > 9)) return { error: "IELTS scores go from 0 to 9." };
+  if (notes.length > 60) return { error: "Keep the notes under 60 characters." };
   if (takenAt === undefined) return { error: "Check the date." };
   if ((await db.testScore.count({ where: { studentId } })) >= 15) return { error: "That is the most entries allowed." };
 
-  await db.testScore.create({ data: { studentId, test, score, takenAt } });
+  // score stays the readable summary shown in older screens and exports.
+  const score = [overall !== null ? `${overall} overall` : "", lowest !== null ? `lowest ${lowest}` : "", notes].filter(Boolean).join(", ");
+  await db.testScore.create({ data: { studentId, test, score, overall, lowest, takenAt } });
   refresh(studentId);
   return { saved: true };
+}
+
+export async function setEnglishMedium(studentId: string, englishMedium: boolean) {
+  const user = await requireUser();
+  if (!(await canAccessStudent(user, studentId, "edit"))) return;
+  await db.studentProfile.update({ where: { id: studentId }, data: { englishMedium } });
+  refresh(studentId);
 }
 
 export async function deleteTestScore(id: string) {

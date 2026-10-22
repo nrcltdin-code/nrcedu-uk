@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/card";
 import { IconTile } from "@/components/ui/icon";
 import type { IconName, TileColor } from "@/components/ui/icon";
 import { Section } from "@/components/ui/section";
-import { levelNames } from "@/lib/data/catalogue";
+import { courseLevelNames } from "@/lib/data/catalogue";
 import { getCountryOptions } from "@/lib/data/content";
 import { ConsultationForm } from "./consultation-form";
 
@@ -21,7 +21,7 @@ const points: { title: string; text: string; icon: IconName; color: TileColor }[
 
 export default async function ConsultationPage() {
   const { all, destinations } = await getCountryOptions();
-  const levels = Object.entries(levelNames).map(([value, name]) => ({ value, name }));
+  const levels = courseLevelNames.map(([value, name]) => ({ value, name }));
 
   return (
     <main>

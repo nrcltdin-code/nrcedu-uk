@@ -45,7 +45,7 @@ export async function addAgentLead(_previous: FormState, form: FormData): Promis
   if (name.length < 2 || name.length > 100) return { error: "Enter the person's name." };
   if (!isEmail(email)) return { error: "Enter a valid email address." };
   if (phone.length > 30 || message.length > 2000) return { error: "One of the fields is too long." };
-  if (studyLevel && !(studyLevel in studyLevelLabels)) return { error: "Choose a study level from the list." };
+  if (studyLevel && (!(studyLevel in studyLevelLabels) || studyLevel === "SCHOOL")) return { error: "Choose a study level from the list." };
   if (followUpAt === undefined) return { error: "The follow-up date is not valid." };
   for (const id of [countryId, destinationCountryId]) {
     if (id && !(await db.country.count({ where: { id } }))) return { error: "Choose a country from the list." };

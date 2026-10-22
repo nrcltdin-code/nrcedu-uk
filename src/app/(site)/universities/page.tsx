@@ -8,7 +8,7 @@ import { Button, buttonStyles } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input, Label, Select } from "@/components/ui/field";
 import { Section } from "@/components/ui/section";
-import { getFilterOptions, isStudyLevel, levelNames, searchUniversities } from "@/lib/data/catalogue";
+import { courseLevelNames, getFilterOptions, isStudyLevel, levelNames, searchUniversities } from "@/lib/data/catalogue";
 
 export const metadata: Metadata = {
   title: "Universities",
@@ -99,7 +99,7 @@ async function Browser({ searchParams }: { searchParams: SearchParams }) {
             <Label htmlFor="filter-level">Level</Label>
             <Select id="filter-level" name="level" defaultValue={level ?? ""}>
               <option value="">All levels</option>
-              {Object.entries(levelNames).map(([value, name]) => (
+              {courseLevelNames.map(([value, name]) => (
                 <option key={value} value={value}>
                   {name}
                 </option>

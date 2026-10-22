@@ -47,7 +47,7 @@ export async function addLead(_previous: FormState, form: FormData): Promise<For
   if (!isEmail(email)) return { error: "Enter a valid email address." };
   if (phone.length > 30) return { error: "The phone number is too long." };
   if (message.length > 3000) return { error: "Keep the message under 3,000 characters." };
-  if (studyLevel && !(studyLevel in studyLevelLabels)) return { error: "Choose a study level from the list." };
+  if (studyLevel && (!(studyLevel in studyLevelLabels) || studyLevel === "SCHOOL")) return { error: "Choose a study level from the list." };
   if (!(await checkCountry(countryId)) || !(await checkCountry(destinationCountryId))) return { error: "Choose a country from the list." };
 
   const lead = await createLead({

@@ -12,6 +12,67 @@ import { addIntake, addRequirement, saveCourse, saveProcess, saveUniversity } fr
 
 type Option = { id: string; name: string };
 
+// Entry requirements as strings (Decimals cannot reach the browser). Used by the course finder.
+export type EntryValues = {
+  requiredLevel?: string | null;
+  minGradePercent: string | null;
+  minIelts: string | null;
+  minIeltsBand: string | null;
+  maxStudyGapYears: number | null;
+  acceptsMoi: boolean | null;
+};
+
+const moiValue = (value: boolean | null | undefined) => (value === true ? "yes" : value === false ? "no" : "");
+
+function EntryRequirementFields({ prefix, values, levels, inherit }: {
+  prefix: string;
+  values: EntryValues | null;
+  levels?: { value: string; label: string }[];
+  inherit: string;
+}) {
+  return (
+    <fieldset className="rounded-2xl border border-brand-900/10 p-4">
+      <legend className="px-1 text-sm font-semibold">Entry requirements for the course finder</legend>
+      <p className="mb-3 text-xs text-muted">Leave a box empty to use {inherit}.</p>
+      <div className="grid gap-4 sm:grid-cols-3">
+        {levels && (
+          <div>
+            <Label htmlFor={`${prefix}-req-level`}>Previous qualification needed</Label>
+            <Select id={`${prefix}-req-level`} name="requiredLevel" defaultValue={values?.requiredLevel ?? ""}>
+              <option value="">Default for the level</option>
+              {levels.map((l) => <option key={l.value} value={l.value}>{l.label}</option>)}
+            </Select>
+          </div>
+        )}
+        <div>
+          <Label htmlFor={`${prefix}-req-grade`}>Minimum grade (%)</Label>
+          <Input id={`${prefix}-req-grade`} name="minGradePercent" type="number" min={0} max={100} step="0.5" defaultValue={values?.minGradePercent ?? ""} placeholder="e.g. 60" />
+        </div>
+        <div>
+          <Label htmlFor={`${prefix}-req-ielts`}>IELTS overall</Label>
+          <Input id={`${prefix}-req-ielts`} name="minIelts" type="number" min={0} max={9} step="0.5" defaultValue={values?.minIelts ?? ""} placeholder="e.g. 6.5" />
+        </div>
+        <div>
+          <Label htmlFor={`${prefix}-req-band`}>No IELTS band below</Label>
+          <Input id={`${prefix}-req-band`} name="minIeltsBand" type="number" min={0} max={9} step="0.5" defaultValue={values?.minIeltsBand ?? ""} placeholder="e.g. 6.0" />
+        </div>
+        <div>
+          <Label htmlFor={`${prefix}-req-gap`}>Longest study gap (years)</Label>
+          <Input id={`${prefix}-req-gap`} name="maxStudyGapYears" type="number" min={0} max={50} defaultValue={values?.maxStudyGapYears ?? ""} />
+        </div>
+        <div>
+          <Label htmlFor={`${prefix}-req-moi`}>Accepts MOI letter instead of a test</Label>
+          <Select id={`${prefix}-req-moi`} name="acceptsMoi" defaultValue={moiValue(values?.acceptsMoi)}>
+            <option value="">Default</option>
+            <option value="yes">Yes</option>
+            <option value="no">No</option>
+          </Select>
+        </div>
+      </div>
+    </fieldset>
+  );
+}
+
 // Decimals arrive as strings: Prisma's Decimal cannot be passed to the browser.
 export type UniversityValues = {
   id: string;
@@ -29,7 +90,7 @@ export type UniversityValues = {
   isOfficialPartner: boolean;
   isFeatured: boolean;
   isPublished: boolean;
-};
+} & EntryValues;
 
 export function UniversityForm({ university, countries }: { university: UniversityValues | null; countries: Option[] }) {
   const [state, action, pending] = useActionState<FormState, FormData>(saveUniversity, {});
@@ -89,6 +150,8 @@ export function UniversityForm({ university, countries }: { university: Universi
         </div>
       </fieldset>
 
+      <EntryRequirementFields prefix="uni" values={university} inherit="the usual default for each course level" />
+
       <div className="grid gap-3 sm:grid-cols-3">
         <Checkbox name="isPublished" defaultChecked={university?.isPublished ?? true}>Show on the website</Checkbox>
         <Checkbox name="isFeatured" defaultChecked={university?.isFeatured}>Feature on the home page</Checkbox>
@@ -115,16 +178,17 @@ export type CourseValues = {
   description: string | null;
   entryRequirements: string | null;
   isPublished: boolean;
-};
+} & EntryValues;
 
 type CourseFormProps = {
   universityId: string;
   course: CourseValues | null;
   subjects: Option[];
   levels: { value: string; label: string }[];
+  qualificationLevels: { value: string; label: string }[];
 };
 
-export function CourseForm({ universityId, course, subjects, levels }: CourseFormProps) {
+export function CourseForm({ universityId, course, subjects, levels, qualificationLevels }: CourseFormProps) {
   const [state, action, pending] = useActionState<FormState, FormData>(saveCourse, {});
 
   return (
@@ -177,6 +241,7 @@ export function CourseForm({ universityId, course, subjects, levels }: CourseFor
         <Label htmlFor="course-entry">Entry requirements</Label>
         <Textarea id="course-entry" name="entryRequirements" defaultValue={course?.entryRequirements ?? ""} maxLength={5000} />
       </div>
+      <EntryRequirementFields prefix="course" values={course} levels={qualificationLevels} inherit="the university's default" />
       <Checkbox name="isPublished" defaultChecked={course?.isPublished ?? true}>Show on the website</Checkbox>
       <FormMessage state={state} />
       <div className="flex gap-3">
@@ -220,10 +285,12 @@ export function IntakeForm({ universityId, courses }: { universityId: string; co
   );
 }
 
-export function ProcessForm({ universityId, confirmationName, processNotes, skipped, stages }: {
+export function ProcessForm({ universityId, confirmationName, processNotes, method, methods, skipped, stages }: {
   universityId: string;
   confirmationName: string;
   processNotes: string | null;
+  method: { value: string | null; url: string | null; email: string | null };
+  methods: { value: string; label: string }[];
   skipped: string[];
   stages: { value: string; label: string }[];
 }) {
@@ -232,6 +299,23 @@ export function ProcessForm({ universityId, confirmationName, processNotes, skip
   return (
     <form action={action} className="grid gap-4">
       <input type="hidden" name="universityId" value={universityId} />
+      <div className="grid gap-4 sm:grid-cols-3">
+        <div>
+          <Label htmlFor="p-method">Applications are sent</Label>
+          <Select id="p-method" name="applicationMethod" defaultValue={method.value ?? ""}>
+            <option value="">Not set</option>
+            {methods.map((m) => <option key={m.value} value={m.value}>{m.label}</option>)}
+          </Select>
+        </div>
+        <div>
+          <Label htmlFor="p-url">Portal link</Label>
+          <Input id="p-url" name="applicationUrl" type="url" defaultValue={method.url ?? ""} placeholder="https://…" />
+        </div>
+        <div>
+          <Label htmlFor="p-email">Admissions email</Label>
+          <Input id="p-email" name="applicationEmail" type="email" defaultValue={method.email ?? ""} />
+        </div>
+      </div>
       <div className="max-w-xs">
         <Label htmlFor="p-conf">Confirmation of enrolment is called</Label>
         <Input id="p-conf" name="confirmationName" maxLength={20} defaultValue={confirmationName} placeholder="CAS, I-20, CoE, LOA" />

@@ -2,7 +2,10 @@
 
 import { revalidatePath, updateTag } from "next/cache";
 import { redirect } from "next/navigation";
-import type { ApplicationStage, DocumentType } from "@/generated/prisma/client";
+import type { ApplicationStage, DocumentType, StudyLevel } from "@/generated/prisma/client";
+import { studyLevelLabels } from "@/app/dashboard/leads/labels";
+import { isApplicationMethod } from "@/lib/application-method";
+import { isEmail } from "@/lib/leads";
 import { skippableStages } from "@/lib/application-flow";
 import { db } from "@/lib/db";
 import { documentTypeLabels } from "@/lib/documents";
@@ -24,6 +27,23 @@ import type { FormState } from "@/lib/form";
 import { requirePermission } from "@/lib/session";
 
 const base = (id: string) => `/dashboard/universities/${id}`;
+
+// The structured entry requirements shared by universities (defaults) and courses.
+function parseEntry(form: FormData) {
+  const minGradePercent = optionalNumber(text(form, "minGradePercent"));
+  const minIelts = optionalNumber(text(form, "minIelts"));
+  const minIeltsBand = optionalNumber(text(form, "minIeltsBand"));
+  const maxStudyGapYears = optionalInt(text(form, "maxStudyGapYears"));
+  const moi = text(form, "acceptsMoi");
+  if (minGradePercent === undefined || (minGradePercent !== null && minGradePercent > 100)) return { error: "Minimum grade is a percentage from 0 to 100." };
+  for (const score of [minIelts, minIeltsBand]) {
+    if (score === undefined || (score !== null && score > 9)) return { error: "IELTS scores go from 0 to 9." };
+  }
+  if (maxStudyGapYears === undefined || (maxStudyGapYears !== null && (maxStudyGapYears < 0 || maxStudyGapYears > 50))) {
+    return { error: "Study gap is a whole number of years." };
+  }
+  return { data: { minGradePercent, minIelts, minIeltsBand, maxStudyGapYears, acceptsMoi: moi === "yes" ? true : moi === "no" ? false : null } };
+}
 
 // ───────────── Universities ─────────────
 
@@ -58,7 +78,11 @@ export async function saveUniversity(_previous: FormState, form: FormData): Prom
     if (rate === undefined || (rate !== null && rate > 100)) return { error: "Commission rates are percentages from 0 to 100." };
   }
 
+  const entry = parseEntry(form);
+  if ("error" in entry) return { error: entry.error };
+
   const data = {
+    ...entry.data,
     name,
     slug,
     countryId,
@@ -137,7 +161,14 @@ export async function saveCourse(_previous: FormState, form: FormData): Promise<
     return { error: "Choose a subject from the list." };
   }
 
+  const entry = parseEntry(form);
+  if ("error" in entry) return { error: entry.error };
+  const requiredLevel = text(form, "requiredLevel");
+  if (requiredLevel && !(requiredLevel in studyLevelLabels)) return { error: "Choose the previous qualification from the list." };
+
   const data = {
+    ...entry.data,
+    requiredLevel: (requiredLevel as StudyLevel) || null,
     name,
     slug,
     subjectId: subjectId || null,
@@ -236,8 +267,17 @@ export async function saveProcess(_previous: FormState, form: FormData): Promise
   const skippedStages = form.getAll("skippedStages").map(String).filter((s): s is ApplicationStage => skippableStages.includes(s as ApplicationStage));
   if (confirmationName.length > 20) return { error: "Keep the name short, e.g. CAS, I-20, CoE or LOA." };
   if (processNotes && processNotes.length > 3000) return { error: "Keep the notes under 3,000 characters." };
+  const method = text(form, "applicationMethod");
+  const applicationUrl = text(form, "applicationUrl") || null;
+  const applicationEmail = text(form, "applicationEmail") || null;
+  if (method && !isApplicationMethod(method)) return { error: "Choose how applications are sent." };
+  if (applicationUrl && !isHttpsUrl(applicationUrl)) return { error: "The portal link must start with https://." };
+  if (applicationEmail && (applicationEmail.length > 200 || !isEmail(applicationEmail))) return { error: "Check the admissions email." };
 
-  await db.university.update({ where: { id }, data: { confirmationName, processNotes, skippedStages } });
+  await db.university.update({
+    where: { id },
+    data: { confirmationName, processNotes, skippedStages, applicationMethod: method && isApplicationMethod(method) ? method : null, applicationUrl, applicationEmail },
+  });
   revalidatePath(base(id));
   return { saved: true };
 }

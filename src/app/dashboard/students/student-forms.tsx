@@ -142,11 +142,13 @@ type NewApplicationProps = {
   intakes: IntakeOption[];
   // Staff by default; the agent portal passes its own action.
   submit?: (previous: FormState, form: FormData) => Promise<FormState>;
+  // Preselected course, e.g. when coming from the course finder.
+  initialCourseId?: string;
 };
 
-export function NewApplicationForm({ studentId, courses, intakes, submit = createApplication }: NewApplicationProps) {
+export function NewApplicationForm({ studentId, courses, intakes, submit = createApplication, initialCourseId = "" }: NewApplicationProps) {
   const [state, action, pending] = useActionState<FormState, FormData>(submit, {});
-  const [courseId, setCourseId] = useState("");
+  const [courseId, setCourseId] = useState(courses.some((c) => c.id === initialCourseId) ? initialCourseId : "");
   const course = courses.find((c) => c.id === courseId);
   const courseIntakes = course ? intakes.filter((i) => i.universityId === course.universityId && (!i.courseId || i.courseId === course.id)) : [];
 

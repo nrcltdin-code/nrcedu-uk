@@ -10,7 +10,7 @@ import type { LeadStatus, Prisma } from "@/generated/prisma/client";
 import { requireAgentScope } from "@/lib/agent";
 import { db } from "@/lib/db";
 import { formatDate } from "@/lib/format";
-import { leadStatuses, leadStatusLabels, leadStatusTones, studyLevelLabels } from "../../leads/labels";
+import { courseLevelOptions, leadStatuses, leadStatusLabels, leadStatusTones, studyLevelLabels } from "../../leads/labels";
 import { AddLeadForm } from "./lead-forms";
 
 export const metadata: Metadata = { title: "Leads", robots: { index: false } };
@@ -113,7 +113,7 @@ async function AgentLeads({ searchParams }: Pick<PageProps<"/dashboard/agent/lea
       </div>
       <Card tone="solid">
         <h2 className="mb-4 flex items-center gap-1 text-xl font-bold">Add a lead <InfoTip text="Someone you are talking to who has not applied yet. Set a follow-up date to have them show under Follow-up due. When they are ready, turn them into a student from the lead's page." /></h2>
-        <AddLeadForm countries={countries} levels={Object.entries(studyLevelLabels).map(([value, label]) => ({ value, label }))} />
+        <AddLeadForm countries={countries} levels={courseLevelOptions} />
       </Card>
     </div>
   );

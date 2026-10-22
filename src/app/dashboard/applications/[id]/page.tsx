@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { HowToApply } from "@/components/dashboard/how-to-apply";
 import { Suspense } from "react";
 import { InfoTip } from "@/components/ui/info-tip";
 import Link from "next/link";
@@ -61,7 +62,7 @@ async function ApplicationDetail({ params, searchParams }: Pick<PageProps<"/dash
           name: true,
           level: true,
           currency: true,
-          university: { select: { id: true, name: true, confirmationName: true, skippedStages: true, processNotes: true } },
+          university: { select: { id: true, name: true, confirmationName: true, skippedStages: true, processNotes: true, applicationMethod: true, applicationUrl: true, applicationEmail: true } },
         },
       },
       intake: { select: { name: true, startDate: true, applicationDeadline: true } },
@@ -138,12 +139,15 @@ async function ApplicationDetail({ params, searchParams }: Pick<PageProps<"/dash
                 </div>
               ))}
             </dl>
-            {processNotes && (
-              <div className="mt-4 rounded-xl bg-brand-600/8 px-4 py-3 text-sm">
-                <p className="font-semibold">How {app.course.university.name} works</p>
-                <p className="mt-1 whitespace-pre-line">{processNotes}</p>
-              </div>
-            )}
+            <div className="mt-4">
+              <HowToApply
+                name={app.course.university.name}
+                method={app.course.university.applicationMethod}
+                url={app.course.university.applicationUrl}
+                email={app.course.university.applicationEmail}
+                notes={processNotes}
+              />
+            </div>
           </Card>
 
           <Card tone="solid">

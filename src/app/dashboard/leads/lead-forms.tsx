@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input, Label, Select, Textarea } from "@/components/ui/field";
 import type { FormState } from "@/lib/form";
 import { addLead, saveRouting, updateLead } from "./actions";
-import { leadStatusLabels, studyLevelLabels } from "./labels";
+import { courseLevelOptions, leadStatusLabels } from "./labels";
 
 type Option = { id: string; name: string };
 
@@ -48,7 +48,7 @@ export function NewLeadForm({ countries }: { countries: Option[] }) {
         <Label htmlFor="l-level">Study level</Label>
         <Select id="l-level" name="studyLevel" defaultValue="">
           <option value="">Not known</option>
-          {Object.entries(studyLevelLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+          {courseLevelOptions.map(({ value, label }) => <option key={value} value={value}>{label}</option>)}
         </Select>
       </div>
       <div>

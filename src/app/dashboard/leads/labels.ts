@@ -27,6 +27,7 @@ export const leadSourceLabels: Record<LeadSource, string> = {
 };
 
 export const studyLevelLabels: Record<StudyLevel, string> = {
+  SCHOOL: "School (A-Level, HSC, high school)",
   FOUNDATION: "Foundation",
   DIPLOMA: "Diploma",
   UNDERGRADUATE: "Undergraduate",
@@ -34,3 +35,8 @@ export const studyLevelLabels: Record<StudyLevel, string> = {
   PHD: "PhD",
   OTHER: "Other",
 };
+
+// Levels a student can apply for; SCHOOL is only for past education.
+export const courseLevelOptions = Object.entries(studyLevelLabels)
+  .filter(([value]) => value !== "SCHOOL")
+  .map(([value, label]) => ({ value, label }));

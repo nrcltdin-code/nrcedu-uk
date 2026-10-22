@@ -9,6 +9,7 @@ import type { Prisma, StudyLevel } from "@/generated/prisma/client";
 export const PAGE_SIZE = 9;
 
 export const levelNames: Record<StudyLevel, string> = {
+  SCHOOL: "School",
   FOUNDATION: "Foundation",
   DIPLOMA: "Diploma",
   UNDERGRADUATE: "Undergraduate",
@@ -17,7 +18,9 @@ export const levelNames: Record<StudyLevel, string> = {
   OTHER: "Other",
 };
 
-export const isStudyLevel = (value: string): value is StudyLevel => value in levelNames;
+// Course levels only: SCHOOL describes a student's past education, never a course.
+export const isStudyLevel = (value: string): value is StudyLevel => value in levelNames && value !== "SCHOOL";
+export const courseLevelNames = Object.entries(levelNames).filter(([value]) => value !== "SCHOOL");
 
 export const universityCard = {
   id: true,

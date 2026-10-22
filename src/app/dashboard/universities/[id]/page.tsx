@@ -9,15 +9,24 @@ import { Badge } from "@/components/ui/badge";
 import { Button, buttonStyles } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { db } from "@/lib/db";
-import { levelNames } from "@/lib/data/catalogue";
+import { courseLevelNames, levelNames } from "@/lib/data/catalogue";
 import { formatDate, formatDuration } from "@/lib/format";
 import { requirePermission } from "@/lib/session";
 import { skippableStages, stageLabels } from "@/lib/application-flow";
 import { documentTypeLabels } from "@/lib/documents";
+import { studyLevelLabels } from "../../leads/labels";
+import { applicationMethodLabels } from "@/lib/application-method";
 import { deleteCourse, deleteIntake, deleteRequirement, deleteUniversity, setIntakeOpen } from "../actions";
 import { CourseForm, IntakeForm, ProcessForm, RequirementForm, UniversityForm } from "../forms";
 
 export const metadata: Metadata = { title: "Edit university", robots: { index: false } };
+
+type DecimalLike = { toString(): string } | null;
+const entryStrings = (r: { minGradePercent: DecimalLike; minIelts: DecimalLike; minIeltsBand: DecimalLike }) => ({
+  minGradePercent: r.minGradePercent?.toString() ?? null,
+  minIelts: r.minIelts?.toString() ?? null,
+  minIeltsBand: r.minIeltsBand?.toString() ?? null,
+});
 
 const errors: Record<string, string> = {
   "in-use": "This university has courses with student applications, so it cannot be deleted. Untick “Show on the website” to hide it instead.",
@@ -56,7 +65,8 @@ async function EditUniversity({ params, searchParams }: PageProps<"/dashboard/un
   const { courses, intakes, requirements, ...uni } = university;
   const editingCourse = courses.find((course) => course.id === courseParam) ?? null;
   const showCourseForm = courseParam === "new" || editingCourse !== null;
-  const levels = Object.entries(levelNames).map(([value, label]) => ({ value, label }));
+  const levels = courseLevelNames.map(([value, label]) => ({ value, label }));
+  const qualificationLevels = Object.entries(studyLevelLabels).filter(([value]) => value !== "OTHER").map(([value, label]) => ({ value, label }));
   const errorText = typeof error === "string" ? errors[error] : undefined;
 
   return (
@@ -87,6 +97,7 @@ async function EditUniversity({ params, searchParams }: PageProps<"/dashboard/un
             ...uni,
             nrcCommissionRate: uni.nrcCommissionRate?.toString() ?? null,
             agentCommissionRate: uni.agentCommissionRate?.toString() ?? null,
+            ...entryStrings(uni),
           }}
           countries={countries}
         />
@@ -108,7 +119,8 @@ async function EditUniversity({ params, searchParams }: PageProps<"/dashboard/un
             <CourseForm
               key={editingCourse?.id ?? "new"}
               universityId={uni.id}
-              course={editingCourse && { ...editingCourse, tuitionFee: editingCourse.tuitionFee?.toString() ?? null }}
+              course={editingCourse && { ...editingCourse, ...entryStrings(editingCourse), tuitionFee: editingCourse.tuitionFee?.toString() ?? null }}
+              qualificationLevels={qualificationLevels}
               subjects={subjects}
               levels={levels}
             />
@@ -172,6 +184,8 @@ async function EditUniversity({ params, searchParams }: PageProps<"/dashboard/un
             universityId={uni.id}
             confirmationName={uni.confirmationName}
             processNotes={uni.processNotes}
+            method={{ value: uni.applicationMethod, url: uni.applicationUrl, email: uni.applicationEmail }}
+            methods={Object.entries(applicationMethodLabels).map(([value, label]) => ({ value, label }))}
             skipped={uni.skippedStages}
             stages={skippableStages.map((s) => ({ value: s, label: stageLabels[s] }))}
           />

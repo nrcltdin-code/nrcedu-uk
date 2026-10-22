@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { EducationAndScores } from "@/components/dashboard/education-scores";
+import { educationView, scoreView } from "@/lib/course-match";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { Badge } from "@/components/ui/badge";
 import { InfoTip } from "@/components/ui/info-tip";
@@ -132,8 +133,9 @@ async function AgentStudent({ params }: Pick<PageProps<"/dashboard/agent/student
               studentId={student.id}
               canEdit
               levels={Object.entries(studyLevelLabels).map(([value, label]) => ({ value, label }))}
-              education={student.educationRecords}
-              scores={student.testScores.map((s) => ({ id: s.id, test: s.test, score: s.score, takenAt: s.takenAt ? isoDate(s.takenAt) : null }))}
+              education={educationView(student.educationRecords)}
+              englishMedium={student.englishMedium}
+              scores={scoreView(student.testScores)}
             />
           </Card>
         </div>

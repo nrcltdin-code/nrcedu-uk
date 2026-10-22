@@ -36,6 +36,7 @@ const groups: { label: string; collapsible?: boolean; entries: Entry[] }[] = [
     label: "My study",
     entries: [
       { label: "My applications", href: "/dashboard/my-applications", icon: "document", roles: ["STUDENT"] },
+      { label: "Find courses", href: "/dashboard/find-courses", icon: "search", roles: ["STUDENT"] },
       { label: "Documents", href: "/dashboard/documents", icon: "inbox", roles: ["STUDENT"] },
       { label: "My profile", href: "/dashboard/profile", icon: "users", roles: ["STUDENT"] },
     ],

@@ -271,6 +271,8 @@ model AgentDocument {
 // ───────────────────────────── Students ─────────────────────────────
 
 enum StudyLevel {
+  // Only used for a student's past education (A-Level, HSC, high school); courses never use it.
+  SCHOOL
   FOUNDATION
   DIPLOMA
   UNDERGRADUATE
@@ -307,6 +309,8 @@ model StudentProfile {
   dateOfBirth          DateTime? @db.Date
   gender               String?
   nationality          String?
+  // Studied in English, so a medium-of-instruction letter may replace an English test.
+  englishMedium        Boolean   @default(false)
   passportNumber       String?
   passportExpiry       DateTime? @db.Date
   phone                String?
@@ -350,6 +354,9 @@ model EducationRecord {
   institution   String
   fieldOfStudy  String?
   result        String?
+  // Structured result for matching: grade out of gradeOutOf (e.g. 4.5 of 5, 72 of 100).
+  grade         Decimal?   @db.Decimal(6, 2)
+  gradeOutOf    Decimal?   @db.Decimal(6, 2)
   yearCompleted Int?
 
   student StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
@@ -362,6 +369,9 @@ model TestScore {
   studentId String
   test      String
   score     String
+  // Structured score for matching; lowest is the lowest section or band.
+  overall   Decimal?  @db.Decimal(5, 1)
+  lowest    Decimal?  @db.Decimal(5, 1)
   takenAt   DateTime? @db.Date
 
   student StudentProfile @relation(fields: [studentId], references: [id], onDelete: Cascade)
@@ -734,6 +744,15 @@ model Country {
   assignment       CountryAssignment?
 }
 
+// How a university receives applications.
+enum ApplicationMethod {
+  DIRECT_PORTAL
+  AGENT_PORTAL
+  EMAIL
+  UCAS
+  OTHER
+}
+
 model University {
   id                  String             @id @default(cuid())
   name                String
@@ -757,6 +776,15 @@ model University {
   confirmationName    String             @default("CAS")
   skippedStages       ApplicationStage[]
   processNotes        String?
+  applicationMethod   ApplicationMethod?
+  applicationUrl      String?
+  applicationEmail    String?
+  // Entry requirement defaults for every course here; a course's own value wins.
+  minGradePercent     Decimal?           @db.Decimal(5, 2)
+  minIelts            Decimal?           @db.Decimal(3, 1)
+  minIeltsBand        Decimal?           @db.Decimal(3, 1)
+  maxStudyGapYears    Int?
+  acceptsMoi          Boolean?
   createdAt           DateTime           @default(now())
   updatedAt           DateTime           @updatedAt
 
@@ -782,20 +810,28 @@ model Subject {
 }
 
 model Course {
-  id                String     @id @default(cuid())
+  id                String      @id @default(cuid())
   universityId      String
   subjectId         String?
   name              String
   slug              String
   level             StudyLevel
   durationMonths    Int?
-  tuitionFee        Decimal?   @db.Decimal(12, 2)
-  currency          String     @default("GBP")
+  tuitionFee        Decimal?    @db.Decimal(12, 2)
+  currency          String      @default("GBP")
   description       String?
   entryRequirements String?
-  isPublished       Boolean    @default(false)
-  createdAt         DateTime   @default(now())
-  updatedAt         DateTime   @updatedAt
+  // Structured entry requirements used by the course finder. Empty means "use the
+  // university default", then the level default in lib/course-match.ts.
+  requiredLevel     StudyLevel?
+  minGradePercent   Decimal?    @db.Decimal(5, 2)
+  minIelts          Decimal?    @db.Decimal(3, 1)
+  minIeltsBand      Decimal?    @db.Decimal(3, 1)
+  maxStudyGapYears  Int?
+  acceptsMoi        Boolean?
+  isPublished       Boolean     @default(false)
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
 
   university   University    @relation(fields: [universityId], references: [id], onDelete: Cascade)
   subject      Subject?      @relation(fields: [subjectId], references: [id], onDelete: SetNull)

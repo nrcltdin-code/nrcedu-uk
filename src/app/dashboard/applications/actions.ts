@@ -27,6 +27,27 @@ export async function createApplication(_previous: FormState, form: FormData): P
   redirect(page(result.id));
 }
 
+// Several applications at once, from the course finder: one per ticked course, each with
+// its own intake. Each goes through startApplication, so checklists and notices work as usual.
+export async function createApplications(_previous: FormState, form: FormData): Promise<FormState> {
+  const user = await requirePermission("APPLICATIONS", "edit");
+  const studentId = text(form, "studentId");
+  const courseIds = [...new Set(form.getAll("course").map(String))].slice(0, 20);
+  if (courseIds.length === 0) return { error: "Tick at least one course to apply to." };
+
+  const failed: string[] = [];
+  let started = 0;
+  for (const courseId of courseIds) {
+    const result = await startApplication({ studentId, courseId, intakeId: text(form, `intake-${courseId}`) || null, byUserId: user.id });
+    if ("error" in result) failed.push(`${text(form, `name-${courseId}`) || "A course"}: ${result.error}`);
+    else started++;
+  }
+  if (failed.length) {
+    return { error: `${started ? `Started ${started}. ` : ""}Not started: ${failed.join(" ")}` };
+  }
+  redirect(`/dashboard/students/${studentId}?started=${started}#applications`);
+}
+
 // Only staff move applications. Every move is checked against the pipeline rules
 // (src/lib/application-flow.ts) and written to the history.
 export async function moveStage(_previous: FormState, form: FormData): Promise<FormState> {

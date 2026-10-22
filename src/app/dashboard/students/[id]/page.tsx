@@ -24,6 +24,7 @@ import { PortalInvite } from "../portal-invite";
 import { DeleteButton } from "@/components/dashboard/form-bits";
 import { DocumentUpload } from "@/components/dashboard/document-upload";
 import { EducationAndScores } from "@/components/dashboard/education-scores";
+import { educationView, scoreView } from "@/lib/course-match";
 import { buttonStyles } from "@/components/ui/button";
 import { documentTypeLabels } from "@/lib/documents";
 import { privateStorageEnabled } from "@/lib/storage";
@@ -37,20 +38,20 @@ export const metadata: Metadata = { title: "Student", robots: { index: false } }
 const dateTime = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", timeZone: "Europe/London" });
 const isoDate = (date: Date | null) => (date ? date.toISOString().slice(0, 10) : "");
 
-export default function StudentPage({ params }: PageProps<"/dashboard/students/[id]">) {
+export default function StudentPage({ params, searchParams }: PageProps<"/dashboard/students/[id]">) {
   return (
     <>
       <Link href="/dashboard/students" className="text-sm font-medium text-brand-700 hover:underline">
         ← Students
       </Link>
       <Suspense fallback={<Card tone="solid" className="mt-6">Loading…</Card>}>
-        <StudentDetail params={params} />
+        <StudentDetail params={params} searchParams={searchParams} />
       </Suspense>
     </>
   );
 }
 
-async function StudentDetail({ params }: Pick<PageProps<"/dashboard/students/[id]">, "params">) {
+async function StudentDetail({ params, searchParams }: PageProps<"/dashboard/students/[id]">) {
   const user = await requirePermission("STUDENTS", "view");
   const [canEdit, canSeeApps, canStartApps] = await Promise.all([
     can(user, "STUDENTS", "edit"),
@@ -59,6 +60,9 @@ async function StudentDetail({ params }: Pick<PageProps<"/dashboard/students/[id
   ]);
 
   const { id } = await params;
+  const { course: courseParam, started } = await searchParams;
+  const startedCount = typeof started === "string" ? Number(started) || 0 : 0;
+  const chosenCourse = typeof courseParam === "string" ? courseParam : "";
   const student = await db.studentProfile.findUnique({
     where: { id },
     include: {
@@ -126,8 +130,16 @@ async function StudentDetail({ params }: Pick<PageProps<"/dashboard/students/[id
       <div className="mt-6 grid items-start gap-6 lg:grid-cols-[1.5fr_1fr]">
         <div className="grid gap-6">
           {canSeeApps && (
-            <Card tone="solid">
-              <h2 className="flex items-center gap-1 mb-4 text-xl font-bold">Applications <InfoTip text="Every university this student applies to. Open one to manage its stages and documents. Pausing new applications stops the student starting more from the website; staff can still add them." /></h2>
+            <Card tone="solid" id="applications" className="scroll-mt-20">
+              <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+              <h2 className="flex items-center gap-1 text-xl font-bold">Applications <InfoTip text="Every university this student applies to. Open one to manage its stages and documents. Pausing new applications stops the student starting more from the website; staff can still add them." /></h2>
+                <Link href={`/dashboard/students/${student.id}/courses`} className={buttonStyles({ variant: "glass", size: "sm" })}>Find matching courses</Link>
+              </div>
+              {startedCount > 0 && (
+                <p role="status" className="mb-4 rounded-xl border border-emerald-500/25 bg-emerald-500/10 px-4 py-2.5 text-sm text-emerald-800">
+                  Started {startedCount} application{startedCount === 1 ? "" : "s"}. Open each one to send it to the university.
+                </p>
+              )}
               <ul className="divide-y divide-brand-900/10">
                 {student.applications.map((app) => (
                   <li key={app.id}>
@@ -155,13 +167,14 @@ async function StudentDetail({ params }: Pick<PageProps<"/dashboard/students/[id
                 )}
               </div>
               {canStartApps && (
-                <details className="mt-4 border-t border-brand-900/10 pt-4" open={student.applications.length === 0}>
+                <details className="mt-4 border-t border-brand-900/10 pt-4" open={student.applications.length === 0 || Boolean(chosenCourse)}>
                   <summary className="cursor-pointer font-semibold text-brand-700">Start an application</summary>
                   <div className="mt-4">
                     <NewApplicationForm
                       studentId={student.id}
                       courses={courses.map((c) => ({ id: c.id, name: c.name, universityId: c.universityId, university: c.university.name }))}
                       intakes={intakes}
+                      initialCourseId={chosenCourse}
                     />
                   </div>
                 </details>
@@ -270,8 +283,9 @@ async function StudentDetail({ params }: Pick<PageProps<"/dashboard/students/[id
               studentId={student.id}
               canEdit={canEdit}
               levels={Object.entries(studyLevelLabels).map(([value, label]) => ({ value, label }))}
-              education={student.educationRecords}
-              scores={student.testScores.map((t) => ({ id: t.id, test: t.test, score: t.score, takenAt: t.takenAt ? formatDate(t.takenAt) : null }))}
+              education={educationView(student.educationRecords)}
+              englishMedium={student.englishMedium}
+              scores={scoreView(student.testScores)}
             />
           </Card>
         </div>
