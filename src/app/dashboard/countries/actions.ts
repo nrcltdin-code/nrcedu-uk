@@ -1,6 +1,7 @@
 "use server";
 
 import { updateTag } from "next/cache";
+import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { releaseImages } from "@/lib/uploads";
 import { checked, imageError, text } from "@/lib/form";
@@ -53,4 +54,15 @@ export async function deleteCountryPage(id: string) {
   });
   releaseImages(before?.imageUrl, before?.flagUrl);
   updateTag("countries");
+  redirect("/dashboard/countries");
+}
+
+// Picked from the "Add a destination" dropdown: mark it a destination and open its editor.
+export async function addDestination(form: FormData) {
+  await requirePermission("CONTENT", "edit");
+  const id = text(form, "id");
+  if (!id) return;
+  await db.country.update({ where: { id }, data: { isDestination: true } });
+  updateTag("countries");
+  redirect(`/dashboard/countries?${new URLSearchParams({ edit: id })}`);
 }

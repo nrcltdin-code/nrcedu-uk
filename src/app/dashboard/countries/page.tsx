@@ -5,12 +5,11 @@ import { PageHeader } from "@/components/dashboard/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Input, Select } from "@/components/ui/field";
+import { Select } from "@/components/ui/field";
 import { db } from "@/lib/db";
 import { requirePermission } from "@/lib/session";
-import type { Prisma } from "@/generated/prisma/client";
 import { DeleteButton } from "@/components/dashboard/form-bits";
-import { deleteCountryPage } from "./actions";
+import { addDestination, deleteCountryPage } from "./actions";
 import { CountryForm } from "./country-form";
 
 // Only countries with a page (or page content) get a Delete button.
@@ -24,7 +23,7 @@ const first = (value: string | string[] | undefined) => (Array.isArray(value) ? 
 export default function CountriesPage({ searchParams }: PageProps<"/dashboard/countries">) {
   return (
     <>
-      <PageHeader title="Countries" description="Choose which countries are study destinations and write their pages." />
+      <PageHeader title="Countries" description="Add study destinations and write their pages." />
       <Suspense fallback={<Card tone="solid">Loading countries…</Card>}>
         <CountriesManager searchParams={searchParams} />
       </Suspense>
@@ -36,34 +35,31 @@ async function CountriesManager({ searchParams }: Pick<PageProps<"/dashboard/cou
   await requirePermission("CONTENT", "edit");
 
   const params = await searchParams;
-  const q = first(params.q).trim();
-  // Destinations first by default; the full list is long.
-  const show = first(params.show) || "destinations";
   const edit = first(params.edit);
 
-  const where: Prisma.CountryWhereInput = {
-    ...(show === "destinations" ? { isDestination: true } : {}),
-    ...(q ? { name: { contains: q, mode: "insensitive" } } : {}),
-  };
-  const [countries, editing] = await Promise.all([
-    db.country.findMany({ where, orderBy: { name: "asc" }, include: { _count: { select: { universities: true } } } }),
-    edit ? db.country.findUnique({ where: { id: edit } }) : null,
+  // The list shows destinations only; any other country is added from the dropdown.
+  const [countries, others, editing] = await Promise.all([
+    db.country.findMany({ where: { isDestination: true }, orderBy: { name: "asc" }, include: { _count: { select: { universities: true } } } }),
+    db.country.findMany({ where: { isDestination: false }, orderBy: { name: "asc" }, select: { id: true, name: true } }),
+    // Only destinations open in the editor, so an old ?edit= link to a removed one shows nothing.
+    edit ? db.country.findFirst({ where: { id: edit, isDestination: true } }) : null,
   ]);
-  const link = (id: string) => `/dashboard/countries?${new URLSearchParams({ q, show, edit: id })}`;
+  const link = (id: string) => `/dashboard/countries?${new URLSearchParams({ edit: id })}`;
 
   return (
     <div className="grid items-start gap-8 lg:grid-cols-[1.3fr_1fr]">
       <Card tone="solid">
-        <form className="grid gap-3 sm:grid-cols-[1fr_auto_auto]">
-          <Input name="q" defaultValue={q} placeholder="Search countries" aria-label="Search" />
-          <Select name="show" defaultValue={show} aria-label="Show">
-            <option value="destinations">Destinations only</option>
-            <option value="all">All countries</option>
+        <form action={addDestination} className="grid gap-3 sm:grid-cols-[1fr_auto]">
+          <Select name="id" required defaultValue="" aria-label="Add a destination">
+            <option value="" disabled>Add a destination…</option>
+            {others.map((c) => (
+              <option key={c.id} value={c.id}>{c.name}</option>
+            ))}
           </Select>
-          <Button type="submit" variant="glass">Filter</Button>
+          <Button type="submit">Add</Button>
         </form>
         <ul className="mt-4 divide-y divide-brand-900/10">
-          {countries.length === 0 && <li className="py-3 text-muted">No countries match.</li>}
+          {countries.length === 0 && <li className="py-3 text-muted">No destinations yet. Add one above.</li>}
           {countries.map((country) => (
             <li key={country.id} className="flex items-center gap-1">
               <Link
