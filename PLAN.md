@@ -165,7 +165,7 @@ New → Documents pending → Submitted to university → Offer received → Dep
   - [x] Seed script (`npm run db:seed`): 5 destination countries added
   - [ ] First admin account: fill `SEED_ADMIN_EMAIL` and `SEED_ADMIN_PASSWORD` in `.env`, then run `npm run db:seed`
 - [x] 1.4 Auth and roles (Better Auth 1.7: email and password, Google ready; no separate login pages: sign in / sign up / Google live in a panel that slides in from the right (`AuthDrawer`, built on the reusable `Drawer` in `src/components/ui/drawer.tsx`); protected `/dashboard`; role and per-staff permission checks in `src/lib/session.ts`)
-  - [ ] Google sign-in: add `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` to `.env`
+  - [x] Google sign-in: add `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` to `.env`
   - [x] Password reset (4.7)
   - [x] Email verification: registering sends a confirmation link (Better Auth, via the email queue). Password sign-in is refused until the address is confirmed, for every role (staff and agents too); each refused sign-in emails a fresh link, and the link signs the person in. Sessions from before the rule see only the Account page with "Send again" until they confirm. Google sign-ins and invite-link users already count as confirmed. Not enforced while email is switched off
     - [ ] Register a new student: the email arrives, the bar shows; open the link: lands on the dashboard signed in, bar gone
@@ -237,7 +237,7 @@ New → Documents pending → Submitted to university → Offer received → Dep
   - Every image is re-encoded to WebP (max 2400 px): removes camera/GPS metadata and anything hidden in the file; stored under a random name, never the uploaded one
   - Every upload is recorded in the new `Upload` table (who, when, size); migration `uploads` applied
   - Checked: real, oversized and EXIF images accepted and cleaned; renamed text, SVG with script, damaged PNG, 10,000 × 10,000 pixel bomb and tiny images refused; requests without or with a foreign Origin, and signed-out requests, refused
-  - [ ] To switch on (Cloudflare R2): create a bucket; turn on public access with a custom domain (e.g. `media.nrcedu-uk.com`) or the r2.dev address; create an API token with Object Read & Write for that bucket only; fill `STORAGE_ENDPOINT`, `STORAGE_BUCKET`, `STORAGE_ACCESS_KEY_ID`, `STORAGE_SECRET_ACCESS_KEY`, `STORAGE_PUBLIC_URL` in `.env` (and later in Vercel); restart the app
+  - [x] To switch on (Cloudflare R2): create a bucket; turn on public access with a custom domain (e.g. `media.nrcedu-uk.com`) or the r2.dev address; create an API token with Object Read & Write for that bucket only; fill `STORAGE_ENDPOINT`, `STORAGE_BUCKET`, `STORAGE_ACCESS_KEY_ID`, `STORAGE_SECRET_ACCESS_KEY`, `STORAGE_PUBLIC_URL` in `.env` (and later in Vercel); restart the app
   - Test checklist (after switching on):
     - [ ] Upload a phone photo as a slide background: it shows on the home page, right way up
     - [ ] Upload a PDF renamed to .jpg: refused with a clear message
