@@ -1,6 +1,6 @@
 import { applicationEvent } from "@/lib/applications";
 import { db } from "@/lib/db";
-import { documentTypeLabels } from "@/lib/documents";
+import { documentTypeLabels, requestUploadPath } from "@/lib/documents";
 import { link } from "@/lib/email";
 import { can, getCurrentUser } from "@/lib/session";
 import { whatsappLink, whatsappNumber } from "@/lib/whatsapp";
@@ -38,7 +38,7 @@ export async function GET(request: Request) {
   const message = documentId
     ? `Hello ${name}, this is ${user.name} from NRC Education about your ${label} (${subject.name}). You can see it on your portal: ${link("/dashboard/documents")}`
     : requestId
-      ? `Hello ${name}, this is ${user.name} from NRC Education. We need your ${label}. Please upload it on your portal: ${link("/dashboard/documents")}`
+      ? `Hello ${name}, this is ${user.name} from NRC Education. We need your ${label}. Please upload it on your portal: ${link(requestUploadPath(requestId))}`
       : `Hello ${name}, this is ${user.name} from NRC Education.`;
 
   await db.activityLog.create({

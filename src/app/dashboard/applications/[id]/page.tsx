@@ -5,22 +5,19 @@ import { InfoTip } from "@/components/ui/info-tip";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ApplicationTimeline, eventSelect } from "@/components/dashboard/application-timeline";
-import { DocumentRequestList, requestSelect, WhatsAppButton } from "@/components/dashboard/document-requests";
+import { requestSelect, WhatsAppButton } from "@/components/dashboard/document-requests";
 import { DeleteButton } from "@/components/dashboard/form-bits";
 import { NoteForm } from "@/components/dashboard/note-form";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonStyles } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { allowedMoves, isClosed, needsReason, stageLabel, stages, stageTones } from "@/lib/application-flow";
+import { allowedMoves, isClosed, needsReason, requestStatusLabels, requestStatusTones, stageLabel, stages, stageTones } from "@/lib/application-flow";
 import { getAssigneeOptions } from "@/lib/assignees";
 import { db } from "@/lib/db";
-import { documentTypeLabels } from "@/lib/documents";
 import { formatDate, formatMoney } from "@/lib/format";
 import { can, requirePermission } from "@/lib/session";
-import { privateStorageEnabled } from "@/lib/storage";
 import { whatsappNumber } from "@/lib/whatsapp";
 import { RemindersCard } from "../../reminders/reminders-card";
-import { RequestForm } from "../../students/request-form";
 import { addApplicationNote, deleteApplication, deleteCondition, setConditionMet } from "../actions";
 import { AssignForm, ConditionForm, DetailsForm, StageForm } from "../application-forms";
 import { AddCommissionForm, CommissionRowForm, ExpectedCommissionsButton } from "../../commissions/commission-forms";
@@ -160,26 +157,24 @@ async function ApplicationDetail({ params, searchParams }: Pick<PageProps<"/dash
 
           <Card tone="solid">
             <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
-              <h2 className="flex items-center gap-1 text-xl font-bold">Documents <InfoTip text="Documents this university needs for this application. Each one is an upload slot on the student's portal: open it to let them upload, then approve or send back what they send. Required ones must be approved or marked not needed before the application can be submitted." /></h2>
+              <h2 className="flex items-center gap-1 text-xl font-bold">Documents <InfoTip text="Documents this university needs for this application. They are managed on the student's page, with all their other documents. Required ones must be approved or marked not needed before the application can be submitted." /></h2>
               {required.length > 0 && <span className="text-sm text-muted">{done} of {required.length} required approved</span>}
             </div>
-            <DocumentRequestList studentId={app.student.id} requests={app.documentRequests} canEdit={canEditDocs} whatsapp={whatsapp} storage={privateStorageEnabled} />
-            {canEditDocs && (
-              <details className="mt-4 border-t border-brand-900/10 pt-4">
-                <summary className="cursor-pointer font-semibold text-brand-700">Ask for another document</summary>
-                <div className="mt-4">
-                  <RequestForm
-                    key={app.documentRequests.length}
-                    studentId={app.student.id}
-                    applicationId={app.id}
-                    types={Object.entries(documentTypeLabels).map(([value, label]) => ({ value, label }))}
-                  />
-                </div>
-              </details>
+            {app.documentRequests.length > 0 ? (
+              <ul className="divide-y divide-brand-900/10">
+                {app.documentRequests.map((r) => (
+                  <li key={r.id} className="flex flex-wrap items-center justify-between gap-2 py-2 text-sm">
+                    <span>{r.label}{!r.required && <span className="ml-2 text-xs text-muted">optional</span>}</span>
+                    <Badge tone={requestStatusTones[r.status]}>{requestStatusLabels[r.status]}</Badge>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-sm text-muted">Nothing asked for yet.</p>
             )}
-            <p className="mt-3 text-xs text-muted">
-              General documents (passport, transcripts) are on the <Link href={`/dashboard/students/${app.student.id}`} className="text-brand-700 hover:underline">student’s page</Link>.
-            </p>
+            <Link href={`/dashboard/students/${app.student.id}#docs-${app.id}`} className={buttonStyles({ variant: "glass", size: "sm", className: "mt-4" })}>
+              {canEditDocs ? "Review and ask for documents" : "Open the documents"} →
+            </Link>
           </Card>
 
           {showConditions && (

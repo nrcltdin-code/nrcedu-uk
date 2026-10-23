@@ -178,3 +178,6 @@ export async function checkUploadedFile(key: string, size: number, name: string)
     return reject(502, "The file could not be checked. Please try again.");
   }
 }
+
+// Opens the student's documents page at one request (signing in first if needed).
+export const requestUploadPath = (requestId: string) => `/dashboard/documents?request=${requestId}`;

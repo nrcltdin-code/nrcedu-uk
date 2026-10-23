@@ -14,25 +14,28 @@ import { formatDate } from "@/lib/format";
 import { privateStorageEnabled } from "@/lib/storage";
 import { requireMyStudentId } from "@/lib/student";
 import { deleteMyDocument } from "./actions";
+import { ScrollHere } from "./scroll-here";
 
 export const metadata: Metadata = { title: "My documents", robots: { index: false } };
 
 const statusLabels = { PENDING: "Being checked", APPROVED: "Approved", REJECTED: "Please upload again" } as const;
 const statusTones = { PENDING: "accent", APPROVED: "success", REJECTED: "danger" } as const;
 
-export default function DocumentsPage() {
+export default function DocumentsPage({ searchParams }: PageProps<"/dashboard/documents">) {
   return (
     <>
       <PageHeader title="My documents" description="Your counsellor asks for each document when it is needed. Upload clear scans or photos; each one is checked." />
       <Suspense fallback={<Card tone="solid">Loading…</Card>}>
-        <Documents />
+        <Documents searchParams={searchParams} />
       </Suspense>
     </>
   );
 }
 
-async function Documents() {
+async function Documents({ searchParams }: Pick<PageProps<"/dashboard/documents">, "searchParams">) {
   const studentId = await requireMyStudentId();
+  // Set by the link in the request email or WhatsApp message.
+  const picked = (await searchParams).request;
   const [requests, others] = await Promise.all([
     db.documentRequest.findMany({
       where: { studentId },
@@ -82,7 +85,8 @@ async function Documents() {
           <h2 className="mb-4 flex items-center gap-1 text-xl font-bold">Asked for you {todo.length > 0 && <span className="text-muted">({todo.length})</span>} <InfoTip text="Documents your counsellor needs from you. Upload into each one while it is open. If the upload is closed, your counsellor will open it when it is needed." /></h2>
           <ul className="grid gap-3">
             {todo.map((r) => (
-              <li key={r.id} className="rounded-2xl border border-brand-900/10 p-4">
+              <li key={r.id} id={`request-${r.id}`} className={`scroll-mt-24 rounded-2xl border p-4 ${r.id === picked ? "border-brand-600 ring-2 ring-brand-600/30" : "border-brand-900/10"}`}>
+                {r.id === picked && <ScrollHere />}
                 <div className="flex flex-wrap items-start justify-between gap-2">
                   <div className="min-w-0">
                     <p className="font-semibold">{r.label}{!r.required && <span className="ml-2 text-xs font-normal text-muted">optional</span>}</p>

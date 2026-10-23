@@ -100,6 +100,8 @@ export async function updateMyStudent(_previous: FormState, form: FormData): Pro
         nationality: fields.nationality || null,
         passportNumber: fields.passportNumber || null,
         address: fields.address || null,
+        profileConfirmedAt: null,
+        profileConfirmedBy: null,
       },
     }),
   ]);

@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import type { DocumentType } from "@/generated/prisma/client";
 import { applicationEvent } from "@/lib/applications";
 import { db } from "@/lib/db";
-import { documentTypeLabels } from "@/lib/documents";
+import { documentTypeLabels, requestUploadPath } from "@/lib/documents";
 import { link, queueEmail } from "@/lib/email";
 import { checked, optionalDate, text } from "@/lib/form";
 import { notify, studentSide } from "@/lib/notifications";
@@ -27,16 +27,16 @@ const log = (userId: string, action: string, request: { id: string; applicationI
       : []),
   ]);
 
-async function tellStudent(studentId: string, label: string, instructions: string | null, actorId: string) {
+async function tellStudent(requestId: string, studentId: string, label: string, instructions: string | null, actorId: string) {
   const student = await db.studentProfile.findUnique({ where: { id: studentId }, select: { user: { select: { name: true, email: true } } } });
   const side = await studentSide(studentId);
   if (!student) return;
-  notify([side?.userId], { type: "document.requested", title: `Please upload: ${label}`, body: instructions ?? undefined, href: "/dashboard/documents" }, actorId);
+  notify([side?.userId], { type: "document.requested", title: `Please upload: ${label}`, body: instructions ?? undefined, href: requestUploadPath(requestId) }, actorId);
   notify(side?.agents ?? [], { type: "document.requested", title: `${student.user.name}: please upload ${label}`, href: `/dashboard/agent/students/${studentId}` }, actorId);
   queueEmail({
     to: student.user.email,
     subject: `Please upload: ${label}`,
-    text: `Hello ${student.user.name},\n\nWe need one more document from you: ${label}.${instructions ? `\n\n${instructions}` : ""}\n\nUpload it here: ${link("/dashboard/documents")}`,
+    text: `Hello ${student.user.name},\n\nWe need one more document from you: ${label}.${instructions ? `\n\n${instructions}` : ""}\n\nUpload it here (sign in if asked): ${link(requestUploadPath(requestId))}`,
   });
 }
 
@@ -63,7 +63,7 @@ export async function createDocumentRequest(_previous: FormState, form: FormData
     select: { id: true, studentId: true, applicationId: true, label: true },
   });
   await log(user.id, "request.created", request);
-  await tellStudent(studentId, label, instructions, user.id);
+  await tellStudent(request.id, studentId, label, instructions, user.id);
   refresh(request);
   return { saved: true };
 }
@@ -78,7 +78,7 @@ export async function setRequestOpen(id: string, isOpen: boolean) {
   if (!request || request.isOpen === isOpen) return;
   await db.documentRequest.update({ where: { id }, data: { isOpen } });
   await log(user.id, isOpen ? "request.opened" : "request.closed", request);
-  if (isOpen) await tellStudent(request.studentId, request.label, request.instructions, user.id);
+  if (isOpen) await tellStudent(request.id, request.studentId, request.label, request.instructions, user.id);
   refresh(request);
 }
 

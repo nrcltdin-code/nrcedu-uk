@@ -67,7 +67,7 @@ async function Pipeline({ searchParams }: Pick<PageProps<"/dashboard/application
         id: true,
         stage: true,
         updatedAt: true,
-        student: { select: { user: { select: { name: true } } } },
+        student: { select: { user: { select: { name: true, email: true } } } },
         course: { select: { name: true, university: { select: { name: true } } } },
         intake: { select: { name: true } },
         assignedStaff: { select: { name: true } },
@@ -122,7 +122,7 @@ async function Pipeline({ searchParams }: Pick<PageProps<"/dashboard/application
           <li key={app.id}>
             <Link href={`/dashboard/applications/${app.id}`} className="flex flex-wrap items-center justify-between gap-2 rounded-xl px-2 py-3 hover:bg-brand-600/5">
               <span className="min-w-0">
-                <span className="block font-semibold">{app.student.user.name}</span>
+                <span className="block font-semibold">{app.student.user.name} <span className="font-normal text-muted">· {app.student.user.email}</span></span>
                 <span className="block truncate text-sm text-muted">
                   {[app.course.name, app.course.university.name, app.intake?.name, `updated ${formatDate(app.updatedAt)}`].filter(Boolean).join(" · ")}
                 </span>

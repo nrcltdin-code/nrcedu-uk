@@ -129,6 +129,8 @@ export async function updateStudent(_previous: FormState, form: FormData): Promi
         nationality: fields.nationality || null,
         passportNumber: fields.passportNumber || null,
         address: fields.address || null,
+        profileConfirmedAt: null,
+        profileConfirmedBy: null,
       },
     }),
     log(user.id, "student.update", "StudentProfile", id),
@@ -182,6 +184,19 @@ export async function setCanStartApplications(studentId: string, allowed: boolea
   await db.$transaction([
     db.studentProfile.update({ where: { id: studentId }, data: { canStartApplications: allowed } }),
     log(user.id, "student.update", "StudentProfile", studentId, { canStartApplications: allowed }),
+  ]);
+  revalidatePath(`/dashboard/students/${studentId}`);
+}
+
+// Staff mark a section of the student's record as checked, or take the mark back.
+export async function setSectionConfirmed(studentId: string, section: "profile" | "education", confirmed: boolean) {
+  const user = await requirePermission("STUDENTS", "edit");
+  const data = section === "profile"
+    ? { profileConfirmedAt: confirmed ? new Date() : null, profileConfirmedBy: confirmed ? user.name : null }
+    : { educationConfirmedAt: confirmed ? new Date() : null, educationConfirmedBy: confirmed ? user.name : null };
+  await db.$transaction([
+    db.studentProfile.update({ where: { id: studentId }, data }),
+    log(user.id, confirmed ? "student.confirm" : "student.unconfirm", "StudentProfile", studentId, { section }),
   ]);
   revalidatePath(`/dashboard/students/${studentId}`);
 }

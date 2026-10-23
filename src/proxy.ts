@@ -9,7 +9,7 @@ export function proxy(request: NextRequest) {
   if (!getSessionCookie(request)) {
     const login = new URL("/", request.url);
     login.searchParams.set("auth", "login");
-    login.searchParams.set("next", request.nextUrl.pathname);
+    login.searchParams.set("next", request.nextUrl.pathname + request.nextUrl.search);
     return NextResponse.redirect(login);
   }
   return NextResponse.next();

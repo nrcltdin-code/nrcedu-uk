@@ -322,6 +322,11 @@ model StudentProfile {
   addedById            String?
   // Staff can stop a student starting more applications themselves; staff can still add them.
   canStartApplications Boolean   @default(true)
+  // Staff tick each section once they have checked it; editing the section clears the tick.
+  profileConfirmedAt   DateTime?
+  profileConfirmedBy   String?
+  educationConfirmedAt DateTime?
+  educationConfirmedBy String?
   createdAt            DateTime  @default(now())
   updatedAt            DateTime  @updatedAt
 

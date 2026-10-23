@@ -56,6 +56,8 @@ export async function saveMyDetails(_previous: FormState, form: FormData): Promi
         nationality: fields.nationality || null,
         passportNumber: fields.passportNumber || null,
         address: fields.address || null,
+        profileConfirmedAt: null,
+        profileConfirmedBy: null,
       },
     }),
   ]);
@@ -87,6 +89,7 @@ export async function addEducation(_previous: FormState, form: FormData): Promis
   }
   if ((await db.educationRecord.count({ where: { studentId } })) >= 15) return { error: "That is the most entries allowed." };
 
+  await unconfirmEducation(studentId);
   await db.educationRecord.create({
     data: {
       studentId,
@@ -108,6 +111,7 @@ export async function deleteEducation(id: string) {
   const record = await db.educationRecord.findUnique({ where: { id }, select: { studentId: true } });
   if (!record || !(await canAccessStudent(user, record.studentId, "edit"))) return;
   await db.educationRecord.delete({ where: { id } });
+  await unconfirmEducation(record.studentId);
   refresh(record.studentId);
 }
 
@@ -132,6 +136,7 @@ export async function addTestScore(_previous: FormState, form: FormData): Promis
 
   // score stays the readable summary shown in older screens and exports.
   const score = [overall !== null ? `${overall} overall` : "", lowest !== null ? `lowest ${lowest}` : "", notes].filter(Boolean).join(", ");
+  await unconfirmEducation(studentId);
   await db.testScore.create({ data: { studentId, test, score, overall, lowest, takenAt } });
   refresh(studentId);
   return { saved: true };
@@ -140,7 +145,7 @@ export async function addTestScore(_previous: FormState, form: FormData): Promis
 export async function setEnglishMedium(studentId: string, englishMedium: boolean) {
   const user = await requireUser();
   if (!(await canAccessStudent(user, studentId, "edit"))) return;
-  await db.studentProfile.update({ where: { id: studentId }, data: { englishMedium } });
+  await db.studentProfile.update({ where: { id: studentId }, data: { englishMedium, educationConfirmedAt: null, educationConfirmedBy: null } });
   refresh(studentId);
 }
 
@@ -149,5 +154,11 @@ export async function deleteTestScore(id: string) {
   const record = await db.testScore.findUnique({ where: { id }, select: { studentId: true } });
   if (!record || !(await canAccessStudent(user, record.studentId, "edit"))) return;
   await db.testScore.delete({ where: { id } });
+  await unconfirmEducation(record.studentId);
   refresh(record.studentId);
+}
+
+// A change to education or test scores means staff need to check them again.
+function unconfirmEducation(studentId: string) {
+  return db.studentProfile.update({ where: { id: studentId }, data: { educationConfirmedAt: null, educationConfirmedBy: null } });
 }

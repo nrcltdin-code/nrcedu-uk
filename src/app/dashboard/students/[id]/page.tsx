@@ -21,6 +21,7 @@ import { whatsappNumber } from "@/lib/whatsapp";
 import { deleteDocument } from "../document-actions";
 import { DocumentReview } from "../document-review";
 import { PortalInvite } from "../portal-invite";
+import { ConfirmSection } from "../confirm-section";
 import { DeleteButton } from "@/components/dashboard/form-bits";
 import { DocumentUpload } from "@/components/dashboard/document-upload";
 import { EducationAndScores } from "@/components/dashboard/education-scores";
@@ -78,7 +79,8 @@ async function StudentDetail({ params, searchParams }: PageProps<"/dashboard/stu
         include: { course: { select: { name: true, university: { select: { name: true } } } }, intake: { select: { name: true } } },
       },
       notes: { orderBy: { createdAt: "desc" }, include: { author: { select: { name: true } } } },
-      documentRequests: { where: { applicationId: null }, orderBy: { createdAt: "asc" }, select: requestSelect },
+      // All requests live here: general ones, then one group per application.
+      documentRequests: { orderBy: { createdAt: "asc" }, select: { ...requestSelect, applicationId: true } },
       // Files outside any request (staff uploads); request files are shown under their request.
       documents: {
         where: { requestId: null },
@@ -107,6 +109,10 @@ async function StudentDetail({ params, searchParams }: PageProps<"/dashboard/stu
   const whatsapp = Boolean(whatsappNumber(student.phone ?? student.user.phone));
   const documentTypes = Object.entries(documentTypeLabels).map(([value, label]) => ({ value, label }));
   const applicationNames = student.applications.map((a) => ({ id: a.id, name: `${a.course.name}, ${a.course.university.name}` }));
+  const documentGroups = [
+    { id: null, name: "General", hint: "Used for every application, e.g. passport and transcripts." },
+    ...applicationNames.map((a) => ({ ...a, hint: null })),
+  ].map((g) => ({ ...g, requests: student.documentRequests.filter((r) => r.applicationId === g.id) }));
 
   return (
     <>
@@ -183,20 +189,42 @@ async function StudentDetail({ params, searchParams }: PageProps<"/dashboard/stu
           )}
 
           <Card tone="solid">
-            <h2 className="flex items-center gap-1 mb-1 text-xl font-bold">Documents <InfoTip text="General documents used for every application, like passport and transcripts. Ask for a document to open an upload slot on the student's portal. Documents for a single university are on that application's page." /></h2>
-            <p className="mb-4 text-xs text-muted">
-              General documents. Ones for a single university are on that application’s page.
-              {!whatsapp && " Add a phone number with the country code (e.g. +44…) to chat on WhatsApp."}
-            </p>
-            <DocumentRequestList studentId={student.id} requests={student.documentRequests} canEdit={canEdit} whatsapp={whatsapp} storage={privateStorageEnabled} />
-            {canEdit && (
-              <details className="mt-4 border-t border-brand-900/10 pt-4">
-                <summary className="cursor-pointer font-semibold text-brand-700">Ask for a document</summary>
-                <div className="mt-4">
-                  <RequestForm key={student.documentRequests.length} studentId={student.id} types={documentTypes} applications={applicationNames} />
-                </div>
-              </details>
-            )}
+            <h2 className="flex items-center gap-1 mb-1 text-xl font-bold">Documents <InfoTip text="Every document for this student, in one place: general ones first, then one group per application. Ask for a document to open an upload slot on the student's portal." /></h2>
+            {!whatsapp && <p className="mb-2 text-xs text-muted">Add a phone number with the country code (e.g. +44…) to chat on WhatsApp.</p>}
+            <div className="grid gap-6">
+              {documentGroups.map((g) => (
+                <section key={g.id ?? "general"} id={g.id ? `docs-${g.id}` : "docs-general"} className="scroll-mt-20 border-t border-brand-900/10 pt-4 first:border-t-0 first:pt-2">
+                  <div className="mb-2 flex flex-wrap items-baseline justify-between gap-2">
+                    <h3 className="font-semibold">
+                      {g.id ? <Link href={`/dashboard/applications/${g.id}`} className="hover:underline">{g.name}</Link> : g.name}
+                    </h3>
+                    {g.hint && <span className="text-xs text-muted">{g.hint}</span>}
+                  </div>
+                  {g.requests.length > 0 && (() => {
+                    const approved = g.requests.filter((r) => r.status === "APPROVED");
+                    const waiting = g.requests.filter((r) => r.status !== "APPROVED" && r.status !== "WAIVED").length;
+                    return (
+                      <p className="mb-3 rounded-xl bg-emerald-600/5 px-3 py-2 text-sm">
+                        <span className="font-semibold text-emerald-700">Approved:</span>{" "}
+                        {approved.length ? approved.map((r) => r.label).join(", ") : <span className="text-muted">none yet</span>}
+                        {waiting > 0 && <span className="text-muted"> · {waiting} still to do</span>}
+                      </p>
+                    );
+                  })()}
+                  {g.requests.length > 0
+                    ? <DocumentRequestList studentId={student.id} requests={g.requests} canEdit={canEdit} whatsapp={whatsapp} storage={privateStorageEnabled} />
+                    : <p className="text-sm text-muted">Nothing asked for yet.</p>}
+                  {canEdit && (
+                    <details className="mt-2">
+                      <summary className="cursor-pointer text-sm font-semibold text-brand-700">Ask for a document{g.id ? " for this application" : ""}</summary>
+                      <div className="mt-3">
+                        <RequestForm key={g.requests.length} studentId={student.id} applicationId={g.id ?? undefined} types={documentTypes} />
+                      </div>
+                    </details>
+                  )}
+                </section>
+              ))}
+            </div>
 
             {(student.documents.length > 0 || canEdit) && (
               <>
@@ -237,7 +265,10 @@ async function StudentDetail({ params, searchParams }: PageProps<"/dashboard/stu
           </Card>
 
           <Card tone="solid">
-            <h2 className="flex items-center gap-1 mb-4 text-xl font-bold">Profile <InfoTip text="The student's personal details. The phone number needs its country code (e.g. +44…) for the WhatsApp buttons to work." /></h2>
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+              <h2 className="flex items-center gap-1 text-xl font-bold">Profile <InfoTip text="The student's personal details. The phone number needs its country code (e.g. +44…) for the WhatsApp buttons to work. Press Confirm once you have checked them; any later change clears it." /></h2>
+              <ConfirmSection studentId={student.id} section="profile" confirmedAt={student.profileConfirmedAt} confirmedBy={student.profileConfirmedBy} canEdit={canEdit} />
+            </div>
             {canEdit ? (
               <StudentForm
                 student={{
@@ -278,7 +309,10 @@ async function StudentDetail({ params, searchParams }: PageProps<"/dashboard/stu
           </Card>
 
           <Card tone="solid">
-            <h2 className="flex items-center gap-1 mb-4 text-xl font-bold">Education and test scores <InfoTip text="Past study and test results (IELTS, PTE and so on), used when checking entry requirements." /></h2>
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+              <h2 className="flex items-center gap-1 text-xl font-bold">Education and test scores <InfoTip text="Past study and test results (IELTS, PTE and so on), used when checking entry requirements. Press Confirm once you have checked them; any later change clears it." /></h2>
+              <ConfirmSection studentId={student.id} section="education" confirmedAt={student.educationConfirmedAt} confirmedBy={student.educationConfirmedBy} canEdit={canEdit} />
+            </div>
             <EducationAndScores
               studentId={student.id}
               canEdit={canEdit}
