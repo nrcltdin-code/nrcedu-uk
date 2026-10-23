@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
+import Image from "next/image";
 import Link from "next/link";
+import { buttonStyles } from "@/components/ui/button";
 import { notFound } from "next/navigation";
 import { CtaBand } from "@/components/site/cta-band";
-import { PageHero } from "@/components/site/page-hero";
+
 import { Prose } from "@/components/site/prose";
 import { Card } from "@/components/ui/card";
-import { Section } from "@/components/ui/section";
+import { Container, Section } from "@/components/ui/section";
 import { getTestPrepPage } from "@/lib/data/content";
 import { getTestPrepPages } from "@/lib/data/home";
 import { parseFacts, parseTables } from "@/lib/test-prep";
@@ -49,9 +51,26 @@ async function TestPrepContent({ params }: Pick<Props, "params">) {
 
   return (
     <main>
-      <PageHero eyebrow="Test preparation" title={test.name} highlight="preparation">
-        {test.summary}
-      </PageHero>
+      <Container className="pt-6">
+        <div className="bg-deep relative isolate overflow-hidden rounded-[2rem] text-white">
+          {test.imageUrl && (
+            <Image src={test.imageUrl} alt="" fill priority sizes="(min-width: 1152px) 1104px, 100vw" className="-z-10 object-cover saturate-125" />
+          )}
+          <div className="absolute inset-0 -z-10 bg-linear-to-r from-deep-900/95 via-brand-800/75 to-brand-600/40" />
+          <div className="px-6 py-14 sm:px-12 sm:py-20">
+            <nav aria-label="Breadcrumb" className="mb-5 text-sm text-white/75">
+              <Link href="/test-prep" className="hover:text-white">Test preparation</Link>
+            </nav>
+            <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl">
+              {test.name} <span className="text-gradient-warm">preparation</span>
+            </h1>
+            {test.summary && <p className="mt-5 line-clamp-2 max-w-2xl text-lg text-white/90">{test.summary}</p>}
+            <Link href="/consultation" className={buttonStyles({ variant: "accent", size: "lg", className: "mt-8" })}>
+              Book a free consultation
+            </Link>
+          </div>
+        </div>
+      </Container>
 
       <Section tint="violet">
         <div className="grid items-start gap-8 lg:grid-cols-[1.7fr_1fr]">

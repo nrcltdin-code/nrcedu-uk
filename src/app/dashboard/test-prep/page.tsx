@@ -57,7 +57,10 @@ async function TestPrepAdmin({ searchParams }: Pick<PageProps<"/dashboard/test-p
       </div>
       {showForm && (
         <Card tone="solid">
-          <h2 className="mb-4 text-xl font-bold">{editing ? `Edit ${editing.name}` : "Add a test"}</h2>
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <h2 className="text-xl font-bold">{editing ? `Edit ${editing.name}` : "Add a test"}</h2>
+            {editing && <DeleteButton action={deleteTestPrep.bind(null, editing.id)} question={`Delete the ${editing.name} guide?`} />}
+          </div>
           <TestPrepForm
             key={editing?.id ?? "new"}
             test={editing && {
@@ -66,6 +69,7 @@ async function TestPrepAdmin({ searchParams }: Pick<PageProps<"/dashboard/test-p
               slug: editing.slug,
               summary: editing.summary ?? "",
               content: editing.content ?? "",
+              imageUrl: editing.imageUrl,
               sortOrder: editing.sortOrder,
               isPublished: editing.isPublished,
               facts: parseFacts(editing.facts),

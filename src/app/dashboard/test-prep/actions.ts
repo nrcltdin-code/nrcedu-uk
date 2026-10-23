@@ -4,7 +4,7 @@ import { updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import type { Prisma } from "@/generated/prisma/client";
 import { db } from "@/lib/db";
-import { isSlug, isUniqueError, slugify, text } from "@/lib/form";
+import { imageError, isSlug, isUniqueError, slugify, text } from "@/lib/form";
 import type { FormState } from "@/lib/form";
 import { requirePermission } from "@/lib/session";
 import { parseFacts, parseTables } from "@/lib/test-prep";
@@ -27,6 +27,7 @@ export async function saveTestPrep(_previous: FormState, form: FormData): Promis
   const slug = text(form, "slug") || slugify(name);
   const summary = text(form, "summary");
   const content = text(form, "content");
+  const imageUrl = text(form, "imageUrl");
   const sortOrder = Number.parseInt(text(form, "sortOrder") || "0", 10);
 
   if (name.length < 2 || name.length > 60) return { error: "Name the test, e.g. IELTS Academic." };
@@ -34,12 +35,15 @@ export async function saveTestPrep(_previous: FormState, form: FormData): Promis
   if (summary.length > 300) return { error: "Keep the summary under 300 characters." };
   if (content.length > 30000) return { error: "The guide is too long (30,000 characters at most)." };
   if (!Number.isInteger(sortOrder)) return { error: "Position must be a whole number." };
+  const badImage = imageError(imageUrl, "The image address");
+  if (badImage) return { error: badImage };
 
   const data = {
     name,
     slug,
     summary: summary || null,
     content: content || null,
+    imageUrl: imageUrl || null,
     sortOrder,
     isPublished: form.get("isPublished") === "on",
     facts: parseFacts(readJson(form, "facts")) as Prisma.InputJsonValue,

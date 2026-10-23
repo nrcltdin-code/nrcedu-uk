@@ -31,7 +31,7 @@ function subscribe(listener: () => void) {
 export function Toaster() {
   const items = useSyncExternalStore(subscribe, () => toasts, () => toasts);
   return (
-    <div aria-live="polite" className="pointer-events-none fixed inset-x-4 bottom-4 z-50 flex flex-col items-center gap-2 sm:inset-x-auto sm:right-6 sm:items-end">
+    <div aria-live="polite" className="pointer-events-none fixed inset-0 z-50 flex flex-col items-center justify-center gap-2 p-4">
       {items.map((item) => (
         <div
           key={item.id}

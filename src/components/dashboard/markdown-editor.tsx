@@ -25,6 +25,13 @@ const tools: Tool[] = [
   { label: "• List", title: "Bulleted list", apply: linePrefix("- ", "List item") },
   { label: "1. List", title: "Numbered list", apply: linePrefix("1. ", "List item") },
   { label: "Quote", title: "Quote", apply: linePrefix("> ", "Quote") },
+  {
+    label: "Table",
+    title: "Table: one row per line, cells split by |",
+    apply: () => ({
+      text: "\n\n| Heading | Heading | Heading |\n| --- | --- | --- |\n| Cell | Cell | Cell |\n| Cell | Cell | Cell |\n\n",
+    }),
+  },
 ];
 
 type EditorProps = { id: string; name: string; defaultValue?: string; required?: boolean; maxLength?: number };
@@ -89,7 +96,7 @@ export function MarkdownEditor({ id, name, defaultValue = "", required, maxLengt
         </div>
       )}
       <p className="border-t border-brand-900/10 px-4 py-2 text-xs text-muted">
-        Leave a blank line between paragraphs. Use the buttons to format, then check Preview.
+        Leave a blank line between paragraphs. Use the buttons to format, then check Preview. Tables: one row per line, cells split by |; add a row by copying a line.
       </p>
     </div>
   );

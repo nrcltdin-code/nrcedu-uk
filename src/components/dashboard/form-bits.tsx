@@ -4,7 +4,9 @@ import { Button, buttonStyles } from "@/components/ui/button";
 import type { FormState } from "@/lib/form";
 import { KeepValuesOnError } from "@/components/ui/keep-values-on-error";
 import { FormToast } from "@/components/ui/toaster";
-import { SubmitButton } from "@/components/ui/submit-button";
+import { DeleteButton } from "@/components/dashboard/delete-button";
+
+export { DeleteButton };
 
 // Shows the result under the form and as a toast, so a save is noticed wherever the button is.
 // After an error the form keeps what was typed.
@@ -45,22 +47,6 @@ export function Checkbox({ name, value, defaultChecked, children }: { name: stri
   );
 }
 
-// Two steps, so a record cannot be deleted with one stray click.
-export function DeleteButton({ action, question }: { action: () => Promise<void>; question: string }) {
-  return (
-    <details className="relative">
-      <summary className="inline-flex h-9 cursor-pointer list-none items-center rounded-full px-4 text-sm font-semibold text-red-700 hover:bg-red-500/10 [&::-webkit-details-marker]:hidden">
-        Delete
-      </summary>
-      <form action={action} className="glass-solid absolute right-0 top-full z-10 mt-1 w-60 rounded-2xl p-3">
-        <p className="text-sm">{question}</p>
-        <SubmitButton size="sm" pendingText="Deleting…" className="mt-2 bg-red-600 bg-none shadow-none hover:bg-red-700">
-          Yes, delete
-        </SubmitButton>
-      </form>
-    </details>
-  );
-}
 
 type RowControlsProps = {
   editHref: string;

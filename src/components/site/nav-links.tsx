@@ -19,6 +19,10 @@ const linkClass = (active: boolean, vertical?: boolean) =>
     active ? "bg-brand-600/12 text-brand-800" : "text-ink/80 hover:bg-brand-600/8 hover:text-ink",
   );
 
+const chevron = (
+  <svg viewBox="0 0 24 24" className="size-3.5 transition-transform group-hover:rotate-180 group-focus-within:rotate-180" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg>
+);
+
 export function NavList({ items, pathname, vertical, onNavigate }: NavListProps) {
   const isActive = (href: string) => pathname === href || Boolean(pathname?.startsWith(`${href}/`));
   return (
@@ -28,7 +32,11 @@ export function NavList({ items, pathname, vertical, onNavigate }: NavListProps)
         if (item.children?.length && vertical) {
           return (
             <li key={`${item.label}${item.href}`}>
-              <Link href={item.href} onClick={onNavigate} aria-current={active ? "page" : undefined} className={linkClass(active && pathname === item.href, true)}>{item.label}</Link>
+              {item.menuOnly ? (
+                <span className={cn(linkClass(false, true), "text-ink/60")}>{item.label}</span>
+              ) : (
+                <Link href={item.href} onClick={onNavigate} aria-current={active ? "page" : undefined} className={linkClass(active && pathname === item.href, true)}>{item.label}</Link>
+              )}
               <ul className="ml-4 border-l border-brand-900/10 pl-2">
                 {item.children.map((child) => (
                   <li key={child.href}>
@@ -43,12 +51,19 @@ export function NavList({ items, pathname, vertical, onNavigate }: NavListProps)
           // Opens on hover and on keyboard focus; the parent link still goes to the overview page.
           return (
             <li key={`${item.label}${item.href}`} className="group relative">
-              <Link href={item.href} aria-current={active ? "page" : undefined} aria-haspopup="true" className={cn(linkClass(active), "flex items-center gap-1")}>
-                {item.label}
-                <svg viewBox="0 0 24 24" className="size-3.5 transition-transform group-hover:rotate-180 group-focus-within:rotate-180" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true"><path d="M6 9l6 6 6-6" /></svg>
-              </Link>
+              {item.menuOnly ? (
+                <button type="button" aria-haspopup="true" className={cn(linkClass(active), "flex items-center gap-1")}>
+                  {item.label}
+                  {chevron}
+                </button>
+              ) : (
+                <Link href={item.href} aria-current={active ? "page" : undefined} aria-haspopup="true" className={cn(linkClass(active), "flex items-center gap-1")}>
+                  {item.label}
+                  {chevron}
+                </Link>
+              )}
               <div className="invisible absolute left-0 top-full z-50 pt-2 opacity-0 transition group-focus-within:visible group-focus-within:opacity-100 group-hover:visible group-hover:opacity-100">
-                <ul className="glass-solid w-60 rounded-2xl p-2 shadow-lg">
+                <ul className="glass-solid max-h-[70vh] w-60 overflow-y-auto rounded-2xl p-2 shadow-lg">
                   {item.children.map((child) => (
                     <li key={child.href}>
                       <Link href={child.href} aria-current={isActive(child.href) ? "page" : undefined}

@@ -220,6 +220,8 @@ export async function getDestination(slug: string) {
       name: true,
       slug: true,
       description: true,
+      tagline: true,
+      content: true,
       imageUrl: true,
       universities: {
         where: { isPublished: true },

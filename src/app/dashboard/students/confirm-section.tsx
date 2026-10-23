@@ -2,6 +2,7 @@
 
 import { useTransition } from "react";
 import { Button } from "@/components/ui/button";
+import { toast } from "@/components/ui/toaster";
 import { setSectionConfirmed } from "./actions";
 
 const day = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", year: "numeric", timeZone: "Europe/London" });
@@ -15,7 +16,16 @@ export function ConfirmSection({ studentId, section, confirmedAt, confirmedBy, c
   canEdit: boolean;
 }) {
   const [pending, start] = useTransition();
-  const set = (value: boolean) => start(() => setSectionConfirmed(studentId, section, value));
+  const label = section === "profile" ? "Profile" : "Education";
+  const set = (value: boolean) =>
+    start(async () => {
+      try {
+        await setSectionConfirmed(studentId, section, value);
+        toast(value ? `${label} confirmed` : `${label} confirmation undone`);
+      } catch {
+        toast("Could not save. Please try again.", "error");
+      }
+    });
 
   if (confirmedAt) {
     return (

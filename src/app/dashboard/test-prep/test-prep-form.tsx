@@ -2,8 +2,10 @@
 
 import { useActionState, useState } from "react";
 import { Checkbox, FormMessage } from "@/components/dashboard/form-bits";
+import { ImageField } from "@/components/dashboard/image-field";
+import { MarkdownEditor } from "@/components/dashboard/markdown-editor";
 import { Button } from "@/components/ui/button";
-import { Input, Label, Textarea } from "@/components/ui/field";
+import { Input, Label } from "@/components/ui/field";
 import { InfoTip } from "@/components/ui/info-tip";
 import type { FormState } from "@/lib/form";
 import type { ScoreTable, TestFact } from "@/lib/test-prep";
@@ -15,6 +17,7 @@ export type TestPrepValues = {
   slug: string;
   summary: string;
   content: string;
+  imageUrl: string | null;
   sortOrder: number;
   isPublished: boolean;
   facts: TestFact[];
@@ -142,8 +145,10 @@ export function TestPrepForm({ test }: { test: TestPrepValues | null }) {
 
       <div>
         <Label htmlFor="t-content" className="flex items-center gap-1">Guide text <InfoTip text="The main article. Markdown works: ## for headings, - for lists, **bold**. The tables above appear between the summary and this text." /></Label>
-        <Textarea id="t-content" name="content" defaultValue={test?.content} rows={14} maxLength={30000} />
+        <MarkdownEditor id="t-content" name="content" defaultValue={test?.content} maxLength={30000} />
       </div>
+
+      <ImageField name="imageUrl" label="Banner image" defaultValue={test?.imageUrl ?? null} />
 
       <FormMessage state={state} />
       <Button type="submit" disabled={pending} className="justify-self-start">{pending ? "Saving…" : test ? "Save changes" : "Add test"}</Button>

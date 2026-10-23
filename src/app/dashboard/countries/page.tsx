@@ -9,7 +9,13 @@ import { Input, Select } from "@/components/ui/field";
 import { db } from "@/lib/db";
 import { requirePermission } from "@/lib/session";
 import type { Prisma } from "@/generated/prisma/client";
+import { DeleteButton } from "@/components/dashboard/form-bits";
+import { deleteCountryPage } from "./actions";
 import { CountryForm } from "./country-form";
+
+// Only countries with a page (or page content) get a Delete button.
+const hasPage = (c: { isDestination: boolean; description: string | null; tagline: string | null; content: string | null; imageUrl: string | null }) =>
+  c.isDestination || Boolean(c.description || c.tagline || c.content || c.imageUrl);
 
 export const metadata: Metadata = { title: "Countries", robots: { index: false } };
 
@@ -59,10 +65,10 @@ async function CountriesManager({ searchParams }: Pick<PageProps<"/dashboard/cou
         <ul className="mt-4 divide-y divide-brand-900/10">
           {countries.length === 0 && <li className="py-3 text-muted">No countries match.</li>}
           {countries.map((country) => (
-            <li key={country.id}>
+            <li key={country.id} className="flex items-center gap-1">
               <Link
                 href={link(country.id)}
-                className={`flex items-center justify-between gap-3 rounded-xl px-2 py-2.5 hover:bg-brand-600/5 ${country.id === edit ? "bg-brand-600/8" : ""}`}
+                className={`flex min-w-0 flex-1 items-center justify-between gap-3 rounded-xl px-2 py-2.5 hover:bg-brand-600/5 ${country.id === edit ? "bg-brand-600/8" : ""}`}
               >
                 <span className="font-medium">{country.name}</span>
                 <span className="flex gap-2">
@@ -70,6 +76,9 @@ async function CountriesManager({ searchParams }: Pick<PageProps<"/dashboard/cou
                   {country.isDestination && <Badge tone="success">Destination</Badge>}
                 </span>
               </Link>
+              {hasPage(country) && (
+                <DeleteButton action={deleteCountryPage.bind(null, country.id)} question={`Delete the ${country.name} page? Its text and images are removed and it leaves the Destinations menu.`} />
+              )}
             </li>
           ))}
         </ul>
@@ -78,7 +87,12 @@ async function CountriesManager({ searchParams }: Pick<PageProps<"/dashboard/cou
       <Card tone="solid">
         {editing ? (
           <>
-            <h2 className="mb-4 text-xl font-bold">{editing.name}</h2>
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <h2 className="text-xl font-bold">{editing.name}</h2>
+              {hasPage(editing) && (
+                <DeleteButton action={deleteCountryPage.bind(null, editing.id)} question={`Delete the ${editing.name} page? Its text and images are removed and it leaves the Destinations menu.`} />
+              )}
+            </div>
             <CountryForm key={editing.id} country={editing} />
           </>
         ) : (

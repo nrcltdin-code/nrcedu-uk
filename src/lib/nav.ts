@@ -1,5 +1,6 @@
 // children: a dropdown under the item (the header fills Test Prep with the published guides).
-export type NavItem = { label: string; href: string; children?: NavItem[] };
+// menuOnly: the item only opens its dropdown; it is not a link itself.
+export type NavItem = { label: string; href: string; children?: NavItem[]; menuOnly?: boolean };
 
 // Defaults only: the live menus are edited in Dashboard → Site settings (lib/settings.ts).
 export const mainNav: NavItem[] = [

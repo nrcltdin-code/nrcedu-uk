@@ -737,6 +737,10 @@ model Country {
   flagUrl       String?
   imageUrl      String?
   description   String?
+  // One or two lines on the destination banner.
+  tagline       String?
+  // Markdown details shown below the banner.
+  content       String?
   isDestination Boolean  @default(false)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt

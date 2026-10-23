@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CtaBand } from "@/components/site/cta-band";
+import { Prose } from "@/components/site/prose";
 import { UniversityCard } from "@/components/site/university-card";
 import { buttonStyles } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -59,13 +60,26 @@ async function DestinationContent({ params }: Pick<Props, "params">) {
             <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl">
               Study in <span className="text-gradient-warm">{country.name}</span>
             </h1>
-            {country.description && <p className="mt-5 max-w-2xl text-lg text-white/90">{country.description}</p>}
+            {(country.tagline || country.description) && (
+              <p className="mt-5 line-clamp-2 max-w-2xl text-lg text-white/90">{country.tagline || country.description}</p>
+            )}
             <Link href="/consultation" className={buttonStyles({ variant: "accent", size: "lg", className: "mt-8" })}>
               Book a free consultation
             </Link>
           </div>
         </div>
       </Container>
+
+      {country.content && (
+        <Section>
+          <article className="mx-auto max-w-3xl">
+            <h2 className="mb-6 text-3xl font-extrabold tracking-tight">
+              About studying in <span className="text-gradient">{country.name}</span>
+            </h2>
+            <Prose text={country.content} />
+          </article>
+        </Section>
+      )}
 
       <Section tint="amber">
         <h2 className="mb-8 text-3xl font-extrabold tracking-tight">

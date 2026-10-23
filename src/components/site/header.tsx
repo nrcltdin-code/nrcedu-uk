@@ -7,21 +7,23 @@ import { ActiveNavList, NavList } from "@/components/site/nav-links";
 import { SocialIcons } from "@/components/site/social-icons";
 import { Icon } from "@/components/ui/icon";
 import { Container } from "@/components/ui/section";
-import { getTestPrepPages } from "@/lib/data/home";
+import { getDestinations, getTestPrepPages } from "@/lib/data/home";
 import { getSiteSettings, socialNetworks, telHref, whatsappHref } from "@/lib/settings";
 
 // Two tiers. A slim top bar carries contact details, social links, Become an agent and the
 // account link; it scrolls away. The glass bar below sticks, with only the logo, the menu and
 // the two main actions, so it stays on one line. Phones get everything in the menu drawer.
 export async function Header() {
-  const [{ menus, contact, social }, tests] = await Promise.all([getSiteSettings(), getTestPrepPages()]);
+  const [{ menus, contact, social }, tests, countries] = await Promise.all([getSiteSettings(), getTestPrepPages(), getDestinations()]);
   // About lives in the footer. Test Prep opens a list of the published exam guides.
   const mainNav = menus.main
     .filter((item) => item.href !== "/about")
     .map((item) =>
       item.href === "/test-prep" && tests.length
         ? { ...item, children: [...tests.map((t) => ({ label: t.name, href: `/test-prep/${t.slug}` })), { label: "All tests", href: "/test-prep" }] }
-        : item,
+        : item.href === "/destinations" && countries.length
+          ? { ...item, menuOnly: true, children: countries.map((c) => ({ label: c.name, href: `/destinations/${c.slug}` })) }
+          : item,
     );
   // While the session is read, the visitor versions hold the space but stay invisible, so a
   // signed-in person never sees "Sign in" flash before their name.
