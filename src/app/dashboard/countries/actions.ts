@@ -40,6 +40,8 @@ export async function saveCountry(_previous: FormState, form: FormData): Promise
   releaseImages(before?.imageUrl, before?.flagUrl);
 
   updateTag("countries");
+  // No longer a destination: close its editor.
+  if (!checked(form, "isDestination")) redirect("/dashboard/countries");
   return { saved: true };
 }
 

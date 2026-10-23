@@ -42,7 +42,8 @@ This guide covers everyday use. Every dashboard screen also has an **About this 
 
 - **Students**: open a record to edit details, upload or review documents, start an application, or send an invite link so the student can set a password.
 - Documents: **Approve**, or **Ask again** with a note saying what to fix; the student is emailed.
-- **Applications**: move each application through its stages (New → Documents pending → Submitted → Offer → Deposit/CAS → Visa → Enrolled). Adding a note when you change stage emails it to the student.
+- **Applications**: the stages show as a tick-box track (New → Documents pending → Submitted → Offer → Deposit/CAS → Visa → Enrolled). Tick the stage it has reached and press **Move**; closing options (rejected, withdrawn and so on) sit underneath. Any note you add is emailed to the student. A note is required for a university query, rejection, declined offer, visa refusal or withdrawal, so the student knows why.
+- **Counsellors**: the first counsellor assigned to any of a student's applications becomes their main counsellor, shown on the student's pages.
 - **Messages**: students write to their counsellor here; unread counts show in the menu.
 - **Reminders**: add a follow-up on any lead, student or application. Due reminders show in the menu and in a 7:00 morning email.
 
@@ -68,6 +69,7 @@ This guide covers everyday use. Every dashboard screen also has an **About this 
 | Blog posts | Dashboard → Blog (Save draft, Preview, Publish) |
 | Testimonials, partner logos, FAQs | Dashboard → Testimonials / Partners / FAQs |
 
+- **Study destinations** (Dashboard → Countries): pick a country from **Add a destination** and press **Add**; its page editor opens. **Delete** removes the destination page (text, images and menu entry); the country stays available for students and leads and goes back into the dropdown.
 - Untick **Show on the website** (or press **Hide**) to take something down without deleting it.
 - Changes show on the website straight away.
 - Images: upload JPG, PNG or WebP. Phone photos are turned the right way up and resized automatically.
