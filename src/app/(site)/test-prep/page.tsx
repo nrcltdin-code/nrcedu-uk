@@ -6,11 +6,13 @@ import { Card } from "@/components/ui/card";
 import { Icon } from "@/components/ui/icon";
 import { Section } from "@/components/ui/section";
 import { getTestPrepPages } from "@/lib/data/home";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "Test preparation",
   description: "Guidance on IELTS, TOEFL, PTE, Duolingo, GRE and GMAT for students applying to universities abroad.",
-};
+  path: "/test-prep",
+});
 
 export default async function TestPrepIndexPage() {
   const tests = await getTestPrepPages();

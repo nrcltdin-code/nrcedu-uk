@@ -12,6 +12,8 @@ import type { IconName, TileColor } from "@/components/ui/icon";
 import { Section } from "@/components/ui/section";
 import { getCourse, getUniversitySlugs, levelNames } from "@/lib/data/catalogue";
 import { formatDate, formatDuration, formatMoney } from "@/lib/format";
+import { absoluteUrl, breadcrumbLd, pageMetadata } from "@/lib/seo";
+import { JsonLd } from "@/components/site/json-ld";
 
 type Props = PageProps<"/universities/[slug]/courses/[course]">;
 
@@ -27,10 +29,17 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug, course: courseSlug } = await params;
   const course = await getCourse(slug, courseSlug);
   if (!course) return {};
-  return {
+  const facts = [
+    course.durationMonths ? formatDuration(course.durationMonths) : null,
+    course.tuitionFee != null ? `tuition ${formatMoney(course.tuitionFee, course.currency)}` : null,
+    course.intakes[0] ? `next intake ${course.intakes[0].name}` : null,
+  ].filter(Boolean);
+  return pageMetadata({
     title: `${course.name} at ${course.university.name}`,
-    description: `Fees, duration, entry requirements and intakes for ${course.name} at ${course.university.name}. Apply through NRC Educational Consultants.`,
-  };
+    description: `${levelNames[course.level]} ${course.name} at ${course.university.name}, ${course.university.country.name}${facts.length ? `: ${facts.join(", ")}` : ""}. Entry requirements and free application support from NRC.`,
+    path: `/universities/${course.university.slug}/courses/${course.slug}`,
+    image: course.university.coverUrl,
+  });
 }
 
 // Params are read inside <Suspense>: with Partial Prefetching, an address that was not built ahead of
@@ -61,6 +70,43 @@ async function CourseContent({ params }: Pick<Props, "params">) {
 
   return (
     <main>
+      <JsonLd
+        data={[
+          {
+            "@type": "Course",
+            name: course.name,
+            description: course.description || `${levelNames[course.level]} ${course.name} at ${course.university.name}.`,
+            url: absoluteUrl(`/universities/${course.university.slug}/courses/${course.slug}`),
+            provider: {
+              "@type": "CollegeOrUniversity",
+              name: course.university.name,
+              url: absoluteUrl(`/universities/${course.university.slug}`),
+            },
+            ...(course.subject ? { about: course.subject.name } : {}),
+            educationalLevel: levelNames[course.level],
+            ...(course.durationMonths ? { timeRequired: `P${course.durationMonths}M` } : {}),
+            ...(course.tuitionFee != null
+              ? { offers: { "@type": "Offer", category: "Tuition", price: course.tuitionFee, priceCurrency: course.currency} }
+              : {}),
+            ...(course.intakes.length
+              ? {
+                  hasCourseInstance: course.intakes.map((intake) => ({
+                    "@type": "CourseInstance",
+                    name: intake.name,
+                    courseMode: "Onsite",
+                    startDate: intake.startDate.toISOString().slice(0, 10),
+                    location: [course.university.city, course.university.country.name].filter(Boolean).join(", "),
+                  })),
+                }
+              : {}),
+          },
+          breadcrumbLd([
+            { name: "Universities", path: "/universities" },
+            { name: course.university.name, path: `/universities/${course.university.slug}` },
+            { name: course.name, path: `/universities/${course.university.slug}/courses/${course.slug}` },
+          ]),
+        ]}
+      />
       <PageHero eyebrow={university.name} title={course.name}>
         {levelNames[course.level]} course in {[university.city, university.country.name].filter(Boolean).join(", ")}
         {course.subject && <> · {course.subject.name}</>}

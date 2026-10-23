@@ -10,7 +10,9 @@ import { Card } from "@/components/ui/card";
 import { Icon } from "@/components/ui/icon";
 import { Container, Section } from "@/components/ui/section";
 import { getUniversity, getUniversitySlugs } from "@/lib/data/catalogue";
-import { formatDate } from "@/lib/format";
+import { formatDate, formatMoney } from "@/lib/format";
+import { absoluteUrl, breadcrumbLd, pageMetadata } from "@/lib/seo";
+import { JsonLd } from "@/components/site/json-ld";
 
 type Props = PageProps<"/universities/[slug]">;
 
@@ -23,10 +25,23 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const university = await getUniversity((await params).slug);
   if (!university) return {};
-  return {
-    title: university.name,
-    description: `Courses, fees and intakes at ${university.name}, ${university.country.name}. Apply through NRC Educational Consultants.`,
-  };
+  const location = [university.city, university.country.name].filter(Boolean).join(", ");
+  const count = university.courses.length;
+  const cheapest = university.courses
+    .filter((c) => c.tuitionFee != null)
+    .sort((a, b) => a.tuitionFee! - b.tuitionFee!)[0];
+  const nextIntake = university.intakes[0];
+  const facts = [
+    count ? `${count} ${count === 1 ? "course" : "courses"}` : null,
+    cheapest ? `tuition from ${formatMoney(cheapest.tuitionFee!, cheapest.currency)}` : null,
+    nextIntake ? `next intake ${nextIntake.name}` : null,
+  ].filter(Boolean);
+  return pageMetadata({
+    title: `${university.name}: courses, fees and intakes`,
+    description: `Study at ${university.name} in ${location}${facts.length ? `: ${facts.join(", ")}` : ""}. Free advice and application support from NRC Educational Consultants.`,
+    path: `/universities/${university.slug}`,
+    image: university.coverUrl ?? university.logoUrl,
+  });
 }
 
 // Params are read inside <Suspense>: with Partial Prefetching, an address that was not built ahead of
@@ -48,6 +63,28 @@ async function UniversityContent({ params }: Pick<Props, "params">) {
 
   return (
     <main>
+      <JsonLd
+        data={[
+          {
+            "@type": "CollegeOrUniversity",
+            name: university.name,
+            url: absoluteUrl(`/universities/${university.slug}`),
+            ...(university.description ? { description: university.description } : {}),
+            ...(university.logoUrl ? { logo: university.logoUrl } : {}),
+            ...(university.coverUrl ? { image: university.coverUrl } : {}),
+            ...(university.website ? { sameAs: [university.website] } : {}),
+            address: {
+              "@type": "PostalAddress",
+              ...(university.city ? { addressLocality: university.city } : {}),
+              addressCountry: university.country.name,
+            },
+          },
+          breadcrumbLd([
+            { name: "Universities", path: "/universities" },
+            { name: university.name, path: `/universities/${university.slug}` },
+          ]),
+        ]}
+      />
       <Container className="pt-6">
         <div className="bg-deep relative isolate overflow-hidden rounded-[2rem] text-white">
           {university.coverUrl && (

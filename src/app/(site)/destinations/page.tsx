@@ -7,11 +7,13 @@ import { Card } from "@/components/ui/card";
 import { Icon } from "@/components/ui/icon";
 import { Section } from "@/components/ui/section";
 import { getDestinations } from "@/lib/data/home";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "Study destinations",
   description: "Compare the countries you can study in with NRC Educational Consultants: the UK, USA, Canada, Australia and Germany.",
-};
+  path: "/destinations",
+});
 
 export default async function DestinationsPage() {
   const countries = await getDestinations();

@@ -1,7 +1,11 @@
 import type { Metadata } from "next";
 import { LegalPage } from "@/components/site/legal-page";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = { title: "Terms of use" };
+export const metadata: Metadata = pageMetadata({
+  title: "Terms of use",
+  path: "/terms",
+});
 
 // Placeholder wording until the client's own terms (checked by their solicitor) are supplied.
 export default function TermsPage() {

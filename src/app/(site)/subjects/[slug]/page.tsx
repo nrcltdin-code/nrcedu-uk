@@ -8,6 +8,8 @@ import { PageHero } from "@/components/site/page-hero";
 import { Card } from "@/components/ui/card";
 import { Section } from "@/components/ui/section";
 import { getSubject, getSubjects } from "@/lib/data/catalogue";
+import { absoluteUrl, breadcrumbLd, pageMetadata } from "@/lib/seo";
+import { JsonLd } from "@/components/site/json-ld";
 
 type Props = PageProps<"/subjects/[slug]">;
 
@@ -19,10 +21,16 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const subject = await getSubject((await params).slug);
   if (!subject) return {};
-  return {
-    title: `${subject.name} courses`,
-    description: subject.description ?? `${subject.name} courses at universities abroad. Compare fees and apply through NRC Educational Consultants.`,
-  };
+  const count = subject.courses.length;
+  const universities = new Set(subject.courses.map((c) => c.university.slug)).size;
+  const summary = count
+    ? `Compare ${count} ${subject.name} ${count === 1 ? "course" : "courses"} at ${universities} ${universities === 1 ? "university" : "universities"} abroad`
+    : `${subject.name} courses at universities abroad`;
+  return pageMetadata({
+    title: `${subject.name} courses abroad`,
+    description: subject.description ?? `${summary}: fees, duration and intakes, with free application support from NRC.`,
+    path: `/subjects/${subject.slug}`,
+  });
 }
 
 // Params are read inside <Suspense>: with Partial Prefetching, an address that was not built ahead of
@@ -42,6 +50,23 @@ async function SubjectContent({ params }: Pick<Props, "params">) {
 
   return (
     <main>
+      <JsonLd
+        data={[
+          {
+            "@type": "ItemList",
+            name: `${subject.name} courses`,
+            itemListElement: subject.courses.map((course, index) => ({
+              "@type": "ListItem",
+              position: index + 1,
+              url: absoluteUrl(`/universities/${course.university.slug}/courses/${course.slug}`),
+            })),
+          },
+          breadcrumbLd([
+            { name: "Subjects", path: "/subjects" },
+            { name: subject.name, path: `/subjects/${subject.slug}` },
+          ]),
+        ]}
+      />
       <PageHero eyebrow="Subject" title={subject.name} highlight="courses">
         {subject.description ?? `${subject.courses.length} ${subject.courses.length === 1 ? "course" : "courses"} across our universities.`}
       </PageHero>

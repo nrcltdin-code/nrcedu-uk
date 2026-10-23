@@ -9,11 +9,13 @@ import { Card } from "@/components/ui/card";
 import { Input, Label, Select } from "@/components/ui/field";
 import { Section } from "@/components/ui/section";
 import { courseLevelNames, getFilterOptions, isStudyLevel, levelNames, searchUniversities } from "@/lib/data/catalogue";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "Universities",
   description: "Search universities and courses in the UK, USA, Canada, Australia and Germany, and apply through NRC Educational Consultants.",
-};
+  path: "/universities",
+});
 
 type SearchParams = PageProps<"/universities">["searchParams"];
 

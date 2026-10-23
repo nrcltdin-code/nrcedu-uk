@@ -8,16 +8,28 @@ import { IconTile } from "@/components/ui/icon";
 import { Section } from "@/components/ui/section";
 import { getSiteSettings, telHref } from "@/lib/settings";
 import { ContactForm } from "./contact-form";
+import { JsonLd } from "@/components/site/json-ld";
+import { breadcrumbLd, organizationId, organizationLd, pageMetadata } from "@/lib/seo";
+import { siteUrl } from "@/lib/site-url";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "Contact us",
   description: "Get in touch with NRC Educational Consultants about studying abroad, applications and student visas.",
-};
+  path: "/contact",
+});
 
 export default async function ContactPage() {
-  const { contact } = await getSiteSettings();
+  const settings = await getSiteSettings();
+  const { contact } = settings;
   return (
     <main>
+      <JsonLd
+        data={[
+          organizationLd(settings),
+          { "@type": "ContactPage", url: `${siteUrl}/contact`, name: "Contact us", about: { "@id": organizationId } },
+          breadcrumbLd([{ name: "Contact us", path: "/contact" }]),
+        ]}
+      />
       <PageHero eyebrow="Contact" title="Let's talk about" highlight="your plans">
         Ask us anything about studying abroad. We reply to every message.
       </PageHero>

@@ -8,11 +8,13 @@ import { Icon } from "@/components/ui/icon";
 import { Section, SectionHeading } from "@/components/ui/section";
 import { getPartnerUniversities } from "@/lib/data/content";
 import { getPartners } from "@/lib/data/home";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "Our partner universities",
   description: "The universities NRC Educational Consultants officially represents, and the organisations we work with.",
-};
+  path: "/partners",
+});
 
 export default async function PartnersPage() {
   const [universities, partners] = await Promise.all([getPartnerUniversities(), getPartners()]);

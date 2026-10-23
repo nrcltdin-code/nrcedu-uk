@@ -10,6 +10,8 @@ import { Icon } from "@/components/ui/icon";
 import { Container } from "@/components/ui/section";
 import { getPost, getPostSlugs } from "@/lib/data/content";
 import { formatDate } from "@/lib/format";
+import { absoluteUrl, breadcrumbLd, defaultImage, pageMetadata, publisherLd } from "@/lib/seo";
+import { JsonLd } from "@/components/site/json-ld";
 
 type Props = PageProps<"/blog/[slug]">;
 
@@ -21,11 +23,14 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const post = await getPost((await params).slug);
   if (!post) return {};
-  return {
+  return pageMetadata({
     title: post.title,
     description: post.excerpt ?? undefined,
-    openGraph: { type: "article", images: post.coverUrl ? [post.coverUrl] : undefined },
-  };
+    path: `/blog/${post.slug}`,
+    image: post.coverUrl,
+    type: "article",
+    publishedTime: post.publishedAt,
+  });
 }
 
 // Params are read inside <Suspense>: with Partial Prefetching, an address that was not built ahead of
@@ -45,6 +50,24 @@ async function BlogPostContent({ params }: Pick<Props, "params">) {
 
   return (
     <main>
+      <JsonLd
+        data={[
+          {
+            "@type": "BlogPosting",
+            headline: post.title,
+            ...(post.excerpt ? { description: post.excerpt } : {}),
+            image: absoluteUrl(post.coverUrl ?? defaultImage),
+            ...(post.publishedAt ? { datePublished: post.publishedAt.toISOString() } : {}),
+            mainEntityOfPage: absoluteUrl(`/blog/${post.slug}`),
+            author: post.author?.name ? { "@type": "Person", name: post.author.name } : publisherLd,
+            publisher: publisherLd,
+          },
+          breadcrumbLd([
+            { name: "Blog", path: "/blog" },
+            { name: post.title, path: `/blog/${post.slug}` },
+          ]),
+        ]}
+      />
       <Container className="max-w-3xl py-10 sm:py-14">
         <Link href="/blog" className="inline-flex items-center gap-1 text-sm font-semibold text-brand-700 hover:underline">
           <Icon name="arrowLeft" className="size-4" /> All articles

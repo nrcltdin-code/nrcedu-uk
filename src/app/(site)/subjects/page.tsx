@@ -7,11 +7,13 @@ import { Icon, IconTile } from "@/components/ui/icon";
 import type { TileColor } from "@/components/ui/icon";
 import { Section } from "@/components/ui/section";
 import { getSubjects } from "@/lib/data/catalogue";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "Subjects",
   description: "Browse courses by subject area across the universities NRC Educational Consultants works with.",
-};
+  path: "/subjects",
+});
 
 const colors: TileColor[] = ["sky", "amber", "violet", "emerald"];
 

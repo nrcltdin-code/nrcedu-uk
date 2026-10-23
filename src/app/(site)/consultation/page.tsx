@@ -7,11 +7,13 @@ import { Section } from "@/components/ui/section";
 import { courseLevelNames } from "@/lib/data/catalogue";
 import { getCountryOptions } from "@/lib/data/content";
 import { ConsultationForm } from "./consultation-form";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "Free consultation",
   description: "Book a free consultation with an NRC counsellor and find out where you can study abroad.",
-};
+  path: "/consultation",
+});
 
 const points: { title: string; text: string; icon: IconName; color: TileColor }[] = [
   { title: "It costs nothing", text: "The first consultation is free, with no obligation to continue.", icon: "check", color: "emerald" },

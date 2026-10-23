@@ -7,11 +7,13 @@ import { Icon, IconTile } from "@/components/ui/icon";
 import type { IconName, TileColor } from "@/components/ui/icon";
 import { Section, SectionHeading } from "@/components/ui/section";
 import { getTestPrepPages } from "@/lib/data/home";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "Services",
   description: "Consultation, university selection, application support, visa guidance, test preparation and pre-departure help for studying abroad.",
-};
+  path: "/services",
+});
 
 // Placeholder wording until the client supplies their own text.
 const services: { title: string; text: string; points: string[]; icon: IconName; color: TileColor }[] = [

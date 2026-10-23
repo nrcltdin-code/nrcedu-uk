@@ -6,11 +6,13 @@ import type { IconName, TileColor } from "@/components/ui/icon";
 import { Section, SectionHeading } from "@/components/ui/section";
 import { getCountryOptions } from "@/lib/data/content";
 import { AgentForm } from "./agent-form";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "Become an agent",
   description: "Partner with NRC Educational Consultants as a student recruitment agent and place your students at universities abroad.",
-};
+  path: "/become-an-agent",
+});
 
 // Placeholder wording until the client supplies their own text.
 const benefits: { title: string; text: string; icon: IconName; color: TileColor }[] = [

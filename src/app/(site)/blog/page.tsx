@@ -10,11 +10,13 @@ import { Icon } from "@/components/ui/icon";
 import { Section } from "@/components/ui/section";
 import { getPosts } from "@/lib/data/content";
 import { formatDate } from "@/lib/format";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "Blog",
   description: "Advice on choosing a country and university, applications, student visas and life abroad.",
-};
+  path: "/blog",
+});
 
 export default function BlogPage({ searchParams }: PageProps<"/blog">) {
   return (

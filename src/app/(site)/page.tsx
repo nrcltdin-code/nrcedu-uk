@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { HeroSlider } from "@/components/site/hero-slider";
@@ -21,6 +22,8 @@ import {
   getTestimonials,
 } from "@/lib/data/home";
 import { getSiteSettings, socialNetworks } from "@/lib/settings";
+import { organizationLd, pageMetadata, siteName, websiteLd } from "@/lib/seo";
+import { JsonLd } from "@/components/site/json-ld";
 
 type Feature = { title: string; text: string; icon: IconName; color: TileColor };
 
@@ -66,9 +69,22 @@ const cardHover = "transition duration-300 hover:-translate-y-1.5 hover:shadow-2
 
 const dateFormat = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "long", year: "numeric" });
 
+const homeTitle = `${siteName}: study abroad and student visa consultants`;
+
+export const metadata: Metadata = {
+  ...pageMetadata({
+    title: homeTitle,
+    description:
+      "Study abroad with NRC Educational Consultants: free advice, university admissions in the UK, USA, Canada, Australia and Germany, applications and student visa support.",
+    path: "/",
+  }),
+  title: { absolute: homeTitle },
+};
+
 export default function Home() {
   return (
     <main>
+      <HomeLd />
       <Hero />
       <Destinations />
       <FeaturedUniversities />
@@ -81,6 +97,12 @@ export default function Home() {
       <Faqs />
     </main>
   );
+}
+
+// Business and website details for search engines.
+async function HomeLd() {
+  const settings = await getSiteSettings();
+  return <JsonLd data={[organizationLd(settings), websiteLd()]} />;
 }
 
 async function Hero() {

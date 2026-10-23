@@ -12,6 +12,8 @@ import { Container, Section } from "@/components/ui/section";
 import { getTestPrepPage } from "@/lib/data/content";
 import { getTestPrepPages } from "@/lib/data/home";
 import { parseFacts, parseTables } from "@/lib/test-prep";
+import { breadcrumbLd, pageMetadata } from "@/lib/seo";
+import { JsonLd } from "@/components/site/json-ld";
 
 type Props = PageProps<"/test-prep/[slug]">;
 
@@ -23,10 +25,12 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const test = await getTestPrepPage((await params).slug);
   if (!test) return {};
-  return {
+  return pageMetadata({
     title: `${test.name} preparation`,
     description: test.summary ?? `What the ${test.name} test is, the scores universities ask for, and how to prepare.`,
-  };
+    path: `/test-prep/${test.slug}`,
+    image: test.imageUrl,
+  });
 }
 
 // Params are read inside <Suspense>: with Partial Prefetching, an address that was not built ahead of
@@ -51,6 +55,14 @@ async function TestPrepContent({ params }: Pick<Props, "params">) {
 
   return (
     <main>
+      <JsonLd
+        data={[
+          breadcrumbLd([
+            { name: "Test preparation", path: "/test-prep" },
+            { name: test.name, path: `/test-prep/${test.slug}` },
+          ]),
+        ]}
+      />
       <Container className="pt-6">
         <div className="bg-deep relative isolate overflow-hidden rounded-[2rem] text-white">
           {test.imageUrl && (

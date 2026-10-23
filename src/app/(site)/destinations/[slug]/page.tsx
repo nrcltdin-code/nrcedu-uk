@@ -11,6 +11,8 @@ import { Card } from "@/components/ui/card";
 import { Container, Section } from "@/components/ui/section";
 import { getDestination } from "@/lib/data/catalogue";
 import { getDestinations } from "@/lib/data/home";
+import { breadcrumbLd, pageMetadata } from "@/lib/seo";
+import { JsonLd } from "@/components/site/json-ld";
 
 type Props = PageProps<"/destinations/[slug]">;
 
@@ -22,10 +24,15 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const country = await getDestination((await params).slug);
   if (!country) return {};
-  return {
+  const count = country.universities.length;
+  return pageMetadata({
     title: `Study in ${country.name}`,
-    description: country.description ?? `Universities and courses in ${country.name}, with application and visa support from NRC Educational Consultants.`,
-  };
+    description:
+      country.description ??
+      `Study in ${country.name}${count ? ` at ${count} partner ${count === 1 ? "university" : "universities"}` : ""}: courses, fees, intakes and student visa support from NRC Educational Consultants.`,
+    path: `/destinations/${country.slug}`,
+    image: country.imageUrl,
+  });
 }
 
 // Params are read inside <Suspense>: with Partial Prefetching, an address that was not built ahead of
@@ -45,6 +52,14 @@ async function DestinationContent({ params }: Pick<Props, "params">) {
 
   return (
     <main>
+      <JsonLd
+        data={[
+          breadcrumbLd([
+            { name: "Destinations", path: "/destinations" },
+            { name: `Study in ${country.name}`, path: `/destinations/${country.slug}` },
+          ]),
+        ]}
+      />
       <Container className="pt-6">
         <div className="bg-deep relative isolate overflow-hidden rounded-[2rem] text-white">
           {country.imageUrl && (

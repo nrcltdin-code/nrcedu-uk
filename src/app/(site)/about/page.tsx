@@ -5,11 +5,13 @@ import { Card } from "@/components/ui/card";
 import { IconTile } from "@/components/ui/icon";
 import type { IconName, TileColor } from "@/components/ui/icon";
 import { Section, SectionHeading } from "@/components/ui/section";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: "About us",
   description: "NRC Educational Consultants helps students choose the right university abroad and supports them from application to arrival.",
-};
+  path: "/about",
+});
 
 // Placeholder wording until the client supplies their own text.
 const values: { title: string; text: string; icon: IconName; color: TileColor }[] = [
