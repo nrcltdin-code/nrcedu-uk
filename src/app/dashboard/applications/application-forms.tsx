@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { FormMessage } from "@/components/dashboard/form-bits";
 import { KeepValuesOnError } from "@/components/ui/keep-values-on-error";
 import { Button } from "@/components/ui/button";
@@ -8,31 +8,69 @@ import { Input, Label, Select } from "@/components/ui/field";
 import type { FormState } from "@/lib/form";
 import { addCondition, assignApplication, moveStage, saveApplicationDetails } from "./actions";
 
-// `options` are the stages this application may move to (from allowedMoves), already labelled.
-export function StageForm({ id, options }: { id: string; options: { value: string; label: string; closed: boolean }[] }) {
+type StageOption = { value: string; label: string; closed: boolean; needsNote: boolean };
+
+// A track of the application's stages: done ones ticked, the current one marked, and the ones it
+// may move to (from allowedMoves) as tick boxes. End states sit apart under "Close the application".
+export function StageForm({ id, current, track, options }: { id: string; current: string; track: { value: string; label: string }[]; options: StageOption[] }) {
   const [state, action, pending] = useActionState<FormState, FormData>(moveStage, {});
+  const [picked, setPicked] = useState("");
 
   if (options.length === 0) return <p className="text-sm text-muted">This application is closed. Only an administrator can reopen it.</p>;
-  const open = options.filter((o) => !o.closed);
-  const closed = options.filter((o) => o.closed);
+  const allowed = new Map(options.map((o) => [o.value, o]));
+  const at = track.findIndex((t) => t.value === current);
+  const closing = options.filter((o) => o.closed && o.value !== "ENROLLED");
+  const choice = allowed.get(picked);
+
+  const box = (value: string, label: string, tone: "brand" | "danger") => (
+    <label className={`flex cursor-pointer items-center gap-3 rounded-xl px-2 py-1.5 transition hover:bg-brand-600/8 ${picked === value ? (tone === "danger" ? "bg-red-500/10" : "bg-brand-600/10") : ""}`}>
+      <input type="radio" name="stage" value={value} checked={picked === value} onChange={() => setPicked(value)} required className="peer sr-only" />
+      <span aria-hidden className={`grid size-5 shrink-0 place-items-center rounded-md border-2 text-xs font-bold text-white peer-focus-visible:ring-2 peer-focus-visible:ring-brand-600/40 ${picked === value ? (tone === "danger" ? "border-red-600 bg-red-600" : "border-brand-600 bg-brand-600") : "border-brand-900/25 bg-white"}`}>
+        {picked === value && "✓"}
+      </span>
+      <span className="text-sm">{label}</span>
+    </label>
+  );
 
   return (
     <form action={action} className="grid gap-4">
       <input type="hidden" name="id" value={id} />
+      <fieldset>
+        <legend className="mb-2 text-sm font-semibold">Tick the stage it has reached</legend>
+        <ol className="grid">
+          {track.map((t, i) => {
+            const option = allowed.get(t.value);
+            if (t.value === current) {
+              return (
+                <li key={t.value} className="flex items-center gap-3 px-2 py-1.5">
+                  <span aria-hidden className="size-5 shrink-0 rounded-full border-[5px] border-brand-600 bg-white" />
+                  <span className="text-sm font-semibold">{t.label} <span className="font-normal text-muted">(now)</span></span>
+                </li>
+              );
+            }
+            if (option) return <li key={t.value}>{box(t.value, i < at ? `${t.label} (step back)` : t.label, "brand")}</li>;
+            const done = at >= 0 && i < at;
+            return (
+              <li key={t.value} className="flex items-center gap-3 px-2 py-1.5 text-muted">
+                <span aria-hidden className={`grid size-5 shrink-0 place-items-center rounded-full text-xs ${done ? "bg-emerald-600 text-white" : "border-2 border-brand-900/15"}`}>{done && "✓"}</span>
+                <span className="text-sm">{t.label}{done && <span className="sr-only"> (done)</span>}</span>
+              </li>
+            );
+          })}
+        </ol>
+      </fieldset>
+      {closing.length > 0 && (
+        <fieldset className="border-t border-brand-900/10 pt-3">
+          <legend className="mb-1 pt-3 text-sm font-semibold">Or close the application</legend>
+          <div className="grid">{closing.map((o) => <div key={o.value}>{box(o.value, o.label, "danger")}</div>)}</div>
+        </fieldset>
+      )}
       <div>
-        <Label htmlFor="a-stage">Next stage</Label>
-        <Select id="a-stage" name="stage" defaultValue="" required>
-          <option value="" disabled>Choose…</option>
-          {open.length > 0 && <optgroup label="Move along">{open.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}</optgroup>}
-          {closed.length > 0 && <optgroup label="Close the application">{closed.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}</optgroup>}
-        </Select>
-      </div>
-      <div>
-        <Label htmlFor="a-stage-note">Note (the student sees this)</Label>
-        <Input id="a-stage-note" name="note" maxLength={1000} placeholder="Required when closing, e.g. the reason for a refusal" />
+        <Label htmlFor="a-stage-note">Note (the student sees this){choice?.needsNote && <span className="text-red-700"> · required</span>}</Label>
+        <Input id="a-stage-note" name="note" maxLength={1000} required={choice?.needsNote} placeholder={choice?.needsNote ? "Say why, e.g. the reason for a refusal" : "Optional"} />
       </div>
       <FormMessage state={state} />
-      <Button type="submit" disabled={pending} className="justify-self-start">{pending ? "Saving…" : "Move"}</Button>
+      <Button type="submit" disabled={pending || !picked} className="justify-self-start">{pending ? "Saving…" : choice ? `Move to ${choice.label}` : "Move"}</Button>
     </form>
   );
 }

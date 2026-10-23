@@ -11,7 +11,7 @@ import { NoteForm } from "@/components/dashboard/note-form";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonStyles } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { allowedMoves, isClosed, stageLabel, stages, stageTones } from "@/lib/application-flow";
+import { allowedMoves, isClosed, needsReason, stageLabel, stages, stageTones } from "@/lib/application-flow";
 import { getAssigneeOptions } from "@/lib/assignees";
 import { db } from "@/lib/db";
 import { documentTypeLabels } from "@/lib/documents";
@@ -88,7 +88,7 @@ async function ApplicationDetail({ params, searchParams }: Pick<PageProps<"/dash
       : [],
   ]);
 
-  const options = allowedMoves(app.stage, skippedStages, user.role === "ADMIN").map((s) => ({ value: s, label: stageLabel(s, confirmationName), closed: isClosed(s) }));
+  const options = allowedMoves(app.stage, skippedStages, user.role === "ADMIN").map((s) => ({ value: s, label: stageLabel(s, confirmationName), closed: isClosed(s), needsNote: needsReason.includes(s) }));
   const path = stages.filter((s) => !isClosed(s) && !skippedStages.includes(s)).concat("ENROLLED");
   const step = path.indexOf(app.stage);
   const required = app.documentRequests.filter((r) => r.required);
@@ -268,7 +268,7 @@ async function ApplicationDetail({ params, searchParams }: Pick<PageProps<"/dash
             <Card tone="solid" className="grid gap-6">
               <div>
                 <h2 className="flex items-center gap-1 mb-4 text-xl font-bold">Move to a stage <InfoTip text="Only the stages allowed from where the application is now are listed: forward, back one step, or close it. Some moves need something first (approved documents, met conditions, the CAS number). The student is told about every move, along with your note." /></h2>
-                <StageForm key={app.events.length} id={app.id} options={options} />
+                <StageForm key={app.events.length} id={app.id} current={app.stage} track={path.map((s) => ({ value: s, label: stageLabel(s, confirmationName) }))} options={options} />
               </div>
               <div className="border-t border-brand-900/10 pt-5">
                 <AssignForm key={app.assignedStaffId ?? "none"} id={app.id} assignedStaffId={app.assignedStaffId} staff={people.staff} />
