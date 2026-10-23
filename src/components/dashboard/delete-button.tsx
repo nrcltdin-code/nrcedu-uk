@@ -14,11 +14,9 @@ export function DeleteButton({ action, question }: { action: () => Promise<void>
       await action();
       toast("Deleted");
     } catch (error) {
-      if (isRedirect(error)) {
-        toast("Deleted");
-        throw error;
-      }
-      toast("Could not delete. Please try again.", "error");
+      // Next already follows the redirect itself; re-throwing would remount the page and lose the toast.
+      if (isRedirect(error)) toast("Deleted");
+      else toast("Could not delete. Please try again.", "error");
     }
   }
 
