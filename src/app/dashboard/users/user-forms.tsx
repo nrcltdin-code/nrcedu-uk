@@ -100,7 +100,7 @@ export function PermissionsForm({ id, levels }: { id: string; levels: Record<str
         {permissionModules.map(({ module, label }) => (
           <div key={module}>
             <Label htmlFor={`perm-${module}`}>{label}</Label>
-            <Select id={`perm-${module}`} name={module} defaultValue={levels[module] ?? "edit"}>
+            <Select id={`perm-${module}`} name={module} defaultValue={levels[module] ?? "none"}>
               <option value="edit">View and edit</option>
               <option value="view">View only</option>
               <option value="none">No access</option>

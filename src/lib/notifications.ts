@@ -37,14 +37,14 @@ async function emailNotice(ids: string[], notice: { title: string; body: string 
   );
 }
 
-// Active admins, plus active staff whose access to the module was not taken away
-// (the same rule as can() in session.ts: no permission row means full access).
+// Active admins, plus active staff who were granted the module
+// (the same rule as can() in session.ts: no permission row means no access).
 export async function staffWithAccess(module: PermissionModule, action: "view" | "edit" = "view"): Promise<string[]> {
-  const blocked = action === "view" ? { canView: false } : { OR: [{ canView: false }, { canEdit: false }] };
+  const granted = action === "view" ? { canView: true } : { canView: true, canEdit: true };
   const users = await db.user.findMany({
     where: {
       status: "ACTIVE",
-      OR: [{ role: "ADMIN" }, { role: "STAFF", staffPermissions: { none: { module, ...blocked } } }],
+      OR: [{ role: "ADMIN" }, { role: "STAFF", staffPermissions: { some: { module, ...granted } } }],
     },
     select: { id: true },
   });

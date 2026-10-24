@@ -113,7 +113,7 @@ export async function updateUserAccess(_previous: UserFormState, form: FormData)
   return {};
 }
 
-// One row per module. "Full access" rows are removed, since staff have full access by default.
+// One row per granted module. "No access" rows are removed, since staff have no access by default.
 export async function updateStaffPermissions(_previous: UserFormState, form: FormData): Promise<UserFormState> {
   const actor = await requireRole("ADMIN");
 
@@ -128,12 +128,12 @@ export async function updateStaffPermissions(_previous: UserFormState, form: For
 
   await db.$transaction(
     levels.map(({ module, level }) =>
-      level === "edit"
+      level === "none"
         ? db.staffPermission.deleteMany({ where: { userId: id, module } })
         : db.staffPermission.upsert({
             where: { userId_module: { userId: id, module: module as PermissionModule } },
-            create: { userId: id, module, canView: level === "view", canEdit: false },
-            update: { canView: level === "view", canEdit: false },
+            create: { userId: id, module, canView: true, canEdit: level === "edit" },
+            update: { canView: true, canEdit: level === "edit" },
           }),
     ),
   );

@@ -73,8 +73,8 @@ async function UserDetail({ params }: Pick<PageProps<"/dashboard/users/[id]">, "
         {isAdmin && user.role === "STAFF" && (
           <Card tone="solid">
             <h2 className="text-xl font-bold">Module access</h2>
-            <p className="mb-4 mt-1 text-sm text-muted">Staff can view and edit everything unless limited here.</p>
-            <PermissionsForm id={user.id} levels={levels} />
+            <p className="mb-4 mt-1 text-sm text-muted">New staff have no access. Choose what each person can see and change.</p>
+            <PermissionsForm key={JSON.stringify(levels)} id={user.id} levels={levels} />
           </Card>
         )}
 

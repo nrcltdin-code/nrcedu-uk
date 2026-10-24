@@ -8,9 +8,10 @@ import { Input, Select } from "@/components/ui/field";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { db } from "@/lib/db";
 import { can, requirePermission } from "@/lib/session";
-import type { Prisma, Role, UserStatus } from "@/generated/prisma/client";
+import type { AgentPermission, PermissionModule, Prisma, Role, UserStatus } from "@/generated/prisma/client";
+import { agentPermissionLabels } from "@/lib/agent";
 import { decideAgent } from "./actions";
-import { roleLabels, statusLabels, statusTones } from "./labels";
+import { permissionModules, roleLabels, statusLabels, statusTones } from "./labels";
 import { NewStaffForm } from "./user-forms";
 
 export const metadata: Metadata = { title: "Users", robots: { index: false } };
@@ -26,6 +27,38 @@ export default function UsersPage({ searchParams }: PageProps<"/dashboard/users"
       </Suspense>
     </>
   );
+}
+
+const moduleLabel = Object.fromEntries(permissionModules.map((m) => [m.module, m.label]));
+
+// One line under each staff or agent account: what they can open.
+function AccessSummary({ row }: {
+  row: {
+    role: Role;
+    staffPermissions: { module: PermissionModule; canEdit: boolean }[];
+    agentPermissions: AgentPermission[];
+    agentProfile: { id: string } | null;
+    agentTeamId: string | null;
+  };
+}) {
+  let text: string | null = null;
+  if (row.role === "ADMIN") text = "Full access";
+  else if (row.role === "STAFF") {
+    const granted = permissionModules
+      .map(({ module }) => row.staffPermissions.find((p) => p.module === module))
+      .filter((p) => p !== undefined)
+      .map((p) => `${moduleLabel[p.module]}${p.canEdit ? "" : " (view)"}`);
+    text = granted.length ? granted.join(", ") : "No access yet";
+  } else if (row.role === "AGENT") {
+    if (row.agentProfile) text = "Agency owner: full access";
+    else if (row.agentTeamId) {
+      text = row.agentPermissions.length
+        ? `Team member: ${row.agentPermissions.map((p) => agentPermissionLabels[p].label).join(", ")}`
+        : "Team member: no access yet";
+    }
+  }
+  if (!text) return null;
+  return <span className="mt-0.5 block text-xs text-muted">Access: {text}</span>;
 }
 
 const first = (value: string | string[] | undefined) => (Array.isArray(value) ? value[0] : value) ?? "";
@@ -53,7 +86,13 @@ async function UsersManager({ searchParams }: Pick<PageProps<"/dashboard/users">
       orderBy: { createdAt: "desc" },
       skip: (page - 1) * pageSize,
       take: pageSize,
-      select: { id: true, name: true, email: true, role: true, status: true, createdAt: true },
+      select: {
+        id: true, name: true, email: true, role: true, status: true, createdAt: true,
+        staffPermissions: { select: { module: true, canEdit: true } },
+        agentPermissions: true,
+        agentProfile: { select: { id: true } },
+        agentTeamId: true,
+      },
     }),
     db.user.count({ where }),
     canApprove
@@ -120,6 +159,7 @@ async function UsersManager({ searchParams }: Pick<PageProps<"/dashboard/users">
                   <span className="min-w-0">
                     <span className="block font-semibold">{row.name}</span>
                     <span className="block truncate text-sm text-muted">{row.email}</span>
+                    <AccessSummary row={row} />
                   </span>
                   <span className="flex gap-2">
                     <Badge tone="neutral">{roleLabels[row.role]}</Badge>

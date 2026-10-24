@@ -94,7 +94,7 @@ export async function can(
   const permission = await db.staffPermission.findUnique({
     where: { userId_module: { userId: user.id, module } },
   });
-  if (!permission) return true;
+  if (!permission) return false; // staff start with no access; an admin grants each module
   return action === "view" ? permission.canView : permission.canView && permission.canEdit;
 }
 
