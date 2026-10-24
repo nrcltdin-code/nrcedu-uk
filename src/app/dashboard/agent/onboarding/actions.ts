@@ -83,6 +83,8 @@ export async function submitForReview(): Promise<FormState> {
   const have = new Set(documents.map((d) => d.type));
   const missing = requiredAgentDocuments(profile.kind).filter((type) => !have.has(type));
   if (missing.length) return { error: `Upload ${missing.length === 1 ? "the last required document" : `the ${missing.length} required documents`} first.` };
+  const unanswered = await db.agentDocumentRequest.count({ where: { agentId: profile.id, isOpen: true, documents: { none: { status: { not: "REJECTED" } } } } });
+  if (unanswered) return { error: `NRC asked for ${unanswered === 1 ? "a document" : `${unanswered} documents`} you have not sent yet. Upload them under Documents for NRC.` };
 
   const updated = await db.agentProfile.update({
     where: { id: profile.id },

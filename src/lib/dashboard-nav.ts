@@ -2,6 +2,7 @@ import "server-only";
 import type { IconName } from "@/components/ui/icon";
 import type { AgentPermission, PermissionModule, Role } from "@/generated/prisma/client";
 import { findAgentScope, findOnboardingAgent } from "@/lib/agent";
+import { db } from "@/lib/db";
 import { staffUnreadCount, studentUnreadCount } from "@/lib/messages";
 import { unreadNotificationCount } from "@/lib/notifications";
 import { dueReminderCount } from "@/lib/reminders";
@@ -13,7 +14,7 @@ export type NavGroup = { label: string; collapsible?: boolean; items: NavItem[] 
 
 // agent: the agency permission the item needs ("approved" = any approved agent account,
 // "onboarding" = only while the agent is still being verified).
-type Entry = NavItem & { roles: Role[]; module?: PermissionModule; action?: "view" | "edit"; agent?: AgentPermission | "approved" | "onboarding" | "agency-team" | "agency-upgrade" };
+type Entry = NavItem & { roles: Role[]; module?: PermissionModule; action?: "view" | "edit"; agent?: AgentPermission | "approved" | "onboarding" | "agency-team" | "agency-upgrade" | "requests" };
 
 const staff: Role[] = ["ADMIN", "STAFF"];
 
@@ -45,6 +46,7 @@ const groups: { label: string; collapsible?: boolean; entries: Entry[] }[] = [
     label: "My agency",
     entries: [
       { label: "Get verified", href: "/dashboard/agent/onboarding", icon: "shield", roles: ["AGENT"], agent: "onboarding" },
+      { label: "Documents for NRC", href: "/dashboard/agent/documents", icon: "inbox", roles: ["AGENT"], agent: "requests" },
       { label: "Leads", href: "/dashboard/agent/leads", icon: "inbox", roles: ["AGENT"], agent: "LEADS" },
       { label: "Students", href: "/dashboard/agent/students", icon: "cap", roles: ["AGENT"], agent: "approved" },
       { label: "Applications", href: "/dashboard/agent/applications", icon: "document", roles: ["AGENT"], agent: "approved" },
@@ -119,11 +121,18 @@ export async function getDashboardNav(user: CurrentUser): Promise<NavGroup[]> {
   const result: NavGroup[] = [];
   const agentScope = user.role === "AGENT" ? await findAgentScope(user) : null;
   const onboarding = user.role === "AGENT" && !agentScope ? Boolean(await findOnboardingAgent(user)) : false;
+  // Files NRC asked the agent (the profile holder) for; the menu item only shows while some are open.
+  const openRequests = user.role === "AGENT" ? await db.agentDocumentRequest.count({ where: { agent: { userId: user.id, approvalStatus: { not: "REJECTED" } }, isOpen: true } }) : 0;
   for (const group of groups) {
     const items: NavItem[] = [];
     for (const { roles, module, action, agent, ...item } of group.entries) {
       if (!roles.includes(user.role)) continue;
       if (agent === "onboarding" && !onboarding) continue;
+      if (agent === "requests") {
+        if (!openRequests) continue;
+        items.push({ ...item, badge: openRequests });
+        continue;
+      }
       if (agent && agent !== "onboarding") {
         if (!agentScope) continue;
         if (agent === "agency-team" && (agentScope.kind !== "AGENCY" || !agentScope.can("TEAM"))) continue;

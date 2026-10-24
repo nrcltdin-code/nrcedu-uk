@@ -11,7 +11,7 @@ import { presignPrivateUpload, privateStorageEnabled } from "@/lib/storage";
 // documents (start → upload straight to storage → finish), but only the agent themselves can
 // add them: any kind while being verified, or the business registration during an agency upgrade.
 
-export type AgentUploadTicket = { purpose: "agent"; key: string; agentId: string; type: AgentDocumentType; name: string; size: number; userId: string; expires: number };
+export type AgentUploadTicket = { purpose: "agent"; key: string; agentId: string; type: AgentDocumentType; requestId: string | null; name: string; size: number; userId: string; expires: number };
 
 const fail = (status: number, error: string) => Response.json({ error }, { status });
 
@@ -27,21 +27,30 @@ export async function POST(request: Request) {
   } catch {
     return fail(400, "The request could not be read.");
   }
-  const type = String(body.type ?? "") as AgentDocumentType;
+  const requestId = body.requestId ? String(body.requestId) : null;
   const name = String(body.name ?? "").trim().slice(0, 150);
   const size = Number(body.size);
-  if (!(type in agentDocumentLabels)) return fail(400, "Choose what kind of document this is.");
   if (!name) return fail(400, "The file needs a name.");
   if (!Number.isInteger(size) || size <= 0) return fail(400, "Choose a file to upload.");
   if (size > MAX_DOCUMENT_BYTES) return fail(413, "The file is too large. The limit is 10 MB.");
 
   const profile = await db.agentProfile.findUnique({ where: { userId: user.id }, select: { id: true, approvalStatus: true, kind: true, _count: { select: { verification: true } } } });
   if (!profile) return fail(403, "Only the person who registered the agency can upload these.");
-  if (!mayChangeAgentDocument(profile, type)) return fail(403, "Your verification is finished. Contact NRC to change these documents.");
   if (profile._count.verification >= 30) return fail(429, "That is a lot of files. Remove some before adding more.");
+
+  // A file NRC asked for can be sent at any time (except by a rejected agent); its type comes from the request.
+  let type = String(body.type ?? "") as AgentDocumentType;
+  if (requestId) {
+    const asked = await db.agentDocumentRequest.findFirst({ where: { id: requestId, agentId: profile.id, isOpen: true }, select: { type: true } });
+    if (!asked || profile.approvalStatus === "REJECTED") return fail(403, "NRC no longer needs this document.");
+    type = asked.type;
+  } else {
+    if (!(type in agentDocumentLabels)) return fail(400, "Choose what kind of document this is.");
+    if (!mayChangeAgentDocument(profile, type)) return fail(403, "Your verification is finished. Contact NRC to change these documents.");
+  }
 
   const key = `agent-documents/${profile.id}/${randomUUID()}`;
   const uploadUrl = await presignPrivateUpload(key, size);
-  const ticket = createTicket<AgentUploadTicket>({ purpose: "agent", key, agentId: profile.id, type, name, size, userId: user.id, expires: Date.now() + 10 * 60_000 });
+  const ticket = createTicket<AgentUploadTicket>({ purpose: "agent", key, agentId: profile.id, type, requestId, name, size, userId: user.id, expires: Date.now() + 10 * 60_000 });
   return Response.json({ uploadUrl, ticket });
 }

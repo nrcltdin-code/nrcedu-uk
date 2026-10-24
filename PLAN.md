@@ -353,6 +353,12 @@ New → Documents pending → Submitted to university → Offer received → Dep
     - [ ] Upload the certificate, send: staff get the alert, the badge shows on Approved
     - [ ] "Make agency" before approving the certificate: refused; after: the agent sees Team, "Become an agency" disappears
     - [ ] Ask for changes, then Decline on a second request: the agent sees the note each time
+  - Ask for a specific document: on the agent page, "Asked for" → kind, what you need, instructions → "Ask the agent". The agent is notified and emailed, and "Documents for NRC" appears in their menu with a count. Approving the file they send closes the request; staff can also cancel it. Open requests hold back approving the agent, and "Send for review" waits until each one has a file. Works before and after approval
+  - Test checklist (requests):
+    - [ ] Ask a waiting agent for "Two references": they get the notification, the menu item shows 1
+    - [ ] Their "Send for review" is refused until they upload it; staff get an alert when they do
+    - [ ] Approving the agent while the request is open is refused; approving the file closes it and the menu item disappears
+    - [ ] Cancel a request: it disappears for the agent; files already sent stay on the record
 - [x] 4.6 Dashboard overview (staff and admin)
   - Tiles, each shown only with the matching permission and clickable: New leads, Open applications, Documents to review (opens Students filtered to those waiting), Agents waiting for approval
   - My work: leads assigned to me that are New or Contacted (oldest first), my open applications (longest without an update first)

@@ -104,6 +104,7 @@ model User {
   uploadedDocuments    Document[]             @relation("DocumentUploadedBy")
   reviewedDocuments    Document[]             @relation("DocumentReviewedBy")
   reviewedAgentDocs    AgentDocument[]        @relation("AgentDocumentReviewedBy")
+  agentDocRequests     AgentDocumentRequest[] @relation("AgentDocumentRequestCreatedBy")
   agentLeads           Lead[]                 @relation("LeadAgentMember")
   notes                Note[]
   messages             Message[]
@@ -209,25 +210,25 @@ model StaffPermission {
 // which can add team members). They sign in straight away to an onboarding page, upload
 // verification documents, and get the full portal once an admin approves them.
 model AgentProfile {
-  id                 String         @id @default(cuid())
-  userId             String         @unique
-  kind               AgentKind      @default(INDIVIDUAL)
-  companyName        String?
-  registrationNumber String?
-  website            String?
-  yearsActive        Int?
-  studentsPerYear    Int?
-  countryId          String?
-  phone              String?
-  address            String?
-  about              String?
-  approvalStatus     ApprovalStatus @default(PENDING)
+  id                        String          @id @default(cuid())
+  userId                    String          @unique
+  kind                      AgentKind       @default(INDIVIDUAL)
+  companyName               String?
+  registrationNumber        String?
+  website                   String?
+  yearsActive               Int?
+  studentsPerYear           Int?
+  countryId                 String?
+  phone                     String?
+  address                   String?
+  about                     String?
+  approvalStatus            ApprovalStatus  @default(PENDING)
   // What the admin asked to change, or why they rejected; shown to the agent.
-  reviewNote         String?
+  reviewNote                String?
   // When the agent last sent the profile for review.
-  submittedAt        DateTime?
-  approvedById       String?
-  approvedAt         DateTime?
+  submittedAt               DateTime?
+  approvedById              String?
+  approvedAt                DateTime?
   // An approved individual asking to become an agency. Null when there is no request;
   // PENDING / CHANGES_REQUESTED while open; REJECTED keeps the last refusal visible.
   upgradeStatus             ApprovalStatus?
@@ -235,20 +236,21 @@ model AgentProfile {
   upgradeRegistrationNumber String?
   upgradeNote               String?
   upgradeRequestedAt        DateTime?
-  createdAt          DateTime       @default(now())
-  updatedAt          DateTime       @updatedAt
+  createdAt                 DateTime        @default(now())
+  updatedAt                 DateTime        @updatedAt
 
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   country    Country? @relation(fields: [countryId], references: [id], onDelete: SetNull)
   approvedBy User?    @relation("AgentApprovedBy", fields: [approvedById], references: [id], onDelete: SetNull)
 
   students           StudentProfile[]
-  team               User[]              @relation("AgentTeam")
+  team               User[]                 @relation("AgentTeam")
   applications       Application[]
   leads              Lead[]
   commissions        Commission[]
   countryAssignments CountryAssignment[]
   verification       AgentDocument[]
+  documentRequests   AgentDocumentRequest[]
   notes              Note[]
 
   @@index([countryId])
@@ -270,10 +272,35 @@ model AgentDocument {
   reviewedAt   DateTime?
   createdAt    DateTime          @default(now())
 
-  agent      AgentProfile @relation(fields: [agentId], references: [id], onDelete: Cascade)
-  reviewedBy User?        @relation("AgentDocumentReviewedBy", fields: [reviewedById], references: [id], onDelete: SetNull)
+  // Set when uploaded in answer to something NRC asked for.
+  requestId String?
+
+  agent      AgentProfile          @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  reviewedBy User?                 @relation("AgentDocumentReviewedBy", fields: [reviewedById], references: [id], onDelete: SetNull)
+  request    AgentDocumentRequest? @relation(fields: [requestId], references: [id], onDelete: SetNull)
 
   @@index([agentId])
+  @@index([requestId])
+}
+
+// A specific file NRC asks an agent for (e.g. two references). Open until a file for it is
+// approved, or staff cancel it. Open requests hold back approval.
+model AgentDocumentRequest {
+  id           String            @id @default(cuid())
+  agentId      String
+  type         AgentDocumentType
+  label        String
+  instructions String?
+  isOpen       Boolean           @default(true)
+  createdById  String?
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  agent     AgentProfile    @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  createdBy User?           @relation("AgentDocumentRequestCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  documents AgentDocument[]
+
+  @@index([agentId, isOpen])
 }
 
 // ───────────────────────────── Students ─────────────────────────────

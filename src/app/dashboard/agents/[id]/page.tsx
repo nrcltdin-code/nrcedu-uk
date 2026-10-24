@@ -11,7 +11,7 @@ import { agentDocumentLabels, agentPermissionLabels, requiredAgentDocuments } fr
 import { db } from "@/lib/db";
 import { formatDate } from "@/lib/format";
 import { can, requirePermission } from "@/lib/session";
-import { AgencyUpgradeForm, AgentDecisionForm, AgentDocumentReview } from "../agent-review-forms";
+import { AgencyUpgradeForm, AgentDecisionForm, AgentDocumentReview, CancelRequestButton, RequestDocumentForm } from "../agent-review-forms";
 import { approvalLabels, approvalTones } from "../labels";
 
 export const metadata: Metadata = { title: "Agent", robots: { index: false } };
@@ -37,7 +37,8 @@ async function AgentReview({ params }: Pick<PageProps<"/dashboard/agents/[id]">,
       user: { select: { id: true, name: true, email: true, phone: true } },
       country: { select: { name: true } },
       approvedBy: { select: { name: true } },
-      verification: { orderBy: { createdAt: "desc" }, include: { reviewedBy: { select: { name: true } } } },
+      verification: { orderBy: { createdAt: "desc" }, include: { reviewedBy: { select: { name: true } }, request: { select: { label: true } } } },
+      documentRequests: { where: { isOpen: true }, orderBy: { createdAt: "asc" }, include: { createdBy: { select: { name: true } }, _count: { select: { documents: true } } } },
       team: { orderBy: { name: "asc" }, select: { id: true, name: true, email: true, status: true, agentPermissions: true } },
       _count: { select: { students: true, applications: true, leads: true } },
     },
@@ -94,8 +95,8 @@ async function AgentReview({ params }: Pick<PageProps<"/dashboard/agents/[id]">,
                 <li key={doc.id} className="py-3">
                   <div className="flex flex-wrap items-start justify-between gap-2">
                     <div className="min-w-0">
-                      <p className="font-semibold">{agentDocumentLabels[doc.type]}</p>
-                      <p className="truncate text-sm text-muted">{doc.name} · {formatDate(doc.createdAt)}</p>
+                      <p className="font-semibold">{doc.request ? doc.request.label : agentDocumentLabels[doc.type]}</p>
+                      <p className="truncate text-sm text-muted">{doc.request && "Requested · "}{doc.name} · {formatDate(doc.createdAt)}</p>
                       {doc.reviewNote && <p className="mt-1 text-sm">“{doc.reviewNote}”{doc.reviewedBy && <span className="text-muted"> — {doc.reviewedBy.name}</span>}</p>}
                     </div>
                     <div className="flex items-center gap-2">
@@ -155,6 +156,29 @@ async function AgentReview({ params }: Pick<PageProps<"/dashboard/agents/[id]">,
                   <div key={label}><dt className="text-xs text-muted">{label}</dt><dd className="font-display text-2xl font-bold">{n}</dd></div>
                 ))}
               </dl>
+            </Card>
+          )}
+          {(agent.documentRequests.length > 0 || (canDecide && agent.approvalStatus !== "REJECTED")) && (
+            <Card tone="solid">
+              <h2 className="mb-4 flex items-center gap-1 text-xl font-bold">Asked for <InfoTip text="Ask for any extra file, e.g. references or a tax certificate. The agent is emailed and sees it under Documents for NRC. Approving the file they send closes the request; open requests hold back approval." /></h2>
+              {agent.documentRequests.length > 0 && (
+                <ul className="mb-4 divide-y divide-brand-900/10">
+                  {agent.documentRequests.map((r) => (
+                    <li key={r.id} className="flex flex-wrap items-start justify-between gap-2 py-2.5">
+                      <span className="min-w-0">
+                        <span className="block font-semibold">{r.label}</span>
+                        <span className="block text-xs text-muted">
+                          {r._count.documents ? `${r._count.documents} file${r._count.documents === 1 ? "" : "s"} sent, check above` : "Nothing sent yet"} · {formatDate(r.createdAt)}{r.createdBy && ` by ${r.createdBy.name}`}
+                        </span>
+                      </span>
+                      {canDecide && <CancelRequestButton id={r.id} />}
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {canDecide && agent.approvalStatus !== "REJECTED" && (
+                <RequestDocumentForm agentId={agent.id} types={Object.entries(agentDocumentLabels).map(([value, label]) => ({ value, label }))} />
+              )}
             </Card>
           )}
           {canDecide && agent.approvalStatus !== "REJECTED" && (

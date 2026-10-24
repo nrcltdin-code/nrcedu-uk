@@ -1,7 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { requiredAgentDocuments } from "@/lib/agent";
+import type { AgentDocumentType } from "@/generated/prisma/client";
+import { agentDocumentLabels, requiredAgentDocuments } from "@/lib/agent";
 import { db } from "@/lib/db";
 import { link, queueEmail } from "@/lib/email";
 import { text } from "@/lib/form";
@@ -20,9 +21,10 @@ export async function reviewAgentDocument(_previous: FormState, form: FormData):
   if (decision === "REJECTED" && note.length < 3) return { error: "Say what is wrong, so the agent knows what to upload." };
   if (note.length > 500) return { error: "Keep the note under 500 characters." };
 
-  const document = await db.agentDocument.findUnique({ where: { id }, select: { agentId: true } });
+  const document = await db.agentDocument.findUnique({ where: { id }, select: { agentId: true, requestId: true } });
   if (!document) return { error: "This document no longer exists." };
   await db.$transaction([
+    ...(decision === "APPROVED" && document.requestId ? [db.agentDocumentRequest.update({ where: { id: document.requestId }, data: { isOpen: false } })] : []),
     db.agentDocument.update({ where: { id }, data: { status: decision, reviewNote: note || null, reviewedById: user.id, reviewedAt: new Date() } }),
     db.activityLog.create({ data: { userId: user.id, action: `agent.document-${decision.toLowerCase()}`, entityType: "AgentProfile", entityId: document.agentId } }),
   ]);
@@ -49,6 +51,8 @@ export async function decideAgentProfile(_previous: FormState, form: FormData): 
     const approved = new Set(profile.verification.map((d) => d.type));
     const missing = requiredAgentDocuments(profile.kind).filter((t) => !approved.has(t));
     if (missing.length) return { error: `Approve the required documents first (${missing.length} still to check or missing).` };
+    const open = await db.agentDocumentRequest.count({ where: { agentId: id, isOpen: true } });
+    if (open) return { error: `${open === 1 ? "1 requested document is" : `${open} requested documents are`} still open. Approve the file sent, or cancel the request.` };
   }
 
   await db.$transaction([
@@ -136,4 +140,46 @@ export async function decideAgencyUpgrade(_previous: FormState, form: FormData):
   revalidatePath(page(id));
   revalidatePath("/dashboard/agents");
   return { saved: true };
+}
+
+// Ask the agent for one specific file. They get a notification and an email, and approval of
+// the agent waits until a file for it is approved or the request is cancelled.
+export async function requestAgentDocument(_previous: FormState, form: FormData): Promise<FormState> {
+  const user = await requirePermission("AGENTS", "edit");
+  const agentId = text(form, "agentId");
+  const type = text(form, "type") as AgentDocumentType;
+  const label = text(form, "label");
+  const instructions = text(form, "instructions");
+  if (!(type in agentDocumentLabels)) return { error: "Choose what kind of document this is." };
+  if (label.length < 3 || label.length > 120) return { error: "Name the document in 3 to 120 characters, e.g. “Two client references”." };
+  if (instructions.length > 1000) return { error: "Keep the instructions under 1,000 characters." };
+
+  const agent = await db.agentProfile.findUnique({ where: { id: agentId }, select: { approvalStatus: true, userId: true, user: { select: { name: true, email: true } } } });
+  if (!agent) return { error: "This agent no longer exists." };
+  if (agent.approvalStatus === "REJECTED") return { error: "This agent was rejected. Reopen them before asking for documents." };
+  if ((await db.agentDocumentRequest.count({ where: { agentId, isOpen: true } })) >= 10) return { error: "This agent already has 10 open requests. Close some first." };
+
+  const created = await db.agentDocumentRequest.create({ data: { agentId, type, label, instructions: instructions || null, createdById: user.id }, select: { id: true } });
+  await db.activityLog.create({ data: { userId: user.id, action: "agent.document-requested", entityType: "AgentProfile", entityId: agentId, meta: { requestId: created.id, label } } });
+
+  notify([agent.userId], { type: "agent.document-requested", title: `NRC asked for a document: ${label}`, body: instructions || "Upload it from Documents for NRC.", href: "/dashboard/agent/documents" });
+  queueEmail({
+    to: agent.user.email,
+    subject: `NRC asked for a document: ${label}`,
+    text: `Hello ${agent.user.name},\n\nPlease upload: ${label}${instructions ? `\n\n${instructions}` : ""}\n\nUpload it here: ${link("/dashboard/agent/documents")}`,
+  });
+  revalidatePath(page(agentId));
+  return { saved: true };
+}
+
+// Staff no longer need it. Files already sent stay on the agent's record.
+export async function cancelAgentDocumentRequest(id: string) {
+  const user = await requirePermission("AGENTS", "edit");
+  const request = await db.agentDocumentRequest.findUnique({ where: { id }, select: { agentId: true, label: true } });
+  if (!request) return;
+  await db.$transaction([
+    db.agentDocumentRequest.update({ where: { id }, data: { isOpen: false } }),
+    db.activityLog.create({ data: { userId: user.id, action: "agent.document-request-cancelled", entityType: "AgentProfile", entityId: request.agentId, meta: { label: request.label } } }),
+  ]);
+  revalidatePath(page(request.agentId));
 }
