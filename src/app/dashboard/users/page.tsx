@@ -88,7 +88,7 @@ async function UsersManager({ searchParams }: Pick<PageProps<"/dashboard/users">
       take: pageSize,
       select: {
         id: true, name: true, email: true, role: true, status: true, createdAt: true,
-        staffPermissions: { select: { module: true, canEdit: true } },
+        staffPermissions: { where: { canView: true }, select: { module: true, canEdit: true } },
         agentPermissions: true,
         agentProfile: { select: { id: true } },
         agentTeamId: true,
