@@ -228,6 +228,13 @@ model AgentProfile {
   submittedAt        DateTime?
   approvedById       String?
   approvedAt         DateTime?
+  // An approved individual asking to become an agency. Null when there is no request;
+  // PENDING / CHANGES_REQUESTED while open; REJECTED keeps the last refusal visible.
+  upgradeStatus             ApprovalStatus?
+  upgradeCompanyName        String?
+  upgradeRegistrationNumber String?
+  upgradeNote               String?
+  upgradeRequestedAt        DateTime?
   createdAt          DateTime       @default(now())
   updatedAt          DateTime       @updatedAt
 
@@ -246,6 +253,7 @@ model AgentProfile {
 
   @@index([countryId])
   @@index([approvalStatus])
+  @@index([upgradeStatus])
 }
 
 // A verification file an agent uploads during onboarding, checked by NRC staff.

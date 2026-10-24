@@ -13,7 +13,7 @@ export type NavGroup = { label: string; collapsible?: boolean; items: NavItem[] 
 
 // agent: the agency permission the item needs ("approved" = any approved agent account,
 // "onboarding" = only while the agent is still being verified).
-type Entry = NavItem & { roles: Role[]; module?: PermissionModule; action?: "view" | "edit"; agent?: AgentPermission | "approved" | "onboarding" | "agency-team" };
+type Entry = NavItem & { roles: Role[]; module?: PermissionModule; action?: "view" | "edit"; agent?: AgentPermission | "approved" | "onboarding" | "agency-team" | "agency-upgrade" };
 
 const staff: Role[] = ["ADMIN", "STAFF"];
 
@@ -50,6 +50,7 @@ const groups: { label: string; collapsible?: boolean; entries: Entry[] }[] = [
       { label: "Applications", href: "/dashboard/agent/applications", icon: "document", roles: ["AGENT"], agent: "approved" },
       { label: "Commission", href: "/dashboard/agent/commissions", icon: "coins", roles: ["AGENT"], agent: "COMMISSION" },
       { label: "Team", href: "/dashboard/agent/team", icon: "users", roles: ["AGENT"], agent: "agency-team" },
+      { label: "Become an agency", href: "/dashboard/agent/upgrade", icon: "briefcase", roles: ["AGENT"], agent: "agency-upgrade" },
     ],
   },
   {
@@ -126,7 +127,8 @@ export async function getDashboardNav(user: CurrentUser): Promise<NavGroup[]> {
       if (agent && agent !== "onboarding") {
         if (!agentScope) continue;
         if (agent === "agency-team" && (agentScope.kind !== "AGENCY" || !agentScope.can("TEAM"))) continue;
-        if (agent !== "approved" && agent !== "agency-team" && !agentScope.can(agent)) continue;
+        if (agent === "agency-upgrade" && (agentScope.kind !== "INDIVIDUAL" || !agentScope.isOwner)) continue;
+        if (agent !== "approved" && agent !== "agency-team" && agent !== "agency-upgrade" && !agentScope.can(agent)) continue;
       }
       // Module limits apply to staff; agents and students only ever see their own records.
       if (module && (user.role === "ADMIN" || user.role === "STAFF") && !(await can(user, module, action))) continue;

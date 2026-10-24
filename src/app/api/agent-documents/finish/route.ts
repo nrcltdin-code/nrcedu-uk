@@ -1,3 +1,4 @@
+import { mayChangeAgentDocument } from "@/lib/agent";
 import { db } from "@/lib/db";
 import { checkUploadedFile, readTicket } from "@/lib/documents";
 import { isSameOrigin } from "@/lib/same-origin";
@@ -19,8 +20,8 @@ export async function POST(request: Request) {
   }
   const ticket = readTicket<AgentUploadTicket>(token, user.id);
   if (!ticket || ticket.purpose !== "agent") return fail(400, "This upload has expired. Please try again.");
-  const profile = await db.agentProfile.findFirst({ where: { id: ticket.agentId, userId: user.id }, select: { approvalStatus: true } });
-  if (!profile || profile.approvalStatus === "APPROVED" || profile.approvalStatus === "REJECTED") return fail(403, "Your verification is finished.");
+  const profile = await db.agentProfile.findFirst({ where: { id: ticket.agentId, userId: user.id }, select: { approvalStatus: true, kind: true } });
+  if (!profile || !mayChangeAgentDocument(profile, ticket.type)) return fail(403, "Your verification is finished.");
   if (await db.agentDocument.count({ where: { fileKey: ticket.key } })) return fail(409, "This upload was already saved.");
 
   const checked = await checkUploadedFile(ticket.key, ticket.size, ticket.name);

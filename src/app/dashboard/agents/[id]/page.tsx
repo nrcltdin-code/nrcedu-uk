@@ -11,7 +11,7 @@ import { agentDocumentLabels, agentPermissionLabels, requiredAgentDocuments } fr
 import { db } from "@/lib/db";
 import { formatDate } from "@/lib/format";
 import { can, requirePermission } from "@/lib/session";
-import { AgentDecisionForm, AgentDocumentReview } from "../agent-review-forms";
+import { AgencyUpgradeForm, AgentDecisionForm, AgentDocumentReview } from "../agent-review-forms";
 import { approvalLabels, approvalTones } from "../labels";
 
 export const metadata: Metadata = { title: "Agent", robots: { index: false } };
@@ -130,6 +130,24 @@ async function AgentReview({ params }: Pick<PageProps<"/dashboard/agents/[id]">,
         </div>
 
         <div className="grid gap-6 lg:sticky lg:top-6">
+          {agent.upgradeStatus && agent.kind === "INDIVIDUAL" && (
+            <Card tone="solid">
+              <h2 className="mb-3 flex items-center gap-1 text-xl font-bold">Agency upgrade <InfoTip text="This approved agent wants to become an agency so they can add a team. Approve their business registration in Verification documents first. Their students and commission stay as they are." /></h2>
+              <dl className="mb-3 grid gap-2 text-sm">
+                <div><dt className="text-muted">Agency name</dt><dd className="font-semibold">{agent.upgradeCompanyName}</dd></div>
+                <div><dt className="text-muted">Registration number</dt><dd>{agent.upgradeRegistrationNumber || "—"}</dd></div>
+                {agent.upgradeRequestedAt && <div><dt className="text-muted">Requested</dt><dd>{formatDate(agent.upgradeRequestedAt)}</dd></div>}
+              </dl>
+              {agent.upgradeStatus === "PENDING" && canDecide ? (
+                <AgencyUpgradeForm id={agent.id} />
+              ) : (
+                <p className="text-sm text-muted">
+                  {agent.upgradeStatus === "PENDING" ? "Waiting for a decision." : agent.upgradeStatus === "CHANGES_REQUESTED" ? "Sent back to the agent" : "Declined"}
+                  {agent.upgradeStatus !== "PENDING" && agent.upgradeNote && `: “${agent.upgradeNote}”`}
+                </p>
+              )}
+            </Card>
+          )}
           {agent.approvalStatus === "APPROVED" && (
             <Card tone="solid">
               <dl className="grid grid-cols-3 gap-3 text-center">

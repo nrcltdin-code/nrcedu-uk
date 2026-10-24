@@ -76,3 +76,64 @@ export async function decideAgentProfile(_previous: FormState, form: FormData): 
   revalidatePath("/dashboard/agents");
   return { saved: true };
 }
+
+// An approved individual asked to become an agency. Approving switches them to AGENCY
+// (the Team page appears); their students, applications and commission are untouched.
+export async function decideAgencyUpgrade(_previous: FormState, form: FormData): Promise<FormState> {
+  const user = await requirePermission("AGENTS", "edit");
+  const id = text(form, "id");
+  const decision = text(form, "decision");
+  const note = text(form, "note");
+  if (decision !== "APPROVED" && decision !== "CHANGES_REQUESTED" && decision !== "REJECTED") return { error: "Choose a decision." };
+  if (decision !== "APPROVED" && note.length < 3) return { error: "Add a note for the agent saying what to change, or why." };
+  if (note.length > 1000) return { error: "Keep the note under 1,000 characters." };
+
+  const profile = await db.agentProfile.findUnique({
+    where: { id },
+    select: {
+      kind: true,
+      approvalStatus: true,
+      upgradeStatus: true,
+      upgradeCompanyName: true,
+      upgradeRegistrationNumber: true,
+      userId: true,
+      user: { select: { name: true, email: true } },
+      verification: { where: { type: "BUSINESS_REGISTRATION", status: "APPROVED" }, select: { id: true } },
+    },
+  });
+  if (!profile) return { error: "This agent no longer exists." };
+  if (profile.kind !== "INDIVIDUAL" || profile.approvalStatus !== "APPROVED" || profile.upgradeStatus !== "PENDING") {
+    return { error: "There is no open upgrade request to decide." };
+  }
+  if (decision === "APPROVED" && !profile.verification.length) return { error: "Approve the business registration certificate first." };
+
+  await db.$transaction([
+    db.agentProfile.update({
+      where: { id },
+      data:
+        decision === "APPROVED"
+          ? { kind: "AGENCY", companyName: profile.upgradeCompanyName, registrationNumber: profile.upgradeRegistrationNumber, upgradeStatus: null, upgradeNote: null }
+          : { upgradeStatus: decision, upgradeNote: note },
+    }),
+    db.activityLog.create({
+      data: { userId: user.id, action: `agent.upgrade-${decision === "APPROVED" ? "approved" : decision === "REJECTED" ? "rejected" : "changes-requested"}`, entityType: "AgentProfile", entityId: id, meta: { note } },
+    }),
+  ]);
+
+  const { name, email } = profile.user;
+  if (decision === "APPROVED") {
+    notify([profile.userId], { type: "agent.upgrade-approved", title: "You are now an agency", body: "Add your team from the Team page.", href: "/dashboard/agent/team" });
+    queueEmail({ to: email, subject: "Your NRC agency upgrade is approved", text: `Hello ${name},\n\nYour account is now an agency. Add your team and choose what each person can do:\n${link("/dashboard/agent/team")}` });
+  } else {
+    const changes = decision === "CHANGES_REQUESTED";
+    notify([profile.userId], { type: "agent.upgrade-decided", title: changes ? "Please update your agency request" : "Your agency request was not approved", body: note, href: "/dashboard/agent/upgrade" });
+    queueEmail({
+      to: email,
+      subject: changes ? "Please update your NRC agency request" : "Your NRC agency request",
+      text: `Hello ${name},\n\n${changes ? "We reviewed your request to become an agency and need a few changes:" : "We are not able to approve your request to become an agency. You can keep working as an individual agent."}\n\n${note}\n\n${link("/dashboard/agent/upgrade")}`,
+    });
+  }
+  revalidatePath(page(id));
+  revalidatePath("/dashboard/agents");
+  return { saved: true };
+}

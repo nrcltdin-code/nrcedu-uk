@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import type { AgentDocumentType } from "@/generated/prisma/client";
-import { agentDocumentLabels } from "@/lib/agent";
+import { agentDocumentLabels, mayChangeAgentDocument } from "@/lib/agent";
 import { db } from "@/lib/db";
 import { createTicket, MAX_DOCUMENT_BYTES } from "@/lib/documents";
 import { isSameOrigin } from "@/lib/same-origin";
@@ -9,7 +9,7 @@ import { presignPrivateUpload, privateStorageEnabled } from "@/lib/storage";
 
 // Verification documents an agent uploads during onboarding. Same two steps as student
 // documents (start → upload straight to storage → finish), but only the agent themselves can
-// add them, and only while their account is not yet approved.
+// add them: any kind while being verified, or the business registration during an agency upgrade.
 
 export type AgentUploadTicket = { purpose: "agent"; key: string; agentId: string; type: AgentDocumentType; name: string; size: number; userId: string; expires: number };
 
@@ -35,9 +35,9 @@ export async function POST(request: Request) {
   if (!Number.isInteger(size) || size <= 0) return fail(400, "Choose a file to upload.");
   if (size > MAX_DOCUMENT_BYTES) return fail(413, "The file is too large. The limit is 10 MB.");
 
-  const profile = await db.agentProfile.findUnique({ where: { userId: user.id }, select: { id: true, approvalStatus: true, _count: { select: { verification: true } } } });
+  const profile = await db.agentProfile.findUnique({ where: { userId: user.id }, select: { id: true, approvalStatus: true, kind: true, _count: { select: { verification: true } } } });
   if (!profile) return fail(403, "Only the person who registered the agency can upload these.");
-  if (profile.approvalStatus === "APPROVED" || profile.approvalStatus === "REJECTED") return fail(403, "Your verification is finished. Contact NRC to change these documents.");
+  if (!mayChangeAgentDocument(profile, type)) return fail(403, "Your verification is finished. Contact NRC to change these documents.");
   if (profile._count.verification >= 30) return fail(429, "That is a lot of files. Remove some before adding more.");
 
   const key = `agent-documents/${profile.id}/${randomUUID()}`;

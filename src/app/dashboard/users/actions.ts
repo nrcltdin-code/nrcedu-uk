@@ -91,8 +91,17 @@ export async function updateUserAccess(_previous: UserFormState, form: FormData)
     return { error: "You cannot remove your own administrator access. Ask another administrator." };
   }
 
+  // An agent's menu and pages need an agent profile. When an admin makes someone an agent
+  // directly (not through /become-an-agent), create one waiting for approval, so they verify first.
+  const needsAgentProfile =
+    role === "AGENT" &&
+    !(await db.user.findFirst({ where: { id, OR: [{ agentProfile: { isNot: null } }, { agentTeamId: { not: null } }] }, select: { id: true } }));
+
   await db.$transaction([
     db.user.update({ where: { id }, data: { role, status } }),
+    ...(needsAgentProfile
+      ? [db.agentProfile.create({ data: { userId: id, approvalStatus: "PENDING" } })]
+      : []),
     // Signs the person out everywhere when they lose access.
     ...(status !== "ACTIVE" ? [db.session.deleteMany({ where: { userId: id } })] : []),
     // Per-module limits only mean something for staff.

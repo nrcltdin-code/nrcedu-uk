@@ -346,6 +346,13 @@ New → Documents pending → Submitted to university → Offer received → Dep
     - [ ] Staff: on that application press "Add expected amounts": two rows appear (NRC and agent), amounts = fee × rate
     - [ ] Mark the agent row Paid: the agent's My commission shows it under Paid; the NRC row is never visible to the agent
     - [ ] Staff with Commission "None": no Commission card on applications and no Commission menu
+  - Agency upgrade: an approved individual agent opens "Become an agency", uploads the business registration, enters the agency name and sends the request; they keep working meanwhile. Staff see it on Dashboard → Agents (banner + badge) and on the agent page: approve the certificate, then Make agency / Ask for changes / Decline (note emailed). Approval switches them to Agency and the Team page appears
+  - An admin who changes an account's role to Agent in Users creates a profile waiting for approval, so that person goes through "Get verified" like any applicant
+  - Test checklist (upgrade):
+    - [ ] As an approved individual: "Become an agency" shows; sending without a certificate is refused
+    - [ ] Upload the certificate, send: staff get the alert, the badge shows on Approved
+    - [ ] "Make agency" before approving the certificate: refused; after: the agent sees Team, "Become an agency" disappears
+    - [ ] Ask for changes, then Decline on a second request: the agent sees the note each time
 - [x] 4.6 Dashboard overview (staff and admin)
   - Tiles, each shown only with the matching permission and clickable: New leads, Open applications, Documents to review (opens Students filtered to those waiting), Agents waiting for approval
   - My work: leads assigned to me that are New or Contacted (oldest first), my open applications (longest without an update first)

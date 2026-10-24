@@ -123,3 +123,13 @@ export const agentDocumentLabels = {
   REFERENCE_LETTER: "Reference letter (from a university or partner)",
   OTHER: "Other",
 } as const;
+
+// An individual agent asking to become an agency only uploads the business registration.
+export const upgradeOpen = (status: string | null) => status === "PENDING" || status === "CHANGES_REQUESTED";
+
+// Whether the agent may add (or remove) this kind of verification file right now:
+// any kind while being verified; an approved individual may add the business registration (for an agency upgrade).
+export function mayChangeAgentDocument(profile: { approvalStatus: string; kind: string }, type: string) {
+  if (profile.approvalStatus === "PENDING" || profile.approvalStatus === "CHANGES_REQUESTED") return true;
+  return profile.approvalStatus === "APPROVED" && profile.kind === "INDIVIDUAL" && type === "BUSINESS_REGISTRATION";
+}

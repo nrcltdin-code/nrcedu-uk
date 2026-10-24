@@ -50,6 +50,7 @@ async function AgentsList({ searchParams }: Pick<PageProps<"/dashboard/agents">,
     }),
   ]);
   const countOf = (s: ApprovalStatus) => counts.find((c) => c.approvalStatus === s)?._count ?? 0;
+  const upgrades = await db.agentProfile.count({ where: { upgradeStatus: "PENDING" } });
 
   return (
     <>
@@ -69,6 +70,11 @@ async function AgentsList({ searchParams }: Pick<PageProps<"/dashboard/agents">,
         ))}
       </div>
 
+      {upgrades > 0 && status !== "APPROVED" && (
+        <p role="status" className="mb-4 rounded-xl border border-brand-600/20 bg-brand-600/8 px-4 py-3">
+          {upgrades === 1 ? "1 approved agent wants" : `${upgrades} approved agents want`} to become an agency. <Link href="/dashboard/agents?status=APPROVED" className="font-semibold text-brand-700 hover:underline">See Approved</Link>
+        </p>
+      )}
       {agents.length === 0 && <Card tone="solid">No agents here.</Card>}
 
       <ul className="grid gap-4 xl:grid-cols-2">
@@ -84,6 +90,7 @@ async function AgentsList({ searchParams }: Pick<PageProps<"/dashboard/agents">,
                     {[agent.kind === "AGENCY" ? `Agency${agent._count.team ? `, ${agent._count.team} staff` : ""}` : "Individual", agent.companyName && agent.user.name, agent.country?.name].filter(Boolean).join(" · ")}
                   </p>
                 </div>
+                {agent.upgradeStatus === "PENDING" && <Badge tone="accent">Wants to become an agency</Badge>}
                 <Badge tone={status === "PENDING" && !agent.submittedAt ? "neutral" : "accent"}>
                   {status === "PENDING" ? (agent.submittedAt ? `Sent ${formatDate(agent.submittedAt)}` : "Still uploading") : `Registered ${formatDate(agent.createdAt)}`}
                 </Badge>

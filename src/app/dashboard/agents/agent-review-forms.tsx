@@ -6,7 +6,7 @@ import { KeepValuesOnError } from "@/components/ui/keep-values-on-error";
 import { Button } from "@/components/ui/button";
 import { Input, Label, Textarea } from "@/components/ui/field";
 import type { FormState } from "@/lib/form";
-import { decideAgentProfile, reviewAgentDocument } from "./actions";
+import { decideAgencyUpgrade, decideAgentProfile, reviewAgentDocument } from "./actions";
 
 export function AgentDocumentReview({ id }: { id: string }) {
   const [state, action, pending] = useActionState<FormState, FormData>(reviewAgentDocument, {});
@@ -38,6 +38,25 @@ export function AgentDecisionForm({ id, approved }: { id: string; approved: bool
         {!approved && <Button name="decision" value="APPROVED" disabled={pending}>Approve</Button>}
         {!approved && <Button name="decision" value="CHANGES_REQUESTED" variant="glass" disabled={pending}>Ask for changes</Button>}
         <Button name="decision" value="REJECTED" variant="ghost" disabled={pending} className="text-red-700 hover:bg-red-500/10">{approved ? "Revoke access" : "Reject"}</Button>
+      </div>
+    </form>
+  );
+}
+
+export function AgencyUpgradeForm({ id }: { id: string }) {
+  const [state, action, pending] = useActionState<FormState, FormData>(decideAgencyUpgrade, {});
+  return (
+    <form action={action} className="grid gap-3">
+      <input type="hidden" name="id" value={id} />
+      <div>
+        <Label htmlFor="up-note">Note to the agent</Label>
+        <Textarea id="up-note" name="note" rows={3} maxLength={1000} placeholder="Required when asking for changes or declining" />
+      </div>
+      <FormMessage state={state} />
+      <div className="flex flex-wrap gap-2">
+        <Button name="decision" value="APPROVED" disabled={pending}>Make agency</Button>
+        <Button name="decision" value="CHANGES_REQUESTED" variant="glass" disabled={pending}>Ask for changes</Button>
+        <Button name="decision" value="REJECTED" variant="ghost" disabled={pending} className="text-red-700 hover:bg-red-500/10">Decline</Button>
       </div>
     </form>
   );
