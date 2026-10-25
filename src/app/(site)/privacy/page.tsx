@@ -16,7 +16,7 @@ export default function PrivacyPage() {
       sections={[
         {
           heading: "Who we are",
-          body: <p>NRC Educational Consultants Ltd is responsible for the personal information you give us through this website.</p>,
+          body: <p>NRC Educational Consultant is responsible for the personal information you give us through this website.</p>,
         },
         {
           heading: "What we collect",

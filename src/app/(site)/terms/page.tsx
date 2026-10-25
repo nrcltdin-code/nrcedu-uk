@@ -16,7 +16,7 @@ export default function TermsPage() {
       sections={[
         {
           heading: "About these terms",
-          body: <p>These terms apply when you use this website or create an account with NRC Educational Consultants Ltd (&quot;NRC&quot;, &quot;we&quot;). By creating an account you agree to them.</p>,
+          body: <p>These terms apply when you use this website or create an account with NRC Educational Consultant (&quot;NRC&quot;, &quot;we&quot;). By creating an account you agree to them.</p>,
         },
         {
           heading: "Your account",

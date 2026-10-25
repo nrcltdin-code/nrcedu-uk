@@ -90,7 +90,7 @@ export async function Footer() {
         </div>
 
         <div className="mt-12 flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-white/15 pt-6 text-sm text-white/60">
-          <p className="mr-auto">© {year} NRC Educational Consultants Ltd. All rights reserved.</p>
+          <p className="mr-auto">© {year} NRC Educational Consultant. All rights reserved.</p>
           <Link href="/terms" className="hover:text-white">Terms of use</Link>
           <Link href="/privacy" className="hover:text-white">Privacy policy</Link>
         </div>
