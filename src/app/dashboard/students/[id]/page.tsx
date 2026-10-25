@@ -1,3 +1,5 @@
+import { SendEmailButton } from "@/components/dashboard/send-email-button";
+import { composeProps } from "@/lib/email-templates";
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import { InfoTip } from "@/components/ui/info-tip";
@@ -90,6 +92,7 @@ async function StudentDetail({ params, searchParams }: PageProps<"/dashboard/stu
     },
   });
   if (!student) notFound();
+  const compose = canEdit ? await composeProps(user) : null;
 
   const [countries, people, courses, intakes] = await Promise.all([
     canEdit ? db.country.findMany({ orderBy: { name: "asc" }, select: { id: true, name: true } }) : [],
@@ -120,6 +123,7 @@ async function StudentDetail({ params, searchParams }: PageProps<"/dashboard/stu
         <h1 className="text-3xl font-bold">{student.user.name}</h1>
         <Badge tone={hasLogin ? "success" : "neutral"}>{hasLogin ? "Has portal login" : "No portal login yet"}</Badge>
         <WhatsAppButton href={`/api/whatsapp?student=${student.id}`} enabled={whatsapp} purpose="student" />
+        {compose && <SendEmailButton target="student" id={student.id} recipient={{ name: student.user.name, email: student.user.email }} {...compose} />}
       </div>
       <p className="mt-1 text-muted">
         {student.user.email}

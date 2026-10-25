@@ -373,6 +373,7 @@ New → Documents pending → Submitted to university → Offer received → Dep
     - [ ] Staff with Leads "None": no New leads tile and no leads in My work
 - [x] 4.7 Email notifications (built; switches on with Resend keys)
   - [x] Email page (`/dashboard/emails`, Site settings permission): sender name and address, reply-to, which inbox gets each staff alert, country inboxes copied on new leads; log of every email sent with delivery status (Resend webhook at `/api/email/webhook`, secret in `EMAIL_WEBHOOK_SECRET`) and "Send again". Emails with sign-in, reset or invite links are logged without their text.
+  - [x] "Send email" button on lead, student and agent pages (staff with edit access): optional template, sent from the site address with the staff member as reply-to, copy saved in lead/student notes. Templates at `/dashboard/emails/templates` with {first_name}, {name}, {my_name}, {portal_link}; five starter templates added by the migration.
   - `src/lib/email.ts`: Resend over plain HTTP, plain-text messages, sent after the response (`after()`) so a mail failure never breaks a form; with no keys every message is only logged (`[email off]`)
   - New lead from the contact / consultation form: alert to the routed counsellor, or to `EMAIL_STAFF_ALERTS` when nobody is assigned (reply goes to the visitor); "we received your message" to the visitor. Leads added by staff send nothing
   - Lead reassigned to a counsellor by someone else: email to that counsellor

@@ -1,3 +1,5 @@
+import { SendEmailButton } from "@/components/dashboard/send-email-button";
+import { composeProps } from "@/lib/email-templates";
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import Link from "next/link";
@@ -44,6 +46,7 @@ async function AgentReview({ params }: Pick<PageProps<"/dashboard/agents/[id]">,
     },
   });
   if (!agent) notFound();
+  const compose = canDecide ? await composeProps(viewer) : null;
   const required = requiredAgentDocuments(agent.kind);
   const approvedTypes = new Set(agent.verification.filter((d) => d.status === "APPROVED").map((d) => d.type));
 
@@ -67,7 +70,12 @@ async function AgentReview({ params }: Pick<PageProps<"/dashboard/agents/[id]">,
       <PageHeader
         title={agent.companyName || agent.user.name}
         back={{ href: "/dashboard/agents", label: "Agents" }}
-        actions={<Badge tone={approvalTones[agent.approvalStatus]}>{approvalLabels[agent.approvalStatus]}</Badge>}
+        actions={
+          <div className="flex flex-wrap items-center gap-2">
+            {compose && <SendEmailButton target="agent" id={agent.id} recipient={{ name: agent.user.name, email: agent.user.email }} {...compose} />}
+            <Badge tone={approvalTones[agent.approvalStatus]}>{approvalLabels[agent.approvalStatus]}</Badge>
+          </div>
+        }
       />
       <div className="grid items-start gap-6 lg:grid-cols-[1.5fr_1fr]">
         <div className="grid gap-6">

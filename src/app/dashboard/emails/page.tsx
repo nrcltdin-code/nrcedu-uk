@@ -30,7 +30,11 @@ const statuses: Record<EmailStatus, { label: string; tone: "brand" | "success" |
 export default function EmailPage({ searchParams }: PageProps<"/dashboard/emails">) {
   return (
     <>
-      <PageHeader title="Email" description="Who sends the site's emails, where staff alerts go, and every email sent." />
+      <PageHeader
+        title="Email"
+        description="Who sends the site's emails, where staff alerts go, and every email sent."
+        actions={<Link href="/dashboard/emails/templates" className={buttonStyles({ variant: "glass", size: "sm" })}>Email templates</Link>}
+      />
       <Suspense fallback={<Card tone="solid">Loading…</Card>}>
         <Email searchParams={searchParams} />
       </Suspense>

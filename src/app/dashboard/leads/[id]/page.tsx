@@ -1,3 +1,5 @@
+import { SendEmailButton } from "@/components/dashboard/send-email-button";
+import { composeProps } from "@/lib/email-templates";
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import Link from "next/link";
@@ -52,6 +54,7 @@ async function LeadDetail({ params, searchParams }: Pick<PageProps<"/dashboard/l
     },
   });
   if (!lead) notFound();
+  const compose = canEdit ? await composeProps(user) : null;
 
   const [options, logs] = await Promise.all([
     getAssigneeOptions(),
@@ -109,6 +112,7 @@ async function LeadDetail({ params, searchParams }: Pick<PageProps<"/dashboard/l
       <div className="mt-2 flex flex-wrap items-center gap-3">
         <h1 className="text-3xl font-bold">{lead.name}</h1>
         <Badge tone={leadStatusTones[lead.status]}>{leadStatusLabels[lead.status]}</Badge>
+        {compose && <SendEmailButton target="lead" id={lead.id} recipient={{ name: lead.name, email: lead.email }} {...compose} />}
       </div>
 
       <div className="mt-6 grid items-start gap-6 lg:grid-cols-[1.5fr_1fr]">

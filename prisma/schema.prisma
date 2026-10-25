@@ -1228,3 +1228,15 @@ model EmailLog {
   @@index([createdAt])
   @@index([status])
 }
+
+// Ready-made emails staff pick from when writing to a lead, student or agent.
+// {name}, {first_name}, {my_name} and {portal_link} are filled in when a template is chosen.
+model EmailTemplate {
+  id        String   @id @default(cuid())
+  name      String
+  subject   String
+  body      String
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
