@@ -22,7 +22,7 @@ export const socialNetworks = [
 ] as const;
 
 export const defaultSettings: SiteSettings = {
-  contact: { ...defaultContact, whatsapp: "", messenger: "", address: "" },
+  contact: { phone: defaultContact.phone, email: defaultContact.email, whatsapp: "", messenger: "", address: "" },
   social: { facebook: "", instagram: "", linkedin: "", youtube: "", tiktok: "", x: "" },
   menus: { main: defaultMain, footer: defaultFooter },
 };
@@ -100,6 +100,6 @@ export function facebookPageName(value: string) {
 
 // Messenger chat link: the saved Messenger page, or else the Facebook page from the social links.
 export function messengerHref({ contact, social }: SiteSettings) {
-  const name = facebookPageName(contact.messenger) || facebookPageName(social.facebook);
+  const name = facebookPageName(contact.messenger) || facebookPageName(social.facebook) || facebookPageName(defaultContact.facebookPage);
   return name ? `https://m.me/${name}` : "";
 }

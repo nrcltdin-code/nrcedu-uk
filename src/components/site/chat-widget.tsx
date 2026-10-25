@@ -8,9 +8,9 @@ export async function ChatWidget() {
   const [settings, user] = await Promise.all([getSiteSettings(), getSignedInUser()]);
   const options: ChatOption[] = [];
 
-  if (settings.contact.whatsapp) {
-    options.push({ kind: "whatsapp", label: "WhatsApp", hint: "Chat with us on WhatsApp", href: whatsappHref(settings.contact.whatsapp) });
-  }
+  // Without a separate WhatsApp number, the main phone number is used.
+  const whatsapp = settings.contact.whatsapp || settings.contact.phone;
+  if (whatsapp) options.push({ kind: "whatsapp", label: "WhatsApp", hint: "Chat with us on WhatsApp", href: whatsappHref(whatsapp) });
   const messenger = messengerHref(settings);
   if (messenger) options.push({ kind: "messenger", label: "Messenger", hint: "Message our Facebook page", href: messenger });
 

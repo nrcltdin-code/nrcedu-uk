@@ -45,4 +45,6 @@ export const footerNav: { title: string; items: NavItem[] }[] = [
 export const contact = {
   phone: "+44 2033554453",
   email: "info@nrcedu-uk.com",
+  // Facebook page name for Messenger (e.g. "nrcedu"), used until one is saved in Settings.
+  facebookPage: "",
 };
