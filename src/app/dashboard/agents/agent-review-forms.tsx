@@ -5,60 +5,47 @@ import { FormMessage } from "@/components/dashboard/form-bits";
 import { KeepValuesOnError } from "@/components/ui/keep-values-on-error";
 import { Button } from "@/components/ui/button";
 import { Input, Label, Select, Textarea } from "@/components/ui/field";
+import { DecisionForm, FileReview } from "@/components/dashboard/decision-form";
 import type { FormState } from "@/lib/form";
 import { cancelAgentDocumentRequest, decideAgencyUpgrade, decideAgentProfile, requestAgentDocument, reviewAgentDocument } from "./actions";
 
 export function AgentDocumentReview({ id }: { id: string }) {
-  const [state, action, pending] = useActionState<FormState, FormData>(reviewAgentDocument, {});
-  return (
-    <form action={action} className="mt-2 grid gap-2">
-      <input type="hidden" name="id" value={id} />
-      <Input name="note" maxLength={500} placeholder="Note, required when sending back (e.g. expired ID)" className="h-9" aria-label="Review note" />
-      <div className="flex gap-2">
-        <Button size="sm" name="decision" value="APPROVED" disabled={pending}>Approve</Button>
-        <Button size="sm" variant="ghost" name="decision" value="REJECTED" disabled={pending} className="text-red-700 hover:bg-red-500/10">Send back</Button>
-      </div>
-      <KeepValuesOnError state={state} failed={Boolean(state.error)} />
-      {state.error && <FormMessage state={state} />}
-    </form>
-  );
+  return <FileReview action={reviewAgentDocument} id={id} sendBackLabel="Send back" notePlaceholder="e.g. The ID has expired" />;
 }
 
 export function AgentDecisionForm({ id, approved }: { id: string; approved: boolean }) {
-  const [state, action, pending] = useActionState<FormState, FormData>(decideAgentProfile, {});
+  if (approved) {
+    return (
+      <DecisionForm
+        action={decideAgentProfile}
+        hidden={{ id }}
+        destructive={{ value: "REJECTED", label: "Revoke access" }}
+        notePlaceholder="Why access is being removed (sent to the agent)"
+      />
+    );
+  }
   return (
-    <form action={action} className="grid gap-3">
-      <input type="hidden" name="id" value={id} />
-      <div>
-        <Label htmlFor="ad-note">Note to the agent</Label>
-        <Textarea id="ad-note" name="note" rows={3} maxLength={1000} placeholder="Required when asking for changes or rejecting" />
-      </div>
-      <FormMessage state={state} />
-      <div className="flex flex-wrap gap-2">
-        {!approved && <Button name="decision" value="APPROVED" disabled={pending}>Approve</Button>}
-        {!approved && <Button name="decision" value="CHANGES_REQUESTED" variant="glass" disabled={pending}>Ask for changes</Button>}
-        <Button name="decision" value="REJECTED" variant="ghost" disabled={pending} className="text-red-700 hover:bg-red-500/10">{approved ? "Revoke access" : "Reject"}</Button>
-      </div>
-    </form>
+    <DecisionForm
+      action={decideAgentProfile}
+      hidden={{ id }}
+      approve={{ label: "Approve agent", hint: "Gives them the full agent portal." }}
+      sendBack={[{ value: "CHANGES_REQUESTED", label: "Ask for changes" }]}
+      destructive={{ value: "REJECTED", label: "Reject" }}
+      notePlaceholder="What to change, or why you are rejecting (sent to the agent)"
+    />
   );
 }
 
 export function AgencyUpgradeForm({ id }: { id: string }) {
-  const [state, action, pending] = useActionState<FormState, FormData>(decideAgencyUpgrade, {});
   return (
-    <form action={action} className="grid gap-3">
-      <input type="hidden" name="id" value={id} />
-      <div>
-        <Label htmlFor="up-note">Note to the agent</Label>
-        <Textarea id="up-note" name="note" rows={3} maxLength={1000} placeholder="Required when asking for changes or declining" />
-      </div>
-      <FormMessage state={state} />
-      <div className="flex flex-wrap gap-2">
-        <Button name="decision" value="APPROVED" disabled={pending}>Make agency</Button>
-        <Button name="decision" value="CHANGES_REQUESTED" variant="glass" disabled={pending}>Ask for changes</Button>
-        <Button name="decision" value="REJECTED" variant="ghost" disabled={pending} className="text-red-700 hover:bg-red-500/10">Decline</Button>
-      </div>
-    </form>
+    <DecisionForm
+      action={decideAgencyUpgrade}
+      hidden={{ id }}
+      approve={{ label: "Make agency", hint: "The Team page appears for them." }}
+      sendBack={[{ value: "CHANGES_REQUESTED", label: "Ask for changes" }]}
+      destructive={{ value: "REJECTED", label: "Decline" }}
+      notePlaceholder="What to change, or why you are declining (sent to the agent)"
+    />
   );
 }
 
