@@ -12,7 +12,8 @@
     "db:deploy": "prisma migrate deploy",
     "db:studio": "prisma studio",
     "db:seed": "prisma db seed",
-    "db:seed:demo": "tsx prisma/seed-demo.ts"
+    "db:seed:demo": "tsx prisma/seed-demo.ts",
+    "db:reset-handover": "tsx --conditions=react-server scripts/reset-for-handover.ts"
   },
   "dependencies": {
     "@prisma/adapter-pg": "7.10.0",

@@ -35,7 +35,7 @@ Domain: `nrcedu-uk.com` · Started: 2026-10-13 · Target delivery: ~2026-12-03 (
 ## 2. Open questions
 
 - [ ] Review the design system at `/styleguide`: glassmorphism throughout; deep blue primary (#1B5E9E), dark teal-navy (#0F4C63), amber accent (#F59E0B), light blue-grey surface; Plus Jakarta Sans headings, Inter body; light theme only
-- [ ] Higher-quality logo (SVG) if the client has one; current file is a 559×447 PNG taken from the live site (`public/nrc-logo.png`)
+- [x] Logo and images: the client cannot supply a better logo or any photos (2026-10-26). Keep the 559×447 PNG (`public/nrc-logo.png`); the site must look complete without client photos
 
 - [ ] Office address, social links, final legal brand name
 - [ ] Keep all 10 test-prep pages, or fewer?
@@ -480,6 +480,8 @@ New → Documents pending → Submitted to university → Offer received → Dep
 - [ ] 5.5 Client handover: admin accounts, short guide
   - [x] Guide for the NRC team: `docs/client-guide.md` (sign-in, roles and access, daily CRM work, editing the website, emails, who pays for what)
   - [x] `README.md` rewritten for whoever runs the site: setup, settings table, deploy order (migrations before code), launch checklist, code map
+  - [ ] Before handover, wipe all people and test activity (client requirement, 2026-10-26): `npm run db:reset-handover` shows counts; add `-- --confirm` to delete every user, lead, student, application, agent, document (and its file in R2), message, notification and log. Website content, settings, email templates and uploaded images stay
+  - [ ] Demo content is still live (6 invented universities, 3 sample posts, 4 invented testimonials, stock-photo slides from picsum.photos). Remove with `npm run db:seed:demo -- --remove` or replace by hand; no client photos will come, so slides and cards need free-licence images we source, or an image-free design
   - [ ] At launch: create NRC's admin accounts (at least two) and walk them through the guide
 
 ## 7. Risks
