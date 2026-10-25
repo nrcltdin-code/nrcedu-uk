@@ -53,7 +53,10 @@ export function DashboardShell({ nav, user, unreadNotifications, children }: She
         <div className="flex items-center justify-between gap-2 px-5 py-5">
           <Link href="/" className="flex items-center gap-2.5 font-display font-bold">
             <Image src="/nrc-logo.jpeg" alt="" width={36} height={36} className="rounded-full" />
-            NRC Educational Consultant
+            <span className="flex flex-col leading-tight">
+              <span>NRC</span>
+              <span className="text-xs font-medium opacity-70">Educational Consultant</span>
+            </span>
           </Link>
           <button type="button" className="rounded-lg p-1.5 hover:bg-white/10 lg:hidden" onClick={() => setOpen(false)} aria-label="Close menu">
             <Icon name="close" className="size-5" />

@@ -79,8 +79,9 @@ export async function Header() {
           <div className="glass flex items-center justify-between gap-3 rounded-full py-2 pl-4 pr-2">
             <Link href="/" className="flex shrink-0 items-center gap-2">
               <Image src="/nrc-logo.jpeg" alt="" width={44} height={44} priority className="rounded-full" />
-              <span className="whitespace-nowrap font-display text-lg font-bold text-brand-800">
-                NRC <span className="hidden font-medium text-muted sm:inline lg:hidden xl:inline">Educational Consultant</span>
+              <span className="flex flex-col whitespace-nowrap font-display leading-tight text-brand-800">
+                <span className="text-lg font-bold">NRC</span>
+                <span className="text-xs font-medium text-muted">Educational Consultant</span>
               </span>
             </Link>
 
