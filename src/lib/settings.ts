@@ -7,7 +7,7 @@ import { contact as defaultContact, footerNav as defaultFooter, mainNav as defau
 // Site settings live in the SiteSetting key/value table. Anything missing or malformed
 // falls back to the defaults in lib/nav.ts, so the site never breaks on a bad row.
 
-export type ContactSettings = { phone: string; email: string; whatsapp: string; address: string };
+export type ContactSettings = { phone: string; email: string; whatsapp: string; messenger: string; address: string };
 export type SocialSettings = Record<(typeof socialNetworks)[number]["key"], string>;
 export type MenuSettings = { main: NavItem[]; footer: { title: string; items: NavItem[] }[] };
 export type SiteSettings = { contact: ContactSettings; social: SocialSettings; menus: MenuSettings };
@@ -22,7 +22,7 @@ export const socialNetworks = [
 ] as const;
 
 export const defaultSettings: SiteSettings = {
-  contact: { ...defaultContact, whatsapp: "", address: "" },
+  contact: { ...defaultContact, whatsapp: "", messenger: "", address: "" },
   social: { facebook: "", instagram: "", linkedin: "", youtube: "", tiktok: "", x: "" },
   menus: { main: defaultMain, footer: defaultFooter },
 };
@@ -65,7 +65,7 @@ function parse(rows: { key: string; value: unknown }[]): SiteSettings {
 
   return {
     contact: contact
-      ? { phone: str(contact.phone, 40), email: str(contact.email, 120), whatsapp: str(contact.whatsapp, 40), address: str(contact.address, 300) }
+      ? { phone: str(contact.phone, 40), email: str(contact.email, 120), whatsapp: str(contact.whatsapp, 40), messenger: str(contact.messenger, 80), address: str(contact.address, 300) }
       : defaultSettings.contact,
     social: Object.fromEntries(
       socialNetworks.map(({ key }) => {
@@ -90,3 +90,16 @@ export async function getSiteSettings(): Promise<SiteSettings> {
 export const telHref = (phone: string) => `tel:${phone.replace(/[^\d+]/g, "")}`;
 // wa.me wants digits only.
 export const whatsappHref = (phone: string) => `https://wa.me/${phone.replace(/\D/g, "")}`;
+
+// Facebook page name from a saved value: "nrcedu", "m.me/nrcedu" or "facebook.com/nrcedu".
+export function facebookPageName(value: string) {
+  const match = value.trim().match(/^(?:https?:\/\/)?(?:www\.|m\.)?(?:m\.me|facebook\.com|fb\.com)\/([^/?#\s]+)/i);
+  const name = match ? match[1] : value.trim();
+  return /^[\w.-]{2,80}$/.test(name) && name !== "profile.php" ? name : "";
+}
+
+// Messenger chat link: the saved Messenger page, or else the Facebook page from the social links.
+export function messengerHref({ contact, social }: SiteSettings) {
+  const name = facebookPageName(contact.messenger) || facebookPageName(social.facebook);
+  return name ? `https://m.me/${name}` : "";
+}

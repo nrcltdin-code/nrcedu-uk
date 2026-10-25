@@ -5,7 +5,7 @@ import { db } from "@/lib/db";
 import { text } from "@/lib/form";
 import type { FormState } from "@/lib/form";
 import type { NavItem } from "@/lib/nav";
-import { isSafeHref, socialNetworks } from "@/lib/settings";
+import { facebookPageName, isSafeHref, socialNetworks } from "@/lib/settings";
 import { requirePermission } from "@/lib/session";
 
 async function store(key: string, value: object, userId: string) {
@@ -26,11 +26,13 @@ export async function saveContact(_previous: FormState, form: FormData): Promise
     phone: text(form, "phone"),
     email: text(form, "email").toLowerCase(),
     whatsapp: text(form, "whatsapp"),
+    messenger: text(form, "messenger"),
     address: text(form, "address"),
   };
   if (!isPhone(value.phone)) return { error: "Enter a phone number using digits, spaces and an optional +." };
   if (!isEmail(value.email) || value.email.length > 120) return { error: "Enter a valid email address." };
   if (value.whatsapp && !isPhone(value.whatsapp)) return { error: "Enter the WhatsApp number using digits, spaces and an optional +." };
+  if (value.messenger && !facebookPageName(value.messenger)) return { error: "Enter the Facebook page name (e.g. nrcedu) or its m.me link." };
   if (value.address.length > 300) return { error: "Keep the address under 300 characters." };
 
   await store("contact", value, user.id);

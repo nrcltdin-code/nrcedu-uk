@@ -2,7 +2,6 @@
 
 import { useActionState } from "react";
 import { FormMessage } from "@/components/dashboard/form-bits";
-import { Button } from "@/components/ui/button";
 import { SaveButton } from "@/components/ui/save-button";
 import { Input, Label, Textarea } from "@/components/ui/field";
 import type { FormState } from "@/lib/form";
@@ -26,6 +25,11 @@ export function ContactForm({ contact }: { contact: ContactSettings }) {
         <div>
           <Label htmlFor="s-whatsapp">WhatsApp number</Label>
           <Input id="s-whatsapp" name="whatsapp" type="tel" defaultValue={contact.whatsapp} maxLength={25} placeholder="Optional, with country code" />
+        </div>
+        <div>
+          <Label htmlFor="s-messenger">Messenger (Facebook page)</Label>
+          <Input id="s-messenger" name="messenger" defaultValue={contact.messenger} maxLength={80} placeholder="e.g. nrcedu or m.me/nrcedu" />
+          <p className="mt-1 text-xs text-muted">Optional. Left empty, the Facebook link from social links is used.</p>
         </div>
       </div>
       <div>
