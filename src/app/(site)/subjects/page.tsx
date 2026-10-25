@@ -11,7 +11,7 @@ import { pageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = pageMetadata({
   title: "Subjects",
-  description: "Browse courses by subject area across the universities NRC Educational Consultants works with.",
+  description: "Browse courses by subject area across the universities NRC Educational Consultant works with.",
   path: "/subjects",
 });
 

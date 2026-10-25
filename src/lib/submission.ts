@@ -133,7 +133,7 @@ export async function buildSubmissionPack(applicationId: string) {
     {
       title: "Representative",
       fields: [
-        { label: "Agency", value: "NRC Educational Consultants" },
+        { label: "Agency", value: "NRC Educational Consultant" },
         { label: "Counsellor", value: app.assignedStaff?.name ?? "" },
         { label: "Counsellor email", value: app.assignedStaff?.email ?? "" },
         { label: "Referring agent", value: app.agent ? (app.agent.companyName ?? app.agent.user.name) : "" },

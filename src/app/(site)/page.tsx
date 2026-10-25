@@ -22,7 +22,7 @@ import {
   getTestimonials,
 } from "@/lib/data/home";
 import { getSiteSettings, socialNetworks } from "@/lib/settings";
-import { organizationLd, pageMetadata, siteName, websiteLd } from "@/lib/seo";
+import { faqLd, organizationLd, pageMetadata, siteName, websiteLd } from "@/lib/seo";
 import { JsonLd } from "@/components/site/json-ld";
 
 type Feature = { title: string; text: string; icon: IconName; color: TileColor };
@@ -75,7 +75,7 @@ export const metadata: Metadata = {
   ...pageMetadata({
     title: homeTitle,
     description:
-      "Study abroad with NRC Educational Consultants: free advice, university admissions in the UK, USA, Canada, Australia and Germany, applications and student visa support.",
+      "Study abroad with NRC Educational Consultant: free advice, university admissions in the UK, USA, Canada, Australia and Germany, applications and student visa support.",
     path: "/",
   }),
   title: { absolute: homeTitle },
@@ -384,6 +384,7 @@ async function Faqs() {
   return (
     <Section tint="violet" className="pt-0 sm:pt-4">
       <SectionHeading eyebrow="FAQ" title="Common" highlight="questions" />
+        <JsonLd data={[faqLd(faqs)]} />
       <div className="mx-auto grid max-w-3xl gap-3">
         {faqs.map((faq) => (
           <details key={faq.id} className="glass group rounded-2xl px-6 py-4 open:bg-white/75">

@@ -30,7 +30,7 @@ export type Email = {
 const appUrl = () => (process.env.APP_URL ?? "").replace(/\/+$/, "");
 export const link = (path: string) => `${appUrl()}${path}`;
 
-const signOff = "\n\n— NRC Educational Consultants\n" + appUrl();
+const signOff = "\n\n— NRC Educational Consultant\n" + appUrl();
 const oneLine = (value: string) => value.replace(/[\r\n]+/g, " ").slice(0, 150);
 
 async function record(email: Email, to: string[], subject: string, status: "OFF" | "SENT" | "FAILED", extra: { providerId?: string; error?: string; replyTo?: string }) {

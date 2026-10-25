@@ -177,7 +177,7 @@ export function PasswordForm({ hasPassword, email, emailEnabled }: { hasPassword
 
 function BackupCodes({ codes, onDone }: { codes: string[]; onDone: () => void }) {
   function download() {
-    const text = `NRC Educational Consultants: two-step sign-in backup codes\nEach code works once.\n\n${codes.join("\n")}\n`;
+    const text = `NRC Educational Consultant: two-step sign-in backup codes\nEach code works once.\n\n${codes.join("\n")}\n`;
     const url = URL.createObjectURL(new Blob([text], { type: "text/plain" }));
     const a = Object.assign(document.createElement("a"), { href: url, download: "nrc-backup-codes.txt" });
     a.click();

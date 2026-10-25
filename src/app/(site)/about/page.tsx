@@ -9,7 +9,7 @@ import { pageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = pageMetadata({
   title: "About us",
-  description: "NRC Educational Consultants helps students choose the right university abroad and supports them from application to arrival.",
+  description: "NRC Educational Consultant helps students choose the right university abroad and supports them from application to arrival.",
   path: "/about",
 });
 
@@ -38,7 +38,7 @@ export default function AboutPage() {
   return (
     <main>
       <PageHero eyebrow="About us" title="Helping students reach" highlight="universities worldwide">
-        NRC Educational Consultants is a study-abroad and student visa consultancy based in the United Kingdom.
+        NRC Educational Consultant is a study-abroad and student visa consultancy based in the United Kingdom.
       </PageHero>
 
       <Section tint="sky">

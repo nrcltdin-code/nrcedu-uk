@@ -29,7 +29,7 @@ function emailBody(pack: SubmissionPack, sender: string) {
   const docs = pack.documents.length ? `\n\nAttached documents:\n${pack.documents.map((d) => `  - ${d.fileName}`).join("\n")}` : "";
   return `Dear Admissions Team,
 
-Please find below the application of ${pack.studentName} for ${pack.courseName}${intake}, submitted by NRC Educational Consultants on the student's behalf.
+Please find below the application of ${pack.studentName} for ${pack.courseName}${intake}, submitted by NRC Educational Consultant on the student's behalf.
 
 ${packText(pack)}${docs}
 
@@ -37,7 +37,7 @@ Please quote ${submissionCode(pack.id)} in any reply. If you need anything else,
 
 Kind regards,
 ${sender}
-NRC Educational Consultants`;
+NRC Educational Consultant`;
 }
 
 async function Submit({ params }: Pick<PageProps<"/dashboard/applications/[id]/submit">, "params">) {

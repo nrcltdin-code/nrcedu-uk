@@ -11,7 +11,7 @@ import { pageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = pageMetadata({
   title: "Study destinations",
-  description: "Compare the countries you can study in with NRC Educational Consultants: the UK, USA, Canada, Australia and Germany.",
+  description: "Compare the countries you can study in with NRC Educational Consultant: the UK, USA, Canada, Australia and Germany.",
   path: "/destinations",
 });
 

@@ -357,7 +357,7 @@ function TwoFactorStep({ onSuccess, onBack }: { onSuccess: () => void; onBack: (
         <p className="text-sm text-muted">
           {useBackup
             ? "Enter one of the backup codes you saved when you turned on two-step sign-in. Each code works once."
-            : "Open your authenticator app and enter the 6-digit code for NRC Educational Consultants."}
+            : "Open your authenticator app and enter the 6-digit code for NRC Educational Consultant."}
         </p>
         <div>
           <Label htmlFor="tf-code">{useBackup ? "Backup code" : "6-digit code"}</Label>

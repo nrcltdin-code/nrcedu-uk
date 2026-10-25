@@ -19,14 +19,14 @@ const jakarta = Plus_Jakarta_Sans({
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "NRC Educational Consultants",
-    template: "%s | NRC Educational Consultants",
+    default: "NRC Educational Consultant",
+    template: "%s | NRC Educational Consultant",
   },
   description:
     "Study abroad and student visa consultancy: university admissions, applications and visa support.",
   openGraph: {
     type: "website",
-    siteName: "NRC Educational Consultants",
+    siteName: "NRC Educational Consultant",
     locale: "en_GB",
     images: ["/nrc-logo.jpeg"],
   },

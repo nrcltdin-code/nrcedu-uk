@@ -29,7 +29,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     title: `Study in ${country.name}`,
     description:
       country.description ??
-      `Study in ${country.name}${count ? ` at ${count} partner ${count === 1 ? "university" : "universities"}` : ""}: courses, fees, intakes and student visa support from NRC Educational Consultants.`,
+      `Study in ${country.name}${count ? ` at ${count} partner ${count === 1 ? "university" : "universities"}` : ""}: courses, fees, intakes and student visa support from NRC Educational Consultant.`,
     path: `/destinations/${country.slug}`,
     image: country.imageUrl,
   });

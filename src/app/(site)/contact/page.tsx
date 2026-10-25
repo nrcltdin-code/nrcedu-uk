@@ -14,7 +14,7 @@ import { siteUrl } from "@/lib/site-url";
 
 export const metadata: Metadata = pageMetadata({
   title: "Contact us",
-  description: "Get in touch with NRC Educational Consultants about studying abroad, applications and student visas.",
+  description: "Get in touch with NRC Educational Consultant about studying abroad, applications and student visas.",
   path: "/contact",
 });
 

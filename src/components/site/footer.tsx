@@ -33,7 +33,7 @@ export async function Footer() {
               <span className="rounded-2xl bg-white p-1.5">
                 <Image src="/nrc-logo.jpeg" alt="" width={48} height={48} className="rounded-full" />
               </span>
-              <span className="font-display text-lg font-bold">NRC Educational Consultants</span>
+              <span className="font-display text-lg font-bold">NRC Educational Consultant</span>
             </Link>
             <p className="mt-4 max-w-xs text-sm text-white/75">
               University admissions, applications and student visa support for studying abroad.

@@ -1,4 +1,4 @@
-# NRC Educational Consultants — website and CRM
+# NRC Educational Consultant — website and CRM
 
 Public website, admin panel and CRM for `nrcedu-uk.com`. Next.js 16 (App Router), PostgreSQL with Prisma 7, Better Auth, Tailwind 4.
 The build plan and per-feature test checklists are in `PLAN.md`; the guide for NRC's team is `docs/client-guide.md`.

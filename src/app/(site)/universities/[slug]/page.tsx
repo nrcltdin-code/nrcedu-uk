@@ -38,7 +38,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   ].filter(Boolean);
   return pageMetadata({
     title: `${university.name}: courses, fees and intakes`,
-    description: `Study at ${university.name} in ${location}${facts.length ? `: ${facts.join(", ")}` : ""}. Free advice and application support from NRC Educational Consultants.`,
+    description: `Study at ${university.name} in ${location}${facts.length ? `: ${facts.join(", ")}` : ""}. Free advice and application support from NRC Educational Consultant.`,
     path: `/universities/${university.slug}`,
     image: university.coverUrl ?? university.logoUrl,
   });

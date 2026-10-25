@@ -4,6 +4,8 @@ import { Icon } from "@/components/ui/icon";
 import { Section, SectionHeading } from "@/components/ui/section";
 import { getOffices } from "@/lib/data/home";
 import { telHref } from "@/lib/settings";
+import { JsonLd } from "@/components/site/json-ld";
+import { officeLd } from "@/lib/seo";
 
 // "Our offices" block, used on the home and contact pages. Hides itself when there are none.
 export async function Offices({ className }: { className?: string }) {
@@ -12,6 +14,7 @@ export async function Offices({ className }: { className?: string }) {
 
   return (
     <Section tint="sky" className={className}>
+      <JsonLd data={offices.map(officeLd)} />
       <SectionHeading eyebrow="Our offices" title="Visit us" highlight="in person">
         Meet a counsellor face to face at the office nearest to you.
       </SectionHeading>

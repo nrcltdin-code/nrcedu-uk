@@ -1,4 +1,4 @@
-# NRC Educational Consultants — Website Rebuild Plan
+# NRC Educational Consultant — Website Rebuild Plan
 
 Domain: `nrcedu-uk.com` · Started: 2026-10-13 · Target delivery: ~2026-12-03 (7 weeks)
 
@@ -383,7 +383,7 @@ New → Documents pending → Submitted to university → Offer received → Dep
   - Document "ask again": email to the student and their agent with what to fix
   - Forgot password: link under the password field in the sign-in panel (only when email is on) → one-hour link → `/reset-password`; other devices are signed out. Same reply whether or not the account exists
   - Not done: email verification on sign-up (would lock out accounts made before email existed; decide with the client)
-  - To switch on: Resend account → add and verify the domain `nrcedu-uk.com` (DNS records) → API key; fill `EMAIL_API_KEY`, `EMAIL_FROM` (e.g. `NRC Educational Consultants <no-reply@nrcedu-uk.com>`) and `EMAIL_STAFF_ALERTS` (open question 2: which mailbox); restart
+  - To switch on: Resend account → add and verify the domain `nrcedu-uk.com` (DNS records) → API key; fill `EMAIL_API_KEY`, `EMAIL_FROM` (e.g. `NRC Educational Consultant <no-reply@nrcedu-uk.com>`) and `EMAIL_STAFF_ALERTS` (open question 2: which mailbox); restart
   - Test checklist (after switching on):
     - [ ] Submit the consultation form from a routed country: the counsellor gets the alert, you get the acknowledgement; replying to the alert goes to the visitor
     - [ ] Submit the contact form: alert arrives at `EMAIL_STAFF_ALERTS`

@@ -186,7 +186,7 @@ export const auth = betterAuth({
   plugins: [
     // Authenticator-app codes after the password, with ten one-time backup codes. Admins and staff
     // must turn it on (dashboard layout); for others it is optional. Google sign-ins skip it.
-    twoFactor({ issuer: "NRC Educational Consultants" }),
+    twoFactor({ issuer: "NRC Educational Consultant" }),
     nextCookies(),
   ],
 });

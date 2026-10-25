@@ -5,7 +5,7 @@ import type { SiteSettings } from "@/lib/settings";
 // Search engine helpers: page metadata with a canonical address and share preview, and
 // schema.org structured data (JSON-LD) for the public pages.
 
-export const siteName = "NRC Educational Consultants";
+export const siteName = "NRC Educational Consultant";
 export const defaultImage = "/nrc-logo.jpeg";
 
 // Full address for a path or an already absolute URL (uploaded images live on another domain).
@@ -115,4 +115,35 @@ export function breadcrumbLd(items: { name: string; path: string }[]): Thing {
 export function serializeLd(things: Thing[]) {
   const body = things.length === 1 ? { "@context": "https://schema.org", ...things[0] } : { "@context": "https://schema.org", "@graph": things };
   return JSON.stringify(body).replace(/</g, "\\u003c");
+}
+
+// Questions and answers, so search results can show them under the page.
+export function faqLd(faqs: { question: string; answer: string }[]): Thing {
+  return {
+    "@type": "FAQPage",
+    mainEntity: faqs.map((faq) => ({
+      "@type": "Question",
+      name: faq.question,
+      acceptedAnswer: { "@type": "Answer", text: faq.answer },
+    })),
+  };
+}
+
+type OfficeInfo = { id: string; name: string; city: string; country: string; address: string; phone: string | null; email: string | null; mapUrl: string | null; imageUrl: string | null };
+
+// Each office as a local business of the organisation, for map and "near me" searches.
+// Keep the name and address the same as on the Google Business Profile.
+export function officeLd(office: OfficeInfo): Thing {
+  return {
+    "@type": "LocalBusiness",
+    "@id": `${siteUrl}/#office-${office.id}`,
+    name: office.name.includes(siteName) ? office.name : `${siteName} – ${office.name}`,
+    url: `${siteUrl}/contact`,
+    image: absoluteUrl(office.imageUrl || defaultImage),
+    parentOrganization: { "@id": organizationId },
+    address: { "@type": "PostalAddress", streetAddress: office.address, addressLocality: office.city, addressCountry: office.country },
+    ...(office.phone ? { telephone: office.phone } : {}),
+    ...(office.email ? { email: office.email } : {}),
+    ...(office.mapUrl ? { hasMap: office.mapUrl } : {}),
+  };
 }

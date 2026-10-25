@@ -26,7 +26,7 @@ export default function StyleGuide() {
             <div className="flex items-center gap-3">
               <Image src="/nrc-logo.jpeg" alt="NRC" width={48} height={48} priority className="rounded-full" />
               <span className="font-display font-bold text-brand-800">
-                NRC Educational Consultants
+                NRC Educational Consultant
               </span>
             </div>
             <Button variant="accent" size="sm">

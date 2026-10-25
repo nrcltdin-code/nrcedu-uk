@@ -10,7 +10,7 @@ import { pageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = pageMetadata({
   title: "Become an agent",
-  description: "Partner with NRC Educational Consultants as a student recruitment agent and place your students at universities abroad.",
+  description: "Partner with NRC Educational Consultant as a student recruitment agent and place your students at universities abroad.",
   path: "/become-an-agent",
 });
 

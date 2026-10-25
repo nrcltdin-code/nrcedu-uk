@@ -62,7 +62,7 @@ export async function createLead(lead: NewLead) {
     {
       to: lead.email,
       subject: "We received your message",
-      text: `Hello ${lead.name},\n\nThank you for contacting NRC Educational Consultants. A counsellor will get back to you soon, usually within one working day.`,
+      text: `Hello ${lead.name},\n\nThank you for contacting NRC Educational Consultant. A counsellor will get back to you soon, usually within one working day.`,
     },
   );
   return { id: created.id };

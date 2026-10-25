@@ -12,7 +12,7 @@ import { pageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = pageMetadata({
   title: "Our partner universities",
-  description: "The universities NRC Educational Consultants officially represents, and the organisations we work with.",
+  description: "The universities NRC Educational Consultant officially represents, and the organisations we work with.",
   path: "/partners",
 });
 

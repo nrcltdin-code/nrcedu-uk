@@ -52,7 +52,7 @@ function parse(value: unknown): EmailSettings {
   const alerts = (saved.alerts ?? {}) as Record<string, unknown>;
   const fallback = envAlerts();
   return {
-    fromName: str(saved.fromName).slice(0, 80) || env.name || "NRC Educational Consultants",
+    fromName: str(saved.fromName).slice(0, 80) || env.name || "NRC Educational Consultant",
     fromAddress: isEmailAddress(fromAddress) && fromAddress.endsWith(`@${domain}`) ? fromAddress : env.address,
     replyTo: isEmailAddress(str(saved.replyTo)) ? str(saved.replyTo).toLowerCase() : "",
     alerts: Object.fromEntries(
