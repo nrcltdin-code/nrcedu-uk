@@ -34,6 +34,7 @@ async function inviteMember(owner: { name: string; email: string }, member: { id
   const emailed = await sendEmail({
     to: member.email,
     replyTo: owner.email,
+    private: true,
     subject: "Your NRC agent portal account",
     text: `Hello ${member.name},\n\n${owner.name} has added you to their team on the NRC agent portal, where you can add students and apply for courses on their behalf.\n\nChoose your password here (the link works once and expires in 7 days):\n${invite.url}`,
   });

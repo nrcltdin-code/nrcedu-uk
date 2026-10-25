@@ -2,7 +2,8 @@
 
 import { hashPassword } from "better-auth/crypto";
 import { db } from "@/lib/db";
-import { link, queueEmail, staffAlertAddresses } from "@/lib/email";
+import { link, queueEmail } from "@/lib/email";
+import { alertAddresses } from "@/lib/email-settings";
 import { isEmail } from "@/lib/leads";
 import { notify, staffWithAccess } from "@/lib/notifications";
 import { withinLimit } from "@/lib/rate-limit";
@@ -89,7 +90,7 @@ export async function applyAsAgent(_previous: AgentFormState, form: FormData): P
   });
   queueEmail(
     {
-      to: staffAlertAddresses(),
+      to: await alertAddresses("agents"),
       replyTo: email,
       subject: `New agent application: ${companyName || name}`,
       text: `${name}${companyName ? ` (${companyName})` : ""} applied to become an agent.\n\nEmail: ${email}\nPhone: ${phone}\n\n${about}\n\nReview it: ${link("/dashboard/agents")}`,

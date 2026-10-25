@@ -1196,3 +1196,35 @@ model PageView {
 
   @@index([createdAt])
 }
+
+// ── Email ─────────────────────────────────────────────────────────────────────
+
+enum EmailStatus {
+  OFF // email sending not set up; logged only
+  SENT
+  DELIVERED
+  BOUNCED
+  COMPLAINED
+  FAILED
+}
+
+// Every email the site sends. The body is not kept for private emails (sign-in links,
+// password resets, invites), so those can never be read or resent from the dashboard.
+model EmailLog {
+  id          String      @id @default(cuid())
+  to          String
+  cc          String?
+  replyTo     String?
+  subject     String
+  text        String?
+  kind        String?
+  attachments Int         @default(0)
+  status      EmailStatus
+  error       String?
+  providerId  String?     @unique
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@index([createdAt])
+  @@index([status])
+}

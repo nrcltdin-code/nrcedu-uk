@@ -1,6 +1,7 @@
 import "server-only";
 import { db } from "@/lib/db";
-import { link, queueEmail, staffAlertAddresses } from "@/lib/email";
+import { link, queueEmail } from "@/lib/email";
+import { alertAddresses } from "@/lib/email-settings";
 import { counsellorOrStaff, notify } from "@/lib/notifications";
 import type { CurrentUser } from "@/lib/session";
 
@@ -40,7 +41,7 @@ export async function postMessage(studentId: string, sender: CurrentUser, rawBod
     if (fromStudent) {
       const counsellor = student.counsellor?.status === "ACTIVE" ? student.counsellor.email : null;
       queueEmail({
-        to: counsellor ? [counsellor] : staffAlertAddresses(),
+        to: counsellor ? [counsellor] : await alertAddresses("messages"),
         subject: `New message from ${student.user.name}`,
         text: `${student.user.name} sent a message:\n\n${body}\n\nReply in the dashboard: ${link(`/dashboard/messages/${studentId}`)}`,
       });

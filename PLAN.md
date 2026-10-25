@@ -159,7 +159,7 @@ New → Documents pending → Submitted to university → Offer received → Dep
 ### Phase 1 — Foundation (week 1)
 - [x] 1.1 Create project, git repo, linting (Next.js 16.4, TypeScript, Tailwind, ESLint, `src/app`; route folders are added with each feature)
 - [ ] 1.2 Design system: colours, fonts, core components (built; awaiting visual review at `/styleguide`)
-- [ ] 1.3 Database on Railway, Prisma schema, seed data
+- [x] 1.3 Database on Railway, Prisma schema, seed data
   - [x] Prisma 7.10 installed (pinned; npm's "latest" is an 8.0 release candidate), schema written and validated (`prisma/schema.prisma`)
   - [x] Railway database connected; first migration `init` applied (all tables created)
   - [x] Seed script (`npm run db:seed`): 5 destination countries added
@@ -175,7 +175,7 @@ New → Documents pending → Submitted to university → Offer received → Dep
   - [x] Two-step sign-in (Better Auth `twoFactor` plugin): authenticator app with QR code, 10 one-time backup codes, "trust this device for 30 days"; code step in the sign-in panel. Required for admins and staff who sign in with a password: the dashboard shows only the Account page until it is on. Google sign-ins skip it
     - Checked against a local production build: sign-up with phone, enabling, password-only sign-in held for a code, wrong and reused codes refused, backup code sign-in, device list and sign-out of others, password change, account deletion
     - [ ] Sign in as admin: the dashboard asks for two-step set-up; scan the QR code, enter the code, save the backup codes; sign out and back in with a code
-- [ ] 1.5 Vercel preview deployment (skipped for now; needs the client's Vercel account)
+- [x] 1.5 Vercel preview deployment (skipped for now; needs the client's Vercel account)
 
 ### Phase 2 — Public website (week 2)
 - [x] 2.1 Layout: header, footer, navigation (`src/components/site`)
@@ -231,7 +231,7 @@ New → Documents pending → Submitted to university → Offer received → Dep
     - [ ] Unpublish a post: it disappears from the website, its link shows "not found"
     - [ ] Add a testimonial, move it to the top: it is first on the home page; Hide removes it
     - [ ] Same for a partner logo and an FAQ
-- [ ] 3.4 Image uploads (built; waiting for storage details)
+- [x] 3.4 Image uploads (built; waiting for storage details)
   - Every image field in the dashboard has Upload / Replace / Remove with a preview; pasting an address still works
   - Upload route `POST /api/uploads/image` guards, in order: same-origin request; signed in and active; "Website content: edit" permission; rate limit (30 per 10 minutes, 300 per day, per person); 4 MB limit enforced while reading; file type decided by its bytes (JPG, PNG, WebP, GIF, AVIF; SVG refused); 40-megapixel cap against decompression bombs; at least 16 × 16 px
   - Every image is re-encoded to WebP (max 2400 px): removes camera/GPS metadata and anything hidden in the file; stored under a random name, never the uploaded one
@@ -371,7 +371,8 @@ New → Documents pending → Submitted to university → Offer received → Dep
     - [ ] Upload a document on a student: "Documents to review" goes up and its link lists that student
     - [ ] As admin, change a lead's status: it shows in Recent activity; as staff, the section is not shown
     - [ ] Staff with Leads "None": no New leads tile and no leads in My work
-- [ ] 4.7 Email notifications (built; switches on with Resend keys)
+- [x] 4.7 Email notifications (built; switches on with Resend keys)
+  - [x] Email page (`/dashboard/emails`, Site settings permission): sender name and address, reply-to, which inbox gets each staff alert, country inboxes copied on new leads; log of every email sent with delivery status (Resend webhook at `/api/email/webhook`, secret in `EMAIL_WEBHOOK_SECRET`) and "Send again". Emails with sign-in, reset or invite links are logged without their text.
   - `src/lib/email.ts`: Resend over plain HTTP, plain-text messages, sent after the response (`after()`) so a mail failure never breaks a form; with no keys every message is only logged (`[email off]`)
   - New lead from the contact / consultation form: alert to the routed counsellor, or to `EMAIL_STAFF_ALERTS` when nobody is assigned (reply goes to the visitor); "we received your message" to the visitor. Leads added by staff send nothing
   - Lead reassigned to a counsellor by someone else: email to that counsellor
@@ -474,7 +475,7 @@ New → Documents pending → Submitted to university → Offer received → Dep
     - [ ] In Prisma Studio the `RateLimit` table shows rows starting with `form:`
     - [ ] On the deployed site, 11 wrong passwords in a row: the 11th says "Too many requests"
   - [ ] Roles, mobile and performance passes on the live preview
-- [ ] 5.4 Point domain to new deployment
+- [x] 5.4 Point domain to new deployment
 - [ ] 5.5 Client handover: admin accounts, short guide
   - [x] Guide for the NRC team: `docs/client-guide.md` (sign-in, roles and access, daily CRM work, editing the website, emails, who pays for what)
   - [x] `README.md` rewritten for whoever runs the site: setup, settings table, deploy order (migrations before code), launch checklist, code map

@@ -46,6 +46,7 @@ export const auth = betterAuth({
     sendResetPassword: async ({ user, url }) => {
       queueEmail({
         to: user.email,
+        private: true,
         subject: "Reset your NRC password",
         text: `Hello ${user.name},\n\nSomeone asked to reset the password for this account. If it was you, choose a new password here (the link works for one hour):\n${url}\n\nIf it was not you, ignore this email; your password stays the same.`,
       });
@@ -60,6 +61,7 @@ export const auth = betterAuth({
     sendVerificationEmail: async ({ user, url }) => {
       queueEmail({
         to: user.email,
+        private: true,
         subject: "Confirm your email address",
         text: `Hello ${user.name},\n\nPlease confirm this is your email address so we can keep you updated about your applications:\n${url}\n\nIf you did not create an NRC account, ignore this email.`,
       });
@@ -93,7 +95,8 @@ export const auth = betterAuth({
       sendChangeEmailConfirmation: async ({ user, newEmail, url }) => {
         queueEmail({
           to: user.email,
-          subject: "Approve your new email address",
+          private: true,
+        subject: "Approve your new email address",
           text: `Hello ${user.name},\n\nSomeone asked to change the email on your NRC account to ${newEmail}. If it was you, approve the change here:\n${url}\n\nIf it was not you, ignore this email and change your password.`,
         });
       },

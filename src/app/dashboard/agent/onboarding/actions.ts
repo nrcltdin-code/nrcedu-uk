@@ -4,7 +4,8 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requiredAgentDocuments } from "@/lib/agent";
 import { db } from "@/lib/db";
-import { link, queueEmail, staffAlertAddresses } from "@/lib/email";
+import { link, queueEmail } from "@/lib/email";
+import { alertAddresses } from "@/lib/email-settings";
 import { optionalInt, text } from "@/lib/form";
 import type { FormState } from "@/lib/form";
 import { notify, staffWithAccess } from "@/lib/notifications";
@@ -100,7 +101,7 @@ export async function submitForReview(): Promise<FormState> {
     href: `/dashboard/agents/${profile.id}`,
     email: true,
   });
-  queueEmail({ to: staffAlertAddresses(), subject: `Agent ready for review: ${who}`, text: `${who} sent their profile and documents for review.\n\nReview: ${link(`/dashboard/agents/${profile.id}`)}` });
+  queueEmail({ to: await alertAddresses("agents"), subject: `Agent ready for review: ${who}`, text: `${who} sent their profile and documents for review.\n\nReview: ${link(`/dashboard/agents/${profile.id}`)}` });
   revalidatePath(page);
   return { saved: true };
 }

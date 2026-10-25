@@ -4,7 +4,8 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAgentOwner } from "@/lib/agent";
 import { db } from "@/lib/db";
-import { link, queueEmail, staffAlertAddresses } from "@/lib/email";
+import { link, queueEmail } from "@/lib/email";
+import { alertAddresses } from "@/lib/email-settings";
 import { text } from "@/lib/form";
 import type { FormState } from "@/lib/form";
 import { notify, staffWithAccess } from "@/lib/notifications";
@@ -46,7 +47,7 @@ export async function requestAgencyUpgrade(_previous: FormState, form: FormData)
     email: true,
   });
   queueEmail({
-    to: staffAlertAddresses(),
+    to: await alertAddresses("agents"),
     subject: `Agency upgrade request: ${companyName}`,
     text: `An approved individual agent asked to become the agency "${companyName}".\n\nReview: ${link(`/dashboard/agents/${scope.agentId}`)}`,
   });

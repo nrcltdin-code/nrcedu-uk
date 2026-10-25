@@ -108,6 +108,7 @@ const groups: { label: string; collapsible?: boolean; entries: Entry[] }[] = [
     entries: [
       { label: "Users and roles", href: "/dashboard/users", icon: "users", roles: staff, module: "USERS" },
       { label: "Site settings", href: "/dashboard/settings", icon: "settings", roles: staff, module: "SETTINGS", action: "edit" },
+      { label: "Email", href: "/dashboard/emails", icon: "mail", roles: staff, module: "SETTINGS", action: "edit" },
       { label: "Activity log", href: "/dashboard/activity", icon: "search", roles: ["ADMIN"] },
     ],
   },

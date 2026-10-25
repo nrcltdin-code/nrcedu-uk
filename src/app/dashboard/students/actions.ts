@@ -172,6 +172,7 @@ export async function makePortalInvite(_previous: InviteState, form: FormData): 
   const emailed = await sendEmail({
     to: student.user.email,
     replyTo: user.email,
+    private: true,
     subject: "Set your password for the NRC student portal",
     text: `Hello ${student.user.name},\n\n${user.name} at NRC has set up your student portal, where you can follow your applications and upload documents.\n\nChoose your password here (the link works once and expires in 7 days):\n${invite.url}`,
   });

@@ -1,6 +1,7 @@
 import "server-only";
 import { db } from "@/lib/db";
-import { link, queueEmail, staffAlertAddresses } from "@/lib/email";
+import { link, queueEmail } from "@/lib/email";
+import { alertAddresses, countryInbox } from "@/lib/email-settings";
 import { notify, staffWithAccess } from "@/lib/notifications";
 import type { LeadSource, StudyLevel } from "@/generated/prisma/client";
 
@@ -51,7 +52,9 @@ export async function createLead(lead: NewLead) {
   });
   queueEmail(
     {
-      to: counsellor ? [counsellor] : staffAlertAddresses(),
+      to: counsellor ? [counsellor] : await alertAddresses("leads"),
+      cc: [await countryInbox(lead.countryId)].filter((address): address is string => Boolean(address)),
+      kind: "Lead alert",
       replyTo: lead.email,
       subject: `New lead: ${lead.name}`,
       text: `${lead.name} sent the ${fromForm}${counsellor ? " and the lead is assigned to you" : ""}.\n\nEmail: ${lead.email}\nPhone: ${lead.phone || "—"}\n\n${lead.message || "(no message)"}\n\nOpen the lead: ${link(`/dashboard/leads/${created.id}`)}`,
