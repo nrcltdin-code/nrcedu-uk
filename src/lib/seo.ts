@@ -6,6 +6,8 @@ import type { SiteSettings } from "@/lib/settings";
 // schema.org structured data (JSON-LD) for the public pages.
 
 export const siteName = "NRC Educational Consultant";
+// Shorter names people search for, so Google links them to this business.
+export const alternateNames = ["NRC", "NRC Edu", "NRC Edu UK", "nrcedu", "NRC Educational Consultancy"];
 export const defaultImage = "/nrc-logo.jpeg";
 
 // Full address for a path or an already absolute URL (uploaded images live on another domain).
@@ -62,6 +64,7 @@ export function organizationLd({ contact, social }: SiteSettings): Thing {
     "@type": ["Organization", "EducationalOrganization"],
     "@id": organizationId,
     name: siteName,
+    alternateName: alternateNames,
     url: siteUrl,
     logo: absoluteUrl(defaultImage),
     ...(contact.email ? { email: contact.email } : {}),
@@ -93,6 +96,7 @@ export const websiteLd =(): Thing => ({
   "@type": "WebSite",
   "@id": `${siteUrl}/#website`,
   name: siteName,
+  alternateName: alternateNames,
   url: siteUrl,
   publisher: { "@id": organizationId },
 });

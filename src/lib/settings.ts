@@ -7,7 +7,7 @@ import { contact as defaultContact, footerNav as defaultFooter, mainNav as defau
 // Site settings live in the SiteSetting key/value table. Anything missing or malformed
 // falls back to the defaults in lib/nav.ts, so the site never breaks on a bad row.
 
-export type ContactSettings = { phone: string; email: string; whatsapp: string; messenger: string; address: string };
+export type ContactSettings = { phone: string; email: string; whatsapp: string; messenger: string; address: string; reviewLink: string };
 export type SocialSettings = Record<(typeof socialNetworks)[number]["key"], string>;
 export type MenuSettings = { main: NavItem[]; footer: { title: string; items: NavItem[] }[] };
 export type SiteSettings = { contact: ContactSettings; social: SocialSettings; menus: MenuSettings };
@@ -22,7 +22,7 @@ export const socialNetworks = [
 ] as const;
 
 export const defaultSettings: SiteSettings = {
-  contact: { phone: defaultContact.phone, email: defaultContact.email, whatsapp: "", messenger: "", address: "" },
+  contact: { phone: defaultContact.phone, email: defaultContact.email, whatsapp: "", messenger: "", address: "", reviewLink: "" },
   social: { facebook: "", instagram: "", linkedin: "", youtube: "", tiktok: "", x: "" },
   menus: { main: defaultMain, footer: defaultFooter },
 };
@@ -38,6 +38,8 @@ export function isSafeHref(href: string) {
 }
 
 const str = (value: unknown, max = 300) => (typeof value === "string" ? value.slice(0, max) : "");
+
+const httpsOnly = (url: string) => (url && isSafeHref(url) && !url.startsWith("/") ? url : "");
 
 const navItems = (value: unknown): NavItem[] =>
   Array.isArray(value)
@@ -65,7 +67,7 @@ function parse(rows: { key: string; value: unknown }[]): SiteSettings {
 
   return {
     contact: contact
-      ? { phone: str(contact.phone, 40), email: str(contact.email, 120), whatsapp: str(contact.whatsapp, 40), messenger: str(contact.messenger, 80), address: str(contact.address, 300) }
+      ? { phone: str(contact.phone, 40), email: str(contact.email, 120), whatsapp: str(contact.whatsapp, 40), messenger: str(contact.messenger, 80), address: str(contact.address, 300), reviewLink: httpsOnly(str(contact.reviewLink)) }
       : defaultSettings.contact,
     social: Object.fromEntries(
       socialNetworks.map(({ key }) => {

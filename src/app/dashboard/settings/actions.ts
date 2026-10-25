@@ -28,12 +28,14 @@ export async function saveContact(_previous: FormState, form: FormData): Promise
     whatsapp: text(form, "whatsapp"),
     messenger: text(form, "messenger"),
     address: text(form, "address"),
+    reviewLink: text(form, "reviewLink"),
   };
   if (!isPhone(value.phone)) return { error: "Enter a phone number using digits, spaces and an optional +." };
   if (!isEmail(value.email) || value.email.length > 120) return { error: "Enter a valid email address." };
   if (value.whatsapp && !isPhone(value.whatsapp)) return { error: "Enter the WhatsApp number using digits, spaces and an optional +." };
   if (value.messenger && !facebookPageName(value.messenger)) return { error: "Enter the Facebook page name (e.g. nrcedu) or its m.me link." };
   if (value.address.length > 300) return { error: "Keep the address under 300 characters." };
+  if (value.reviewLink && (!isSafeHref(value.reviewLink) || value.reviewLink.startsWith("/") || value.reviewLink.length > 300)) return { error: "The Google review link must be a full address starting with https://" };
 
   await store("contact", value, user.id);
   return { saved: true };

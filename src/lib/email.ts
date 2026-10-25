@@ -1,12 +1,14 @@
 import "server-only";
 import { after } from "next/server";
 import { db } from "@/lib/db";
+import { emailHtml } from "@/lib/email-html";
 import { getEmailSettings } from "@/lib/email-settings";
 
 // Transactional email through Resend's HTTP API (no SDK needed). Switches on once
 // EMAIL_API_KEY and EMAIL_FROM are set; until then each message is only logged, so every
-// flow keeps working without email. Messages are plain text: nothing a visitor typed can
-// turn into HTML or a disguised link. Every message is recorded in EmailLog
+// flow keeps working without email. Messages are written as plain text and sent with a
+// branded HTML copy (lib/email-html.ts) that escapes everything, so nothing a visitor typed
+// can turn into markup or a disguised link. Every message is recorded in EmailLog
 // (Dashboard → Email), and Resend's webhook updates its delivery status.
 
 const apiKey = process.env.EMAIL_API_KEY;
@@ -73,7 +75,7 @@ export async function sendEmail(email: Email): Promise<boolean> {
     const response = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ from, to, subject, text: email.text + signOff, reply_to: replyTo, cc: cc?.length ? cc : undefined, attachments: email.attachments }),
+      body: JSON.stringify({ from, to, subject, text: email.text + signOff, html: emailHtml({ subject, text: email.text, siteUrl: appUrl() }), reply_to: replyTo, cc: cc?.length ? cc : undefined, attachments: email.attachments }),
       signal: AbortSignal.timeout(email.attachments?.length ? 60_000 : 10_000),
     });
     if (!response.ok) {

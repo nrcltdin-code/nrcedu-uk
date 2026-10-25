@@ -17,11 +17,12 @@ type Props = {
   recipient: { name: string; email: string };
   myName: string;
   portalLink: string;
+  reviewLink: string;
   templates: TemplateOption[];
 };
 
 // "Send email" button that opens a panel to write to one person, optionally from a template.
-export function SendEmailButton({ target, id, recipient, myName, portalLink, templates }: Props) {
+export function SendEmailButton({ target, id, recipient, myName, portalLink, reviewLink, templates }: Props) {
   const [open, setOpen] = useState(false);
   const [subject, setSubject] = useState("");
   const [body, setBody] = useState("");
@@ -42,7 +43,9 @@ export function SendEmailButton({ target, id, recipient, myName, portalLink, tem
       .replaceAll("{first_name}", recipient.name.split(/\s+/)[0] ?? recipient.name)
       .replaceAll("{name}", recipient.name)
       .replaceAll("{my_name}", myName)
-      .replaceAll("{portal_link}", portalLink);
+      .replaceAll("{portal_link}", portalLink)
+      // Left as is when no link is saved, so sending is blocked until it is filled in.
+      .replaceAll("{review_link}", reviewLink || "{review_link}");
 
   function applyTemplate(templateId: string) {
     const template = templates.find((t) => t.id === templateId);

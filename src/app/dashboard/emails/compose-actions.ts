@@ -16,7 +16,7 @@ export async function sendPersonalEmail(_previous: FormState, form: FormData): P
   const body = text(form, "body");
   if (subject.length < 2 || subject.length > 150) return { error: "Write a subject (up to 150 characters)." };
   if (body.length < 2 || body.length > 10_000) return { error: "Write a message (up to 10,000 characters)." };
-  if (/\{(name|first_name|my_name|portal_link)\}/.test(subject + body)) return { error: "Some {placeholders} are still in the text. Replace them before sending." };
+  if (/\{(name|first_name|my_name|portal_link|review_link)\}/.test(subject + body)) return { error: "Some {placeholders} are still in the text. Replace them before sending." };
   if (!emailEnabled) return { error: "Email sending is switched off, so this cannot be sent." };
 
   let recipient: { email: string; name: string } | null = null;

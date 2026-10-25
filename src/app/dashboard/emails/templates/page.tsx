@@ -39,6 +39,7 @@ async function Templates() {
           <li><code>{"{name}"}</code> their full name</li>
           <li><code>{"{my_name}"}</code> the staff member writing</li>
           <li><code>{"{portal_link}"}</code> link to sign in to the portal</li>
+          <li><code>{"{review_link}"}</code> your Google review link (set in Settings)</li>
         </ul>
       </Card>
 

@@ -36,6 +36,11 @@ export function ContactForm({ contact }: { contact: ContactSettings }) {
         <Label htmlFor="s-address">Main office address</Label>
         <Textarea id="s-address" name="address" defaultValue={contact.address} maxLength={300} className="min-h-20" placeholder="Optional" />
       </div>
+      <div>
+        <Label htmlFor="s-review">Google review link</Label>
+        <Input id="s-review" name="reviewLink" type="url" defaultValue={contact.reviewLink} maxLength={300} placeholder="https://g.page/r/.../review" />
+        <p className="mt-1 text-xs text-muted">From &quot;Ask for reviews&quot; on your Google Business Profile. Use {"{review_link}"} in email templates.</p>
+      </div>
       <FormMessage state={state} />
       <SaveButton disabled={pending} className="justify-self-start">{pending ? "Saving…" : "Save contact details"}</SaveButton>
     </form>
