@@ -5,6 +5,7 @@ import Link from "next/link";
 import { FormMessage } from "@/components/dashboard/form-bits";
 import { ImageField } from "@/components/dashboard/image-field";
 import { Button, buttonStyles } from "@/components/ui/button";
+import { SaveButton } from "@/components/ui/save-button";
 import { Input, Label, Textarea } from "@/components/ui/field";
 import type { FormState } from "@/lib/form";
 import { saveSubject } from "./actions";
@@ -33,7 +34,7 @@ export function SubjectForm({ subject }: { subject: SubjectValues | null }) {
       <ImageField name="imageUrl" label="Image" defaultValue={subject?.imageUrl} />
       <FormMessage state={state} />
       <div className="flex gap-3">
-        <Button type="submit" disabled={pending}>{pending ? "Saving…" : subject ? "Save changes" : "Add subject"}</Button>
+        <SaveButton disabled={pending}>{pending ? "Saving…" : subject ? "Save changes" : "Add subject"}</SaveButton>
         {subject && <Link href="/dashboard/subjects" className={buttonStyles({ variant: "ghost" })}>Cancel</Link>}
       </div>
     </form>

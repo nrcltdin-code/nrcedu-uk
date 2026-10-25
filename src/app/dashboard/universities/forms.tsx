@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Checkbox, FormMessage } from "@/components/dashboard/form-bits";
 import { ImageField } from "@/components/dashboard/image-field";
 import { Button, buttonStyles } from "@/components/ui/button";
+import { SaveButton } from "@/components/ui/save-button";
 import { Input, Label, Select, Textarea } from "@/components/ui/field";
 import { KeepValuesOnError } from "@/components/ui/keep-values-on-error";
 import type { FormState } from "@/lib/form";
@@ -159,9 +160,9 @@ export function UniversityForm({ university, countries }: { university: Universi
       </div>
 
       <FormMessage state={state} />
-      <Button type="submit" disabled={pending} className="justify-self-start">
+      <SaveButton disabled={pending} className="justify-self-start">
         {pending ? "Saving…" : university ? "Save changes" : "Add university"}
-      </Button>
+      </SaveButton>
     </form>
   );
 }
@@ -245,7 +246,7 @@ export function CourseForm({ universityId, course, subjects, levels, qualificati
       <Checkbox name="isPublished" defaultChecked={course?.isPublished ?? true}>Show on the website</Checkbox>
       <FormMessage state={state} />
       <div className="flex gap-3">
-        <Button type="submit" disabled={pending}>{pending ? "Saving…" : course ? "Save course" : "Add course"}</Button>
+        <SaveButton disabled={pending}>{pending ? "Saving…" : course ? "Save course" : "Add course"}</SaveButton>
         <Link href={`/dashboard/universities/${universityId}#courses`} className={buttonStyles({ variant: "ghost" })}>Cancel</Link>
       </div>
     </form>
@@ -280,7 +281,7 @@ export function IntakeForm({ universityId, courses }: { universityId: string; co
         </div>
       </div>
       <FormMessage state={state} />
-      <Button type="submit" disabled={pending} className="justify-self-start">{pending ? "Adding…" : "Add intake"}</Button>
+      <SaveButton disabled={pending} className="justify-self-start">{pending ? "Adding…" : "Add intake"}</SaveButton>
     </form>
   );
 }
@@ -331,7 +332,7 @@ export function ProcessForm({ universityId, confirmationName, processNotes, meth
         <Textarea id="p-notes" name="processNotes" maxLength={3000} rows={4} defaultValue={processNotes ?? ""} placeholder="Portal link, who to email, typical decision time…" />
       </div>
       <FormMessage state={state} />
-      <Button type="submit" size="sm" disabled={pending} className="justify-self-start">{pending ? "Saving…" : "Save process"}</Button>
+      <SaveButton size="sm" disabled={pending} className="justify-self-start">{pending ? "Saving…" : "Save process"}</SaveButton>
     </form>
   );
 }
@@ -362,7 +363,7 @@ export function RequirementForm({ universityId, types }: { universityId: string;
       <Checkbox name="required" defaultChecked>Required before submitting</Checkbox>
       <KeepValuesOnError state={state} failed={Boolean(state.error)} />
       {state.error && <FormMessage state={state} />}
-      <Button type="submit" size="sm" variant="glass" disabled={pending} className="justify-self-start">{pending ? "Adding…" : "Add to checklist"}</Button>
+      <SaveButton size="sm" variant="glass" disabled={pending} className="justify-self-start">{pending ? "Adding…" : "Add to checklist"}</SaveButton>
     </form>
   );
 }

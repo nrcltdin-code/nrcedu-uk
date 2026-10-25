@@ -2,6 +2,7 @@
 
 import { useActionState, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { SaveButton } from "@/components/ui/save-button";
 import { Input, Label } from "@/components/ui/field";
 import { FormMessage } from "@/components/dashboard/form-bits";
 import { InfoTip } from "@/components/ui/info-tip";
@@ -34,7 +35,7 @@ export function PermissionsForm({ memberId, options, checked }: { memberId: stri
       <input type="hidden" name="memberId" value={memberId} />
       <PermissionBoxes options={options} checked={checked} idPrefix={`p-${memberId}`} />
       <FormMessage state={state} />
-      <Button type="submit" size="sm" variant="glass" disabled={pending} className="justify-self-start">{pending ? "Saving…" : "Save access"}</Button>
+      <SaveButton size="sm" variant="glass" disabled={pending} className="justify-self-start">{pending ? "Saving…" : "Save access"}</SaveButton>
     </form>
   );
 }
@@ -84,7 +85,7 @@ export function AddTeamMemberForm({ options }: { options: PermissionOption[] }) 
         </div>
         <PermissionBoxes options={options} checked={["APPLICATIONS", "DOCUMENTS"]} idPrefix="new" />
         {state.error && <p role="alert" className="text-sm text-red-700">{state.error}</p>}
-        <Button type="submit" disabled={pending} className="justify-self-start">{pending ? "Adding…" : "Add team member"}</Button>
+        <SaveButton disabled={pending} className="justify-self-start">{pending ? "Adding…" : "Add team member"}</SaveButton>
       </form>
       <InviteLink state={state} />
     </div>

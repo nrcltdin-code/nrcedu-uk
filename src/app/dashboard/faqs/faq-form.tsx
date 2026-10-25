@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import Link from "next/link";
 import { Checkbox, FormMessage } from "@/components/dashboard/form-bits";
 import { Button, buttonStyles } from "@/components/ui/button";
+import { SaveButton } from "@/components/ui/save-button";
 import { Input, Label, Textarea } from "@/components/ui/field";
 import type { FormState } from "@/lib/form";
 import { saveFaq } from "./actions";
@@ -31,7 +32,7 @@ export function FaqForm({ faq }: { faq: FaqValues | null }) {
       <Checkbox name="isPublished" defaultChecked={faq?.isPublished ?? true}>Show on the website</Checkbox>
       <FormMessage state={state} />
       <div className="flex gap-3">
-        <Button type="submit" disabled={pending}>{pending ? "Saving…" : faq ? "Save changes" : "Add question"}</Button>
+        <SaveButton disabled={pending}>{pending ? "Saving…" : faq ? "Save changes" : "Add question"}</SaveButton>
         {faq && <Link href="/dashboard/faqs" className={buttonStyles({ variant: "ghost" })}>Cancel</Link>}
       </div>
     </form>

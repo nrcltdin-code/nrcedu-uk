@@ -4,6 +4,7 @@ import Link from "next/link";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { SaveButton } from "@/components/ui/save-button";
 import { Card } from "@/components/ui/card";
 import { Select } from "@/components/ui/field";
 import { db } from "@/lib/db";
@@ -56,7 +57,7 @@ async function CountriesManager({ searchParams }: Pick<PageProps<"/dashboard/cou
               <option key={c.id} value={c.id}>{c.name}</option>
             ))}
           </Select>
-          <Button type="submit">Add</Button>
+          <SaveButton>Add</SaveButton>
         </form>
         <ul className="mt-4 divide-y divide-brand-900/10">
           {countries.length === 0 && <li className="py-3 text-muted">No destinations yet. Add one above.</li>}

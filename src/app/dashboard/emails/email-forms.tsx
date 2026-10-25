@@ -3,6 +3,7 @@
 import { useActionState, useTransition, useState } from "react";
 import { FormMessage } from "@/components/dashboard/form-bits";
 import { Button } from "@/components/ui/button";
+import { SaveButton } from "@/components/ui/save-button";
 import { Input, Label, Textarea } from "@/components/ui/field";
 import type { FormState } from "@/lib/form";
 import { resendEmail, saveEmailSettings } from "./actions";
@@ -67,7 +68,7 @@ export function EmailSettingsForm(props: Props) {
       </section>
 
       <FormMessage state={state} />
-      <Button type="submit" disabled={pending} className="justify-self-start">{pending ? "Saving…" : "Save email settings"}</Button>
+      <SaveButton disabled={pending} className="justify-self-start">{pending ? "Saving…" : "Save email settings"}</SaveButton>
     </form>
   );
 }

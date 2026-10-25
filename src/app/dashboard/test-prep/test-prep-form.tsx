@@ -5,6 +5,7 @@ import { Checkbox, FormMessage } from "@/components/dashboard/form-bits";
 import { ImageField } from "@/components/dashboard/image-field";
 import { MarkdownEditor } from "@/components/dashboard/markdown-editor";
 import { Button } from "@/components/ui/button";
+import { SaveButton } from "@/components/ui/save-button";
 import { Input, Label } from "@/components/ui/field";
 import { InfoTip } from "@/components/ui/info-tip";
 import type { FormState } from "@/lib/form";
@@ -151,7 +152,7 @@ export function TestPrepForm({ test }: { test: TestPrepValues | null }) {
       <ImageField name="imageUrl" label="Banner image" defaultValue={test?.imageUrl ?? null} />
 
       <FormMessage state={state} />
-      <Button type="submit" disabled={pending} className="justify-self-start">{pending ? "Saving…" : test ? "Save changes" : "Add test"}</Button>
+      <SaveButton disabled={pending} className="justify-self-start">{pending ? "Saving…" : test ? "Save changes" : "Add test"}</SaveButton>
     </form>
   );
 }

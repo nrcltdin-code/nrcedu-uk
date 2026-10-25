@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Checkbox, FormMessage } from "@/components/dashboard/form-bits";
 import { ImageField } from "@/components/dashboard/image-field";
 import { Button, buttonStyles } from "@/components/ui/button";
+import { SaveButton } from "@/components/ui/save-button";
 import { Input, Label } from "@/components/ui/field";
 import type { FormState } from "@/lib/form";
 import { savePartner } from "./actions";
@@ -29,7 +30,7 @@ export function PartnerForm({ partner }: { partner: PartnerValues | null }) {
       <Checkbox name="isPublished" defaultChecked={partner?.isPublished ?? true}>Show on the website</Checkbox>
       <FormMessage state={state} />
       <div className="flex gap-3">
-        <Button type="submit" disabled={pending}>{pending ? "Saving…" : partner ? "Save changes" : "Add partner"}</Button>
+        <SaveButton disabled={pending}>{pending ? "Saving…" : partner ? "Save changes" : "Add partner"}</SaveButton>
         {partner && <Link href="/dashboard/partners" className={buttonStyles({ variant: "ghost" })}>Cancel</Link>}
       </div>
     </form>

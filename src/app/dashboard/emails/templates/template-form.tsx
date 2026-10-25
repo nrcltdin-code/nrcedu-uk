@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { FormMessage } from "@/components/dashboard/form-bits";
 import { Button } from "@/components/ui/button";
+import { SaveButton } from "@/components/ui/save-button";
 import { Input, Label, Textarea } from "@/components/ui/field";
 import type { FormState } from "@/lib/form";
 import { saveTemplate } from "./actions";
@@ -35,7 +36,7 @@ export function TemplateForm({ template }: { template?: Template }) {
         <Textarea id={`t-body-${key}`} name="body" defaultValue={template?.body} maxLength={10000} className="min-h-56" required />
       </div>
       <FormMessage state={state} />
-      <Button type="submit" size="sm" disabled={pending} className="justify-self-start">{pending ? "Saving…" : template ? "Save template" : "Add template"}</Button>
+      <SaveButton size="sm" disabled={pending} className="justify-self-start">{pending ? "Saving…" : template ? "Save template" : "Add template"}</SaveButton>
     </form>
   );
 }

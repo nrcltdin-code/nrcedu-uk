@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import { FormMessage } from "@/components/dashboard/form-bits";
 import { KeepValuesOnError } from "@/components/ui/keep-values-on-error";
 import { Button } from "@/components/ui/button";
+import { SaveButton } from "@/components/ui/save-button";
 import { Label, Textarea } from "@/components/ui/field";
 import type { FormState } from "@/lib/form";
 
@@ -24,7 +25,7 @@ export function MessageForm({ action, studentId, placeholder }: MessageFormProps
       <Textarea id="message-body" name="body" maxLength={2000} rows={4} placeholder={placeholder} required />
       <KeepValuesOnError state={state} failed={Boolean(state.error)} />
       {state.error && <FormMessage state={state} />}
-      <Button type="submit" size="sm" disabled={pending} className="justify-self-start">{pending ? "Sending…" : "Send message"}</Button>
+      <SaveButton size="sm" disabled={pending} className="justify-self-start">{pending ? "Sending…" : "Send message"}</SaveButton>
     </form>
   );
 }

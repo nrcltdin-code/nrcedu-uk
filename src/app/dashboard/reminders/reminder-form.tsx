@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import { FormMessage } from "@/components/dashboard/form-bits";
 import { KeepValuesOnError } from "@/components/ui/keep-values-on-error";
 import { Button } from "@/components/ui/button";
+import { SaveButton } from "@/components/ui/save-button";
 import { Input, Label, Select } from "@/components/ui/field";
 import type { FormState } from "@/lib/form";
 import { addReminder } from "./actions";
@@ -44,7 +45,7 @@ export function ReminderForm({ field, staff, me, tomorrow }: ReminderFormProps) 
       </div>
       <KeepValuesOnError state={state} failed={Boolean(state.error)} />
       {state.error && <FormMessage state={state} />}
-      <Button type="submit" size="sm" disabled={pending} className="justify-self-start">{pending ? "Adding…" : "Add reminder"}</Button>
+      <SaveButton size="sm" disabled={pending} className="justify-self-start">{pending ? "Adding…" : "Add reminder"}</SaveButton>
     </form>
   );
 }

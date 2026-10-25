@@ -6,6 +6,7 @@ import QRCode from "qrcode";
 import { PasswordInput, PasswordStrength } from "@/components/auth/password-field";
 import { FormMessage } from "@/components/dashboard/form-bits";
 import { Button } from "@/components/ui/button";
+import { SaveButton } from "@/components/ui/save-button";
 import { Input, Label } from "@/components/ui/field";
 import { toast } from "@/components/ui/toaster";
 import { authClient } from "@/lib/auth-client";
@@ -45,7 +46,7 @@ export function DetailsForm({ name, phone }: { name: string; phone: string | nul
         </div>
       </div>
       <FormMessage state={state} />
-      <Button type="submit" disabled={pending} className="justify-self-start">{pending ? "Saving…" : "Save details"}</Button>
+      <SaveButton disabled={pending} className="justify-self-start">{pending ? "Saving…" : "Save details"}</SaveButton>
     </form>
   );
 }
@@ -87,9 +88,9 @@ export function EmailForm({ email, verified, emailEnabled, blockedReason }: { em
             <Input id="a-new-email" name="email" type="email" autoComplete="email" required />
           </div>
           <Alert>{state.error}</Alert>
-          <Button type="submit" variant="glass" disabled={state.pending} className="justify-self-start">
+          <SaveButton variant="glass" disabled={state.pending} className="justify-self-start">
             {state.pending ? "Sending…" : "Change email"}
-          </Button>
+          </SaveButton>
         </form>
       )}
     </div>
@@ -167,9 +168,9 @@ export function PasswordForm({ hasPassword, email, emailEnabled }: { hasPassword
       </div>
       <Alert>{state.error}</Alert>
       {state.done && <Alert tone="success">Password changed. Your other devices have been signed out.</Alert>}
-      <Button type="submit" variant="glass" disabled={state.pending} className="justify-self-start">
+      <SaveButton variant="glass" disabled={state.pending} className="justify-self-start">
         {state.pending ? "Saving…" : "Change password"}
-      </Button>
+      </SaveButton>
     </form>
   );
 }

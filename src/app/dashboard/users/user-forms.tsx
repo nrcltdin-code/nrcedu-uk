@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { Button } from "@/components/ui/button";
+import { SaveButton } from "@/components/ui/save-button";
 import { Input, Label, Select } from "@/components/ui/field";
 import { KeepValuesOnError } from "@/components/ui/keep-values-on-error";
 import type { Role, UserStatus } from "@/generated/prisma/client";
@@ -48,9 +49,9 @@ export function NewStaffForm() {
         <p className="mt-1.5 text-xs text-muted">Share it with them privately; they can change it once password reset is added.</p>
       </div>
       <FormError state={state} />
-      <Button type="submit" disabled={pending}>
+      <SaveButton disabled={pending}>
         {pending ? "Adding…" : "Add account"}
-      </Button>
+      </SaveButton>
     </form>
   );
 }
@@ -81,9 +82,9 @@ export function AccessForm({ id, role, status }: { id: string; role: Role; statu
       </div>
       <p className="text-xs text-muted">Anyone not active is signed out straight away and cannot sign in.</p>
       <FormError state={state} />
-      <Button type="submit" disabled={pending} className="justify-self-start">
+      <SaveButton disabled={pending} className="justify-self-start">
         {pending ? "Saving…" : "Save access"}
-      </Button>
+      </SaveButton>
     </form>
   );
 }
@@ -109,9 +110,9 @@ export function PermissionsForm({ id, levels }: { id: string; levels: Record<str
         ))}
       </div>
       <FormError state={state} />
-      <Button type="submit" disabled={pending} className="justify-self-start">
+      <SaveButton disabled={pending} className="justify-self-start">
         {pending ? "Saving…" : "Save module access"}
-      </Button>
+      </SaveButton>
     </form>
   );
 }

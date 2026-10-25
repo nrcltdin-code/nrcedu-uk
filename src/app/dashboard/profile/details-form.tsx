@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { FormMessage } from "@/components/dashboard/form-bits";
 import { Button } from "@/components/ui/button";
+import { SaveButton } from "@/components/ui/save-button";
 import { Input, Label, Select, Textarea } from "@/components/ui/field";
 import type { FormState } from "@/lib/form";
 import { saveMyDetails } from "./actions";
@@ -80,7 +81,7 @@ export function MyDetailsForm({ details, countries, studentId, submit = saveMyDe
         <Textarea id="m-address" name="address" defaultValue={details.address ?? ""} maxLength={300} className="min-h-20" autoComplete="street-address" />
       </div>
       <FormMessage state={state} />
-      <Button type="submit" disabled={pending} className="justify-self-start">{pending ? "Saving…" : studentId ? "Save details" : "Save my details"}</Button>
+      <SaveButton disabled={pending} className="justify-self-start">{pending ? "Saving…" : studentId ? "Save details" : "Save my details"}</SaveButton>
     </form>
   );
 }

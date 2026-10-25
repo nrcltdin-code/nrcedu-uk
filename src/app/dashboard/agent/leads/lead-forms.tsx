@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { FormMessage } from "@/components/dashboard/form-bits";
 import { Button } from "@/components/ui/button";
+import { SaveButton } from "@/components/ui/save-button";
 import { Input, Label, Select, Textarea } from "@/components/ui/field";
 import type { FormState } from "@/lib/form";
 import { addAgentLead, updateAgentLead } from "./actions";
@@ -58,7 +59,7 @@ export function AddLeadForm({ countries, levels }: { countries: Option[]; levels
         <Textarea id="l-msg" name="message" rows={3} maxLength={2000} />
       </div>
       <FormMessage state={state} />
-      <Button type="submit" disabled={pending} className="justify-self-start">{pending ? "Adding…" : "Add lead"}</Button>
+      <SaveButton disabled={pending} className="justify-self-start">{pending ? "Adding…" : "Add lead"}</SaveButton>
     </form>
   );
 }
@@ -92,7 +93,7 @@ export function LeadStatusForm({ lead, statuses, people }: { lead: LeadValues; s
         </div>
       )}
       <FormMessage state={state} />
-      <Button type="submit" size="sm" disabled={pending} className="justify-self-start">{pending ? "Saving…" : "Save"}</Button>
+      <SaveButton size="sm" disabled={pending} className="justify-self-start">{pending ? "Saving…" : "Save"}</SaveButton>
     </form>
   );
 }

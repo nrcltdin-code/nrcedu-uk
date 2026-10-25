@@ -3,6 +3,7 @@
 import { useActionState, useState } from "react";
 import { FormMessage } from "@/components/dashboard/form-bits";
 import { Button } from "@/components/ui/button";
+import { SaveButton } from "@/components/ui/save-button";
 import { Input, Label, Select, Textarea } from "@/components/ui/field";
 import type { FormState } from "@/lib/form";
 import { createApplication } from "../applications/actions";
@@ -65,7 +66,7 @@ export function NewStudentForm({ countries, counsellors, agents }: PeopleProps) 
       <CountrySelect countries={countries} />
       <PeopleSelects counsellors={counsellors} agents={agents} />
       <FormMessage state={state} />
-      <Button type="submit" disabled={pending} className="justify-self-start">{pending ? "Adding…" : "Add student"}</Button>
+      <SaveButton disabled={pending} className="justify-self-start">{pending ? "Adding…" : "Add student"}</SaveButton>
     </form>
   );
 }
@@ -128,7 +129,7 @@ export function StudentForm({ student, countries, counsellors, agents }: PeopleP
         <Textarea id="s-address" name="address" defaultValue={student.address ?? ""} maxLength={300} className="min-h-20" />
       </div>
       <FormMessage state={state} />
-      <Button type="submit" disabled={pending} className="justify-self-start">{pending ? "Saving…" : "Save profile"}</Button>
+      <SaveButton disabled={pending} className="justify-self-start">{pending ? "Saving…" : "Save profile"}</SaveButton>
     </form>
   );
 }

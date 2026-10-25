@@ -4,6 +4,7 @@ import { useActionState, useState } from "react";
 import { FormMessage } from "@/components/dashboard/form-bits";
 import { KeepValuesOnError } from "@/components/ui/keep-values-on-error";
 import { Button } from "@/components/ui/button";
+import { SaveButton } from "@/components/ui/save-button";
 import { Input, Label, Select, Textarea } from "@/components/ui/field";
 import type { FormState } from "@/lib/form";
 import { saveOnboardingProfile, submitForReview } from "./actions";
@@ -83,7 +84,7 @@ export function OnboardingProfileForm({ profile, countries }: { profile: Onboard
         <Textarea id="o-about" name="about" defaultValue={profile.about} minLength={20} maxLength={2000} required />
       </div>
       <FormMessage state={state} />
-      <Button type="submit" variant="glass" disabled={pending} className="justify-self-start">{pending ? "Saving…" : "Save profile"}</Button>
+      <SaveButton variant="glass" disabled={pending} className="justify-self-start">{pending ? "Saving…" : "Save profile"}</SaveButton>
     </form>
   );
 }

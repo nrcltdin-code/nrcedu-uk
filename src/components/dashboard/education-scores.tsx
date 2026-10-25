@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { FormMessage } from "@/components/dashboard/form-bits";
 import { Button } from "@/components/ui/button";
+import { SaveButton } from "@/components/ui/save-button";
 import { Input, Label, Select } from "@/components/ui/field";
 import { addEducation, addTestScore, deleteEducation, deleteTestScore, setEnglishMedium } from "@/app/dashboard/profile/actions";
 import { englishTests } from "@/lib/course-match";
@@ -142,7 +143,7 @@ function EducationForm({ studentId, levels }: { studentId: string; levels: Props
         </div>
         <div className="sm:col-span-2 grid gap-3">
           <FormMessage state={state} />
-          <Button type="submit" size="sm" disabled={pending} className="justify-self-start">{pending ? "Adding…" : "Add"}</Button>
+          <SaveButton size="sm" disabled={pending} className="justify-self-start">{pending ? "Adding…" : "Add"}</SaveButton>
         </div>
       </form>
     </details>
@@ -182,7 +183,7 @@ function ScoreForm({ studentId }: { studentId: string }) {
         </div>
         <div className="sm:col-span-2 grid gap-3">
           <FormMessage state={state} />
-          <Button type="submit" size="sm" disabled={pending} className="justify-self-start">{pending ? "Adding…" : "Add"}</Button>
+          <SaveButton size="sm" disabled={pending} className="justify-self-start">{pending ? "Adding…" : "Add"}</SaveButton>
         </div>
       </form>
     </details>

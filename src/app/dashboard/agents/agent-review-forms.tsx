@@ -4,6 +4,7 @@ import { useActionState, useTransition } from "react";
 import { FormMessage } from "@/components/dashboard/form-bits";
 import { KeepValuesOnError } from "@/components/ui/keep-values-on-error";
 import { Button } from "@/components/ui/button";
+import { SaveButton } from "@/components/ui/save-button";
 import { Input, Label, Select, Textarea } from "@/components/ui/field";
 import { DecisionForm, FileReview } from "@/components/dashboard/decision-form";
 import type { FormState } from "@/lib/form";
@@ -70,7 +71,7 @@ export function RequestDocumentForm({ agentId, types }: { agentId: string; types
       </div>
       <KeepValuesOnError state={state} failed={Boolean(state.error)} />
       <FormMessage state={state} />
-      <Button type="submit" variant="glass" disabled={pending} className="justify-self-start">{pending ? "Sending…" : "Ask the agent"}</Button>
+      <SaveButton variant="glass" disabled={pending} className="justify-self-start">{pending ? "Sending…" : "Ask the agent"}</SaveButton>
     </form>
   );
 }

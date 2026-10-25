@@ -5,6 +5,7 @@ import { Checkbox, FormMessage } from "@/components/dashboard/form-bits";
 import { ImageField } from "@/components/dashboard/image-field";
 import { MarkdownEditor } from "@/components/dashboard/markdown-editor";
 import { Button } from "@/components/ui/button";
+import { SaveButton } from "@/components/ui/save-button";
 import { Label, Textarea } from "@/components/ui/field";
 import type { FormState } from "@/lib/form";
 import { saveCountry } from "./actions";
@@ -43,7 +44,7 @@ export function CountryForm({ country }: { country: CountryValues }) {
       <ImageField name="imageUrl" label="Image" defaultValue={country.imageUrl} />
       <ImageField name="flagUrl" label="Flag" defaultValue={country.flagUrl} fit="contain" />
       <FormMessage state={state} />
-      <Button type="submit" disabled={pending} className="justify-self-start">{pending ? "Saving…" : "Save country"}</Button>
+      <SaveButton disabled={pending} className="justify-self-start">{pending ? "Saving…" : "Save country"}</SaveButton>
     </form>
   );
 }

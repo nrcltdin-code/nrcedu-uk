@@ -4,6 +4,7 @@ import { useActionState, useState } from "react";
 import { FormMessage } from "@/components/dashboard/form-bits";
 import { KeepValuesOnError } from "@/components/ui/keep-values-on-error";
 import { Button } from "@/components/ui/button";
+import { SaveButton } from "@/components/ui/save-button";
 import { Input, Label, Select } from "@/components/ui/field";
 import type { FormState } from "@/lib/form";
 import { addCondition, assignApplication, moveStage, saveApplicationDetails } from "./actions";
@@ -103,7 +104,7 @@ export function DetailsForm({ details }: { details: Details }) {
       </div>
       <KeepValuesOnError state={state} failed={Boolean(state.error)} />
       {state.error && <FormMessage state={state} />}
-      <Button type="submit" size="sm" variant="glass" disabled={pending} className="justify-self-start">{pending ? "Saving…" : "Save details"}</Button>
+      <SaveButton size="sm" variant="glass" disabled={pending} className="justify-self-start">{pending ? "Saving…" : "Save details"}</SaveButton>
     </form>
   );
 }
@@ -117,7 +118,7 @@ export function ConditionForm({ applicationId }: { applicationId: string }) {
       <Label htmlFor="c-text" className="sr-only">New condition</Label>
       <div className="flex gap-2">
         <Input id="c-text" name="text" maxLength={300} placeholder="e.g. IELTS 6.5 overall, no band below 6.0" required />
-        <Button type="submit" size="sm" variant="glass" disabled={pending}>{pending ? "…" : "Add"}</Button>
+        <SaveButton size="sm" variant="glass" disabled={pending}>{pending ? "…" : "Add"}</SaveButton>
       </div>
       <KeepValuesOnError state={state} failed={Boolean(state.error)} />
       {state.error && <FormMessage state={state} />}
@@ -137,7 +138,7 @@ export function AssignForm({ id, assignedStaffId, staff }: { id: string; assigne
           <option value="">Not assigned</option>
           {staff.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
         </Select>
-        <Button type="submit" variant="glass" disabled={pending}>{pending ? "…" : "Save"}</Button>
+        <SaveButton variant="glass" disabled={pending}>{pending ? "…" : "Save"}</SaveButton>
       </div>
       <KeepValuesOnError state={state} failed={Boolean(state.error)} />
       {state.error && <FormMessage state={state} />}

@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { FormMessage } from "@/components/dashboard/form-bits";
 import { Button } from "@/components/ui/button";
+import { SaveButton } from "@/components/ui/save-button";
 import { Input, Label, Textarea } from "@/components/ui/field";
 import type { FormState } from "@/lib/form";
 import type { ContactSettings, SocialSettings } from "@/lib/settings";
@@ -32,7 +33,7 @@ export function ContactForm({ contact }: { contact: ContactSettings }) {
         <Textarea id="s-address" name="address" defaultValue={contact.address} maxLength={300} className="min-h-20" placeholder="Optional" />
       </div>
       <FormMessage state={state} />
-      <Button type="submit" disabled={pending} className="justify-self-start">{pending ? "Saving…" : "Save contact details"}</Button>
+      <SaveButton disabled={pending} className="justify-self-start">{pending ? "Saving…" : "Save contact details"}</SaveButton>
     </form>
   );
 }
@@ -52,7 +53,7 @@ export function SocialForm({ social, networks }: { social: SocialSettings; netwo
       </div>
       <p className="text-sm text-muted">Leave a box empty to hide that network.</p>
       <FormMessage state={state} />
-      <Button type="submit" disabled={pending} className="justify-self-start">{pending ? "Saving…" : "Save social links"}</Button>
+      <SaveButton disabled={pending} className="justify-self-start">{pending ? "Saving…" : "Save social links"}</SaveButton>
     </form>
   );
 }
@@ -79,7 +80,7 @@ export function MenusForm({ main, footer }: { main: string; footer: string }) {
         </div>
       </div>
       <FormMessage state={state} />
-      <Button type="submit" disabled={pending} className="justify-self-start">{pending ? "Saving…" : "Save menus"}</Button>
+      <SaveButton disabled={pending} className="justify-self-start">{pending ? "Saving…" : "Save menus"}</SaveButton>
     </form>
   );
 }

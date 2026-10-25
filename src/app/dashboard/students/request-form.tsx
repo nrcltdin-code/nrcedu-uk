@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { Checkbox, FormMessage } from "@/components/dashboard/form-bits";
 import { Button } from "@/components/ui/button";
+import { SaveButton } from "@/components/ui/save-button";
 import { Input, Label, Select, Textarea } from "@/components/ui/field";
 import type { FormState } from "@/lib/form";
 import { createDocumentRequest } from "./request-actions";
@@ -56,7 +57,7 @@ export function RequestForm({ studentId, types, applicationId, applications = []
       </div>
       <Checkbox name="required" defaultChecked>Required before the application is submitted</Checkbox>
       <FormMessage state={state} />
-      <Button type="submit" size="sm" disabled={pending} className="justify-self-start">{pending ? "Asking…" : "Ask the student"}</Button>
+      <SaveButton size="sm" disabled={pending} className="justify-self-start">{pending ? "Asking…" : "Ask the student"}</SaveButton>
     </form>
   );
 }

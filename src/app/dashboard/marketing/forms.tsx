@@ -4,6 +4,7 @@ import { useActionState, useState } from "react";
 import Link from "next/link";
 import { Checkbox, FormMessage } from "@/components/dashboard/form-bits";
 import { Button, buttonStyles } from "@/components/ui/button";
+import { SaveButton } from "@/components/ui/save-button";
 import { Input, Label, Select, Textarea } from "@/components/ui/field";
 import type { FormState } from "@/lib/form";
 import { revealSocialPassword, saveCampaign, savePost, saveSocialAccount } from "./actions";
@@ -18,7 +19,7 @@ function Options({ labels }: { labels: Record<string, string> }) {
 function Actions({ pending, editing, noun, cancelHref }: { pending: boolean; editing: boolean; noun: string; cancelHref: string }) {
   return (
     <div className="flex gap-3">
-      <Button type="submit" disabled={pending}>{pending ? "Saving…" : editing ? "Save changes" : `Add ${noun}`}</Button>
+      <SaveButton disabled={pending}>{pending ? "Saving…" : editing ? "Save changes" : `Add ${noun}`}</SaveButton>
       {editing && <Link href={cancelHref} className={buttonStyles({ variant: "ghost" })}>Cancel</Link>}
     </div>
   );

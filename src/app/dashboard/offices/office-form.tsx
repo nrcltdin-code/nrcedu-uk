@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Checkbox, FormMessage } from "@/components/dashboard/form-bits";
 import { ImageField } from "@/components/dashboard/image-field";
 import { Button, buttonStyles } from "@/components/ui/button";
+import { SaveButton } from "@/components/ui/save-button";
 import { Input, Label, Textarea } from "@/components/ui/field";
 import type { FormState } from "@/lib/form";
 import { saveOffice } from "./actions";
@@ -71,7 +72,7 @@ export function OfficeForm({ office }: { office: OfficeValues | null }) {
       <Checkbox name="isPublished" defaultChecked={office?.isPublished ?? true}>Show on the website</Checkbox>
       <FormMessage state={state} />
       <div className="flex gap-3">
-        <Button type="submit" disabled={pending}>{pending ? "Saving…" : office ? "Save changes" : "Add office"}</Button>
+        <SaveButton disabled={pending}>{pending ? "Saving…" : office ? "Save changes" : "Add office"}</SaveButton>
         {office && <Link href="/dashboard/offices" className={buttonStyles({ variant: "ghost" })}>Cancel</Link>}
       </div>
     </form>

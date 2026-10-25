@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import { FormMessage } from "@/components/dashboard/form-bits";
 import { KeepValuesOnError } from "@/components/ui/keep-values-on-error";
 import { Button } from "@/components/ui/button";
+import { SaveButton } from "@/components/ui/save-button";
 import { Input, Label, Select, Textarea } from "@/components/ui/field";
 import type { FormState } from "@/lib/form";
 import { addLead, saveRouting, updateLead } from "./actions";
@@ -56,7 +57,7 @@ export function NewLeadForm({ countries }: { countries: Option[] }) {
         <Textarea id="l-message" name="message" maxLength={3000} placeholder="Phone call, walk-in, Facebook message…" />
       </div>
       <FormMessage state={state} />
-      <Button type="submit" disabled={pending} className="justify-self-start">{pending ? "Adding…" : "Add lead"}</Button>
+      <SaveButton disabled={pending} className="justify-self-start">{pending ? "Adding…" : "Add lead"}</SaveButton>
     </form>
   );
 }
@@ -94,7 +95,7 @@ export function LeadUpdateForm({ lead, staff, agents }: LeadUpdateProps) {
         </Select>
       </div>
       <FormMessage state={state} />
-      <Button type="submit" disabled={pending} className="justify-self-start">{pending ? "Saving…" : "Save"}</Button>
+      <SaveButton disabled={pending} className="justify-self-start">{pending ? "Saving…" : "Save"}</SaveButton>
     </form>
   );
 }
@@ -134,7 +135,7 @@ export function RoutingForm({ country, countries = [], staffId, agentId, staff, 
         <option value="">No agent</option>
         {agents.map((a) => <option key={a.id} value={a.id}>{a.name}</option>)}
       </Select>
-      <Button type="submit" size="sm" variant="glass" disabled={pending}>{pending ? "Saving…" : state.saved ? "Saved ✓" : "Save"}</Button>
+      <SaveButton size="sm" variant="glass" disabled={pending}>{pending ? "Saving…" : state.saved ? "Saved ✓" : "Save"}</SaveButton>
       <KeepValuesOnError state={state} failed={Boolean(state.error)} />
       {state.error && <div className="sm:col-span-4"><FormMessage state={state} /></div>}
     </form>

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ImageField } from "@/components/dashboard/image-field";
 import { KeepValuesOnError } from "@/components/ui/keep-values-on-error";
 import { Button, buttonStyles } from "@/components/ui/button";
+import { SaveButton } from "@/components/ui/save-button";
 import { Input, Label, Textarea } from "@/components/ui/field";
 import { saveSlide } from "./actions";
 import type { SlideFormState } from "./actions";
@@ -69,9 +70,9 @@ export function SlideForm({ slide, nextPosition }: { slide: SlideValues | null; 
       )}
 
       <div className="flex gap-3">
-        <Button type="submit" disabled={pending}>
+        <SaveButton disabled={pending}>
           {pending ? "Saving…" : slide ? "Save changes" : "Add slide"}
-        </Button>
+        </SaveButton>
         {slide && (
           <Link href="/dashboard/slides" className={buttonStyles({ variant: "ghost" })}>
             Cancel
