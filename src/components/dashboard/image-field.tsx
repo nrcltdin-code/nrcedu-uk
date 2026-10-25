@@ -59,7 +59,11 @@ export function ImageField({ name, label, defaultValue, hint, fit = "cover" }: I
           {busy && <span className="absolute inset-0 flex items-center justify-center bg-white/80 text-xs font-semibold text-brand-800">Uploading…</span>}
         </div>
         <div className="grid min-w-0 flex-1 gap-2">
-          <Input id={id} name={name} type="url" value={url} onChange={(event) => setUrl(event.target.value)} placeholder="https://… or upload" />
+          {/* The value is sent from a hidden input: a controlled text input keeps its default in step
+              with its value, so the form's Save button would never see an upload or Remove as a change.
+              Plain text, not type="url", so built-in images like /banners/x.svg also pass. */}
+          <input type="hidden" name={name} value={url} />
+          <Input id={id} type="text" inputMode="url" value={url} onChange={(event) => setUrl(event.target.value.trim())} placeholder="https://… or upload" />
           <div className="flex flex-wrap gap-2">
             <button
               type="button"
