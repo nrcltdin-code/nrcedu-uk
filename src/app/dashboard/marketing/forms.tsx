@@ -210,7 +210,7 @@ export function SocialAccountForm({ account, isAdmin }: { account: SocialAccount
         </div>
         <div>
           <Label htmlFor="s-name">Page name</Label>
-          <Input id="s-name" name="name" defaultValue={account?.name} maxLength={120} placeholder="NRC Education UK" required />
+          <Input id="s-name" name="name" defaultValue={account?.name} maxLength={120} placeholder="NRC Educational Consultant" required />
         </div>
       </div>
       <div className="grid gap-4 sm:grid-cols-2">

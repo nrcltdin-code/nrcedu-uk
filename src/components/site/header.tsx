@@ -80,7 +80,7 @@ export async function Header() {
             <Link href="/" className="flex shrink-0 items-center gap-2">
               <Image src="/nrc-logo.jpeg" alt="" width={44} height={44} priority className="rounded-full" />
               <span className="whitespace-nowrap font-display text-lg font-bold text-brand-800">
-                NRC <span className="hidden font-medium text-muted sm:inline">Education</span>
+                NRC <span className="hidden font-medium text-muted sm:inline lg:hidden xl:inline">Educational Consultant</span>
               </span>
             </Link>
 

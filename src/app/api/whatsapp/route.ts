@@ -36,10 +36,10 @@ export async function GET(request: Request) {
   const name = subject.student.user.name.split(" ")[0];
   const label = subject.label ?? subject.request?.label ?? (subject.type ? documentTypeLabels[subject.type] : "");
   const message = documentId
-    ? `Hello ${name}, this is ${user.name} from NRC Education about your ${label} (${subject.name}). You can see it on your portal: ${link("/dashboard/documents")}`
+    ? `Hello ${name}, this is ${user.name} from NRC Educational Consultant about your ${label} (${subject.name}). You can see it on your portal: ${link("/dashboard/documents")}`
     : requestId
-      ? `Hello ${name}, this is ${user.name} from NRC Education. We need your ${label}. Please upload it on your portal: ${link(requestUploadPath(requestId))}`
-      : `Hello ${name}, this is ${user.name} from NRC Education.`;
+      ? `Hello ${name}, this is ${user.name} from NRC Educational Consultant. We need your ${label}. Please upload it on your portal: ${link(requestUploadPath(requestId))}`
+      : `Hello ${name}, this is ${user.name} from NRC Educational Consultant.`;
 
   await db.activityLog.create({
     data: { userId: user.id, action: "whatsapp.open", entityType: "StudentProfile", entityId: subject.student.id, meta: { documentId, requestId } },
