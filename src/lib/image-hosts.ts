@@ -12,7 +12,11 @@ function storageHost() {
 
 export const imageHosts = ["picsum.photos", "fastly.picsum.photos", storageHost()].filter((host): host is string => Boolean(host));
 
+// Built-in illustrations shipped with the site (public/banners).
+const builtInImage = /^\/banners\/[a-z0-9-]+\.svg$/;
+
 export function isAllowedImageUrl(value: string) {
+  if (builtInImage.test(value)) return true;
   try {
     const url = new URL(value);
     return url.protocol === "https:" && imageHosts.includes(url.hostname);

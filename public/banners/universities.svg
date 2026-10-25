@@ -1,0 +1,94 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 1050" role="img" aria-label="A laptop showing university choices next to an accepted offer letter">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#EAF2FA"/>
+      <stop offset="1" stop-color="#F8FAFC"/>
+    </linearGradient>
+  </defs>
+  <rect width="900" height="1050" fill="url(#bg)"/>
+  <circle cx="160" cy="200" r="130" fill="#DCEAF7"/>
+  <circle cx="760" cy="880" r="140" fill="#E3F1EF"/>
+
+  <!-- university building -->
+  <g transform="translate(560 90)">
+    <path d="M0 110L130 40l130 70z" fill="#0F4C63"/>
+    <rect x="10" y="110" width="240" height="20" fill="#14607D"/>
+    <g fill="#ffffff" stroke="#CBD5E1" stroke-width="2">
+      <rect x="30" y="134" width="24" height="110"/>
+      <rect x="82" y="134" width="24" height="110"/>
+      <rect x="154" y="134" width="24" height="110"/>
+      <rect x="206" y="134" width="24" height="110"/>
+    </g>
+    <rect x="0" y="244" width="260" height="22" fill="#14607D"/>
+    <circle cx="130" cy="82" r="14" fill="#F59E0B"/>
+  </g>
+
+  <!-- laptop -->
+  <g transform="translate(90 360)">
+    <rect x="0" y="0" width="560" height="360" rx="22" fill="#0F4C63"/>
+    <rect x="18" y="18" width="524" height="324" rx="10" fill="#ffffff"/>
+    <rect x="18" y="18" width="524" height="44" rx="10" fill="#1B5E9E"/>
+    <circle cx="44" cy="40" r="7" fill="#fff" opacity=".7"/><circle cx="66" cy="40" r="7" fill="#fff" opacity=".7"/><circle cx="88" cy="40" r="7" fill="#fff" opacity=".7"/>
+    <!-- university cards -->
+    <g>
+      <rect x="40" y="82" width="480" height="70" rx="12" fill="#F1F5F9"/>
+      <rect x="56" y="96" width="42" height="42" rx="10" fill="#1B5E9E"/>
+      <rect x="114" y="102" width="220" height="12" rx="6" fill="#334155"/>
+      <rect x="114" y="124" width="150" height="10" rx="5" fill="#94A3B8"/>
+      <circle cx="486" cy="117" r="18" fill="#10B981"/><path d="M477 117l7 7 12-14" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+    <g>
+      <rect x="40" y="166" width="480" height="70" rx="12" fill="#F1F5F9"/>
+      <rect x="56" y="180" width="42" height="42" rx="10" fill="#0F4C63"/>
+      <rect x="114" y="186" width="190" height="12" rx="6" fill="#334155"/>
+      <rect x="114" y="208" width="170" height="10" rx="5" fill="#94A3B8"/>
+      <circle cx="486" cy="201" r="18" fill="#10B981"/><path d="M477 201l7 7 12-14" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+    </g>
+    <g>
+      <rect x="40" y="250" width="480" height="70" rx="12" fill="#F1F5F9"/>
+      <rect x="56" y="264" width="42" height="42" rx="10" fill="#F59E0B"/>
+      <rect x="114" y="270" width="240" height="12" rx="6" fill="#334155"/>
+      <rect x="114" y="292" width="120" height="10" rx="5" fill="#94A3B8"/>
+      <circle cx="486" cy="285" r="18" fill="none" stroke="#CBD5E1" stroke-width="4"/>
+    </g>
+    <!-- base -->
+    <path d="M-40 360h640l-30 34H-10z" fill="#14607D"/>
+    <rect x="230" y="360" width="100" height="10" rx="5" fill="#0F4C63"/>
+  </g>
+
+  <!-- offer letter -->
+  <g transform="translate(470 640) rotate(6)">
+    <rect x="0" y="0" width="300" height="370" rx="18" fill="#ffffff" stroke="#E2E8F0" stroke-width="3"/>
+    <rect x="30" y="34" width="120" height="16" rx="8" fill="#1B5E9E"/>
+    <rect x="30" y="76" width="240" height="10" rx="5" fill="#CBD5E1"/>
+    <rect x="30" y="100" width="220" height="10" rx="5" fill="#CBD5E1"/>
+    <rect x="30" y="124" width="240" height="10" rx="5" fill="#CBD5E1"/>
+    <rect x="30" y="148" width="160" height="10" rx="5" fill="#CBD5E1"/>
+    <!-- stamp -->
+    <g transform="translate(150 255) rotate(-14)">
+      <rect x="-122" y="-38" width="244" height="76" rx="14" fill="none" stroke="#F59E0B" stroke-width="7"/>
+      <text x="0" y="13" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="34" font-weight="700" letter-spacing="3" fill="#F59E0B">ACCEPTED</text>
+    </g>
+  </g>
+
+  <!-- floating documents -->
+  <g transform="translate(110 790) rotate(-10)">
+    <rect width="130" height="160" rx="14" fill="#ffffff" stroke="#E2E8F0" stroke-width="3"/>
+    <rect x="22" y="28" width="86" height="10" rx="5" fill="#1B5E9E"/>
+    <rect x="22" y="56" width="86" height="8" rx="4" fill="#CBD5E1"/>
+    <rect x="22" y="76" width="70" height="8" rx="4" fill="#CBD5E1"/>
+    <rect x="22" y="96" width="86" height="8" rx="4" fill="#CBD5E1"/>
+  </g>
+  <g transform="translate(80 250) rotate(8)">
+    <rect width="100" height="124" rx="12" fill="#ffffff" stroke="#E2E8F0" stroke-width="3"/>
+    <rect x="18" y="22" width="64" height="9" rx="4" fill="#F59E0B"/>
+    <rect x="18" y="46" width="64" height="7" rx="3" fill="#CBD5E1"/>
+    <rect x="18" y="64" width="50" height="7" rx="3" fill="#CBD5E1"/>
+  </g>
+
+  <g fill="#F59E0B">
+    <path d="M440 120l8 20 20 8-20 8-8 20-8-20-20-8 20-8z"/>
+    <path d="M820 600l6 14 14 6-14 6-6 14-6-14-14-6 14-6z"/>
+    <path d="M330 960l6 14 14 6-14 6-6 14-6-14-14-6 14-6z"/>
+  </g>
+</svg>

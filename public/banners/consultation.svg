@@ -1,0 +1,98 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 1050" role="img" aria-label="A student walking a path towards a graduation cap, with a globe and flags">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#EAF2FA"/>
+      <stop offset="1" stop-color="#F8FAFC"/>
+    </linearGradient>
+    <linearGradient id="globe" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2E7BC4"/>
+      <stop offset="1" stop-color="#1B5E9E"/>
+    </linearGradient>
+  </defs>
+  <rect width="900" height="1050" fill="url(#sky)"/>
+
+  <!-- soft background shapes -->
+  <circle cx="720" cy="180" r="150" fill="#DCEAF7"/>
+  <circle cx="140" cy="820" r="120" fill="#E3F1EF"/>
+
+  <!-- globe -->
+  <g transform="translate(450 330)">
+    <circle r="190" fill="url(#globe)"/>
+    <path d="M-120 -110c40 10 60 40 40 70s10 50 50 40 70 30 40 70-60 20-80 60" fill="none" stroke="#7FB5E6" stroke-width="0"/>
+    <path d="M-150-60c30-30 80-40 110-20s20 60-10 80-40 50-10 70 60 0 70 40-30 60-70 50" fill="#5FA8D3" opacity=".55"/>
+    <path d="M30-160c40 0 90 30 100 70s-30 40-50 70 10 60 50 70 40 40 20 70" fill="none" stroke="#5FA8D3" stroke-width="36" stroke-linecap="round" opacity=".55"/>
+    <ellipse rx="190" ry="70" fill="none" stroke="#ffffff" stroke-opacity=".35" stroke-width="3"/>
+    <ellipse rx="80" ry="190" fill="none" stroke="#ffffff" stroke-opacity=".35" stroke-width="3"/>
+    <line x1="-190" y1="0" x2="190" y2="0" stroke="#ffffff" stroke-opacity=".35" stroke-width="3"/>
+  </g>
+
+  <!-- orbit with flags -->
+  <ellipse cx="450" cy="330" rx="300" ry="95" fill="none" stroke="#0F4C63" stroke-opacity=".25" stroke-width="3" stroke-dasharray="10 12" transform="rotate(-12 450 330)"/>
+  <!-- UK -->
+  <g transform="translate(150 300)">
+    <line x1="0" y1="0" x2="0" y2="90" stroke="#0F4C63" stroke-width="5" stroke-linecap="round"/>
+    <rect x="0" y="0" width="86" height="56" rx="6" fill="#1B3F8B"/>
+    <path d="M0 0l86 56M86 0L0 56" stroke="#fff" stroke-width="10"/>
+    <path d="M0 0l86 56M86 0L0 56" stroke="#D62839" stroke-width="4"/>
+    <path d="M43 0v56M0 28h86" stroke="#fff" stroke-width="16"/>
+    <path d="M43 0v56M0 28h86" stroke="#D62839" stroke-width="9"/>
+  </g>
+  <!-- Canada -->
+  <g transform="translate(690 200)">
+    <line x1="0" y1="0" x2="0" y2="90" stroke="#0F4C63" stroke-width="5" stroke-linecap="round"/>
+    <rect x="0" y="0" width="86" height="56" rx="6" fill="#fff" stroke="#E5E7EB" stroke-width="2"/>
+    <rect x="0" y="0" width="22" height="56" fill="#D62839"/>
+    <rect x="64" y="0" width="22" height="56" fill="#D62839"/>
+    <path d="M43 12l5 10 7-3-3 12 6 2-15 10-15-10 6-2-3-12 7 3z" fill="#D62839"/>
+  </g>
+  <!-- USA -->
+  <g transform="translate(720 470)">
+    <line x1="0" y1="0" x2="0" y2="90" stroke="#0F4C63" stroke-width="5" stroke-linecap="round"/>
+    <rect x="0" y="0" width="86" height="56" rx="6" fill="#fff" stroke="#E5E7EB" stroke-width="2"/>
+    <path d="M0 4h86M0 16h86M0 28h86M0 40h86M0 52h86" stroke="#D62839" stroke-width="6"/>
+    <rect x="0" y="0" width="38" height="30" fill="#1B3F8B"/>
+  </g>
+  <!-- Australia -->
+  <g transform="translate(110 520)">
+    <line x1="0" y1="0" x2="0" y2="90" stroke="#0F4C63" stroke-width="5" stroke-linecap="round"/>
+    <rect x="0" y="0" width="86" height="56" rx="6" fill="#1B3F8B"/>
+    <circle cx="62" cy="18" r="4" fill="#fff"/><circle cx="72" cy="32" r="4" fill="#fff"/><circle cx="58" cy="42" r="4" fill="#fff"/><circle cx="22" cy="40" r="6" fill="#fff"/>
+  </g>
+
+  <!-- winding path -->
+  <path d="M120 1050C220 960 640 960 560 860S330 780 470 700" fill="none" stroke="#D6E4F0" stroke-width="90" stroke-linecap="round"/>
+  <path d="M120 1050C220 960 640 960 560 860S330 780 470 700" fill="none" stroke="#fff" stroke-width="6" stroke-dasharray="18 22" stroke-linecap="round"/>
+
+  <!-- graduation cap at the end of the path -->
+  <g transform="translate(470 640)">
+    <path d="M-110 0L0-45 110 0 0 45z" fill="#F59E0B"/>
+    <path d="M-62 20v40c0 20 124 20 124 0V20L0 45z" fill="#D97706"/>
+    <path d="M90 8v52" stroke="#0F4C63" stroke-width="5"/>
+    <circle cx="90" cy="64" r="8" fill="#0F4C63"/>
+  </g>
+
+  <!-- student -->
+  <g transform="translate(330 790)">
+    <ellipse cx="0" cy="200" rx="70" ry="12" fill="#0F4C63" opacity=".12"/>
+    <!-- legs -->
+    <path d="M-18 110l-22 88" stroke="#0F4C63" stroke-width="26" stroke-linecap="round"/>
+    <path d="M18 110l30 84" stroke="#0F4C63" stroke-width="26" stroke-linecap="round"/>
+    <!-- backpack -->
+    <rect x="-62" y="-6" width="48" height="90" rx="16" fill="#F59E0B"/>
+    <!-- body -->
+    <path d="M-34 -10h68c10 0 16 8 16 18v104h-100V8c0-10 6-18 16-18z" fill="#1B5E9E"/>
+    <!-- arm pointing ahead -->
+    <path d="M30 10l48-40" stroke="#1B5E9E" stroke-width="22" stroke-linecap="round"/>
+    <circle cx="82" cy="-34" r="12" fill="#C68B6E"/>
+    <!-- head -->
+    <circle cx="0" cy="-44" r="34" fill="#C68B6E"/>
+    <path d="M-34-50c0-30 20-42 38-42s34 14 32 36c-14-12-40-12-70 6z" fill="#1F2937"/>
+  </g>
+
+  <!-- sparkles -->
+  <g fill="#F59E0B">
+    <path d="M800 80l8 20 20 8-20 8-8 20-8-20-20-8 20-8z"/>
+    <path d="M90 140l6 14 14 6-14 6-6 14-6-14-14-6 14-6z"/>
+    <path d="M790 760l6 14 14 6-14 6-6 14-6-14-14-6 14-6z"/>
+  </g>
+</svg>
