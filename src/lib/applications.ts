@@ -4,6 +4,7 @@ import { moveProblem, stageLabel } from "@/lib/application-flow";
 import { link, queueEmail } from "@/lib/email";
 import { db } from "@/lib/db";
 import { counsellorOrStaff, notify, studentSide } from "@/lib/notifications";
+import { getSiteSettings } from "@/lib/settings";
 
 export { nextStepText } from "@/lib/application-flow";
 
@@ -143,10 +144,13 @@ export async function moveApplicationStage(user: { id: string; role: string }, i
   notify([updated.student.userId], { type: "application.stage", title: `Your application for ${course}`, body: stageText, href: "/dashboard/my-applications" }, user.id);
   notify(side?.agents ?? [], { type: "application.stage", title: `${student.name}: ${course}`, body: stageText, href: `/dashboard/agent/students/${updated.studentId}` }, user.id);
   const update = `is now at the stage “${label}”.${note ? `\n\nNote from NRC: ${note}` : ""}`;
+  // Good news is the best moment to ask for a Google review.
+  const reviewLink = stage === "VISA_GRANTED" ? (await getSiteSettings()).contact.reviewLink : "";
+  const reviewAsk = reviewLink ? `\n\nCongratulations! If you were happy with our support, we would be grateful for a short Google review. It helps other students find us:\n${reviewLink}` : "";
   queueEmail({
     to: student.email,
     subject: `Your application: ${label}`,
-    text: `Hello ${student.name},\n\nYour application for ${course} ${update}\n\nSee the details: ${link("/dashboard/my-applications")}`,
+    text: `Hello ${student.name},\n\nYour application for ${course} ${update}${reviewAsk}\n\nSee the details: ${link("/dashboard/my-applications")}`,
   });
   if (updated.agent) {
     queueEmail({
