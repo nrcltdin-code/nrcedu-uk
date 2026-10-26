@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useState, useSyncExternalStore } from "react";
 import { Button, buttonStyles } from "@/components/ui/button";
 import type { WelcomeSettings } from "@/lib/settings";
@@ -29,6 +30,8 @@ export function WelcomePopupDialog({ title, message, imageUrl, buttonLabel, link
   // Hidden while rendering on the server; the browser then checks sessionStorage.
   const stored = useSyncExternalStore(() => () => {}, dismissedValue, () => version);
   const [closed, setClosed] = useState(false);
+  // A link like /?auth=login opens the sign-in panel; the popup would sit on top of it.
+  const signingIn = useSearchParams().has("auth");
 
   function close() {
     try {
@@ -37,7 +40,7 @@ export function WelcomePopupDialog({ title, message, imageUrl, buttonLabel, link
     setClosed(true);
   }
 
-  if (stored === version || closed) return null;
+  if (stored === version || closed || signingIn) return null;
 
   return (
     <div
