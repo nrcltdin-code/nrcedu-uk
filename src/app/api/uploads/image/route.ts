@@ -48,7 +48,9 @@ export async function POST(request: Request) {
 
   const user = await getCurrentUser();
   if (!user) return fail(401, "Please sign in again.");
-  if (!(await can(user, "CONTENT", "edit"))) return fail(403, "You do not have permission to upload images.");
+  // Anyone signed in may upload their own profile photo; other images need content editing rights.
+  const avatar = new URL(request.url).searchParams.get("purpose") === "avatar";
+  if (!avatar && !(await can(user, "CONTENT", "edit"))) return fail(403, "You do not have permission to upload images.");
 
   if (!storageEnabled) return fail(503, "Image uploads are not set up yet. Paste an image address instead.");
 

@@ -44,7 +44,7 @@ async function Shell({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <DashboardShell nav={nav} user={{ name: user.name, email: user.email, role: user.role, roleLabel: roleLabels[user.role] }} unreadNotifications={unreadNotifications}>
+    <DashboardShell nav={nav} user={{ name: user.name, email: user.email, image: user.image, role: user.role, roleLabel: roleLabels[user.role] }} unreadNotifications={unreadNotifications}>
       {content}
     </DashboardShell>
   );

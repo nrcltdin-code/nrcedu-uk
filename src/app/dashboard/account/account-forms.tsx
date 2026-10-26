@@ -11,6 +11,7 @@ import { Input, Label } from "@/components/ui/field";
 import { toast } from "@/components/ui/toaster";
 import { authClient } from "@/lib/auth-client";
 import type { FormState } from "@/lib/form";
+import { ImageField } from "@/components/dashboard/image-field";
 import { saveAccountDetails } from "./actions";
 
 function Alert({ tone = "error", children }: { tone?: "error" | "success"; children: React.ReactNode }) {
@@ -31,10 +32,11 @@ function Alert({ tone = "error", children }: { tone?: "error" | "success"; child
 
 const field = (form: FormData, key: string) => String(form.get(key) ?? "");
 
-export function DetailsForm({ name, phone }: { name: string; phone: string | null }) {
+export function DetailsForm({ name, phone, image }: { name: string; phone: string | null; image: string | null }) {
   const [state, action, pending] = useActionState<FormState, FormData>(saveAccountDetails, {});
   return (
     <form action={action} className="grid gap-4">
+      <ImageField name="image" label="Profile photo" defaultValue={image} purpose="avatar" hint="Optional. A square photo of your face works best. JPG, PNG or WebP, up to 4 MB." />
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
           <Label htmlFor="a-name">Full name</Label>

@@ -18,6 +18,7 @@ async function inUse(url: string) {
     db.blogPost.count({ where: { coverUrl: url } }),
     db.testimonial.count({ where: { photoUrl: url } }),
     db.partner.count({ where: { logoUrl: url } }),
+    db.user.count({ where: { image: url } }),
   ]);
   const welcome = await db.siteSetting.findUnique({ where: { key: "welcome" }, select: { value: true } });
   const welcomeImage = (welcome?.value as { imageUrl?: unknown } | null)?.imageUrl;

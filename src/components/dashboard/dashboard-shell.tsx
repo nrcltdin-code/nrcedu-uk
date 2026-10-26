@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Avatar } from "@/components/ui/avatar";
 import type { ReactNode } from "react";
 import Image from "next/image";
 import { Toaster } from "@/components/ui/toaster";
@@ -15,7 +16,7 @@ import type { Role } from "@/generated/prisma/client";
 
 type ShellProps = {
   nav: NavGroup[];
-  user: { name: string; email: string; role: Role; roleLabel: string };
+  user: { name: string; email: string; image: string | null; role: Role; roleLabel: string };
   unreadNotifications: number;
   children: ReactNode;
 };
@@ -97,10 +98,13 @@ export function DashboardShell({ nav, user, unreadNotifications, children }: She
           })}
         </nav>
 
-        <div className="border-t border-white/15 px-5 py-4">
-          <p className="truncate text-sm font-semibold">{user.name}</p>
-          <p className="truncate text-xs text-white/60">{user.email}</p>
-        </div>
+        <Link href="/dashboard/account" className="flex items-center gap-3 border-t border-white/15 px-5 py-4 hover:bg-white/5">
+          <Avatar name={user.name} image={user.image} className="size-9 text-sm" />
+          <span className="min-w-0">
+            <span className="block truncate text-sm font-semibold">{user.name}</span>
+            <span className="block truncate text-xs text-white/60">{user.email}</span>
+          </span>
+        </Link>
       </aside>
 
       <div className="flex min-w-0 flex-1 flex-col">

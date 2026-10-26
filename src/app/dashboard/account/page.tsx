@@ -82,7 +82,7 @@ async function Account() {
       <div className="grid gap-6">
         <Card tone="solid">
           <h2 className="mb-4 text-xl font-bold">Your details</h2>
-          <DetailsForm name={user.name} phone={record.phone} />
+          <DetailsForm name={user.name} phone={record.phone} image={user.image} />
         </Card>
         <Card tone="solid">
           <h2 className="mb-4 text-xl font-bold">Email</h2>

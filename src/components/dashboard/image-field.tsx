@@ -14,11 +14,13 @@ type ImageFieldProps = {
   hint?: string;
   // "contain" for logos and flags, "cover" for photos.
   fit?: "cover" | "contain";
+  // "avatar": the person's own profile photo, which any signed-in user may upload.
+  purpose?: "avatar";
 };
 
 // An image address field with an Upload button. The server checks every file again; the
 // checks here only save a wasted upload.
-export function ImageField({ name, label, defaultValue, hint, fit = "cover" }: ImageFieldProps) {
+export function ImageField({ name, label, defaultValue, hint, fit = "cover", purpose }: ImageFieldProps) {
   const id = useId();
   const fileRef = useRef<HTMLInputElement>(null);
   const [url, setUrl] = useState(defaultValue ?? "");
@@ -34,7 +36,7 @@ export function ImageField({ name, label, defaultValue, hint, fit = "cover" }: I
     try {
       const body = new FormData();
       body.append("file", file);
-      const response = await fetch("/api/uploads/image", { method: "POST", body });
+      const response = await fetch(purpose ? `/api/uploads/image?purpose=${purpose}` : "/api/uploads/image", { method: "POST", body });
       const result = (await response.json().catch(() => ({}))) as { url?: string; error?: string };
       if (!response.ok || !result.url) setError(result.error ?? "The upload failed. Please try again.");
       else setUrl(result.url);

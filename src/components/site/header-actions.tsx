@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { AuthTrigger } from "@/components/auth/auth-drawer";
 import { buttonStyles } from "@/components/ui/button";
+import { Avatar } from "@/components/ui/avatar";
 import { Icon } from "@/components/ui/icon";
 import { getSignedInUser } from "@/lib/session";
 
@@ -83,8 +84,8 @@ export async function HeaderAccount() {
       title="Signed in. Open your dashboard"
       className="inline-flex items-center gap-2 rounded-full border border-brand-600/20 bg-white/80 py-0.5 pl-0.5 pr-3 font-semibold text-brand-900 shadow-sm transition hover:border-brand-600/40 hover:bg-white"
     >
-      <span className="relative flex size-6 items-center justify-center rounded-full bg-gradient-to-br from-brand-500 to-violet-600 text-[0.7rem] font-bold uppercase text-white">
-        {user.name.charAt(0)}
+      <span className="relative">
+        <Avatar name={user.name} image={user.image} className="size-6 text-[0.7rem]" />
         <span aria-hidden className="absolute -bottom-0.5 -right-0.5 size-2.5 rounded-full border-2 border-white bg-emerald-500" />
       </span>
       {user.name.split(" ")[0]}
