@@ -10,7 +10,8 @@ import { contact as defaultContact, footerNav as defaultFooter, mainNav as defau
 export type ContactSettings = { phone: string; email: string; whatsapp: string; messenger: string; address: string; reviewLink: string };
 export type SocialSettings = Record<(typeof socialNetworks)[number]["key"], string>;
 export type MenuSettings = { main: NavItem[]; footer: { title: string; items: NavItem[] }[] };
-export type SiteSettings = { contact: ContactSettings; social: SocialSettings; menus: MenuSettings };
+export type WelcomeSettings = { enabled: boolean; title: string; message: string; buttonLabel: string; linkLabel: string; linkHref: string };
+export type SiteSettings = { contact: ContactSettings; social: SocialSettings; menus: MenuSettings; welcome: WelcomeSettings };
 
 export const socialNetworks = [
   { key: "facebook", label: "Facebook" },
@@ -25,7 +26,30 @@ export const defaultSettings: SiteSettings = {
   contact: { phone: defaultContact.phone, email: defaultContact.email, whatsapp: "", messenger: "", address: "", reviewLink: "" },
   social: { facebook: "", instagram: "", linkedin: "", youtube: "", tiktok: "", x: "" },
   menus: { main: defaultMain, footer: defaultFooter },
+  // Until it is saved from the dashboard, the popup shows the original maintenance notice.
+  welcome: {
+    enabled: true,
+    title: "This website is under maintenance",
+    message: "We are making some improvements, so some pages or features may not work as expected. Thank you for your patience.",
+    buttonLabel: "Got it",
+    linkLabel: "",
+    linkHref: "",
+  },
 };
+
+function parseWelcome(welcome: Record<string, unknown> | null): WelcomeSettings {
+  if (!welcome) return defaultSettings.welcome;
+  const linkHref = str(welcome.linkHref);
+  const safeLink = linkHref && isSafeHref(linkHref) ? linkHref : "";
+  return {
+    enabled: welcome.enabled === true,
+    title: str(welcome.title, 120),
+    message: str(welcome.message, 1000),
+    buttonLabel: str(welcome.buttonLabel, 40) || "Close",
+    linkLabel: safeLink ? str(welcome.linkLabel, 40) : "",
+    linkHref: safeLink,
+  };
+}
 
 // Internal paths ("/about") or full https:// addresses only; no javascript: or other schemes.
 export function isSafeHref(href: string) {
@@ -76,6 +100,7 @@ function parse(rows: { key: string; value: unknown }[]): SiteSettings {
       }),
     ) as SocialSettings,
     menus: { main: main.length ? main : defaultMain, footer: footer.length ? footer : defaultFooter },
+    welcome: parseWelcome(get("welcome")),
   };
 }
 
@@ -84,7 +109,7 @@ export async function getSiteSettings(): Promise<SiteSettings> {
   cacheTag("settings");
   cacheLife("days");
 
-  const rows = await db.siteSetting.findMany({ where: { key: { in: ["contact", "social", "menus"] } } });
+  const rows = await db.siteSetting.findMany({ where: { key: { in: ["contact", "social", "menus", "welcome"] } } });
   return parse(rows);
 }
 

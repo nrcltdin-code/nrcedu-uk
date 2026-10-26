@@ -5,8 +5,48 @@ import { FormMessage } from "@/components/dashboard/form-bits";
 import { SaveButton } from "@/components/ui/save-button";
 import { Input, Label, Textarea } from "@/components/ui/field";
 import type { FormState } from "@/lib/form";
-import type { ContactSettings, SocialSettings } from "@/lib/settings";
-import { saveContact, saveMenus, saveSocial } from "./actions";
+import type { ContactSettings, SocialSettings, WelcomeSettings } from "@/lib/settings";
+import { saveContact, saveMenus, saveSocial, saveWelcome } from "./actions";
+
+export function WelcomeForm({ welcome }: { welcome: WelcomeSettings }) {
+  const [state, action, pending] = useActionState<FormState, FormData>(saveWelcome, {});
+
+  return (
+    <form action={action} className="grid gap-4">
+      <label className="flex items-center gap-2 text-sm font-medium">
+        <input type="checkbox" name="enabled" defaultChecked={welcome.enabled} className="size-4" />
+        Show this popup to visitors
+      </label>
+      <p className="-mt-2 text-sm text-muted">
+        Shown once per visit. After a visitor closes it, it stays hidden until their next visit, or until you change it.
+      </p>
+      <div>
+        <Label htmlFor="w-title">Title</Label>
+        <Input id="w-title" name="title" defaultValue={welcome.title} maxLength={120} />
+      </div>
+      <div>
+        <Label htmlFor="w-message">Message</Label>
+        <Textarea id="w-message" name="message" defaultValue={welcome.message} maxLength={1000} className="min-h-24" />
+      </div>
+      <div className="grid gap-4 sm:grid-cols-3">
+        <div>
+          <Label htmlFor="w-button">Close button label</Label>
+          <Input id="w-button" name="buttonLabel" defaultValue={welcome.buttonLabel} maxLength={40} placeholder="Close" />
+        </div>
+        <div>
+          <Label htmlFor="w-link-label">Link button label</Label>
+          <Input id="w-link-label" name="linkLabel" defaultValue={welcome.linkLabel} maxLength={40} placeholder="Optional" />
+        </div>
+        <div>
+          <Label htmlFor="w-link">Link button goes to</Label>
+          <Input id="w-link" name="linkHref" defaultValue={welcome.linkHref} maxLength={300} placeholder="/contact or https://…" />
+        </div>
+      </div>
+      <FormMessage state={state} />
+      <SaveButton disabled={pending} className="justify-self-start">{pending ? "Saving…" : "Save welcome popup"}</SaveButton>
+    </form>
+  );
+}
 
 export function ContactForm({ contact }: { contact: ContactSettings }) {
   const [state, action, pending] = useActionState<FormState, FormData>(saveContact, {});

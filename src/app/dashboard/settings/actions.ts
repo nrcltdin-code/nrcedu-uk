@@ -57,6 +57,29 @@ export async function saveSocial(_previous: FormState, form: FormData): Promise<
   return { saved: true };
 }
 
+export async function saveWelcome(_previous: FormState, form: FormData): Promise<FormState> {
+  const user = await requirePermission("SETTINGS", "edit");
+
+  const value = {
+    enabled: form.get("enabled") === "on",
+    title: text(form, "title"),
+    message: text(form, "message"),
+    buttonLabel: text(form, "buttonLabel") || "Close",
+    linkLabel: text(form, "linkLabel"),
+    linkHref: text(form, "linkHref"),
+  };
+  if (value.enabled && !value.title) return { error: "Add a title, or switch the popup off." };
+  if (value.title.length > 120) return { error: "Keep the title under 120 characters." };
+  if (value.message.length > 1000) return { error: "Keep the message under 1000 characters." };
+  if (value.buttonLabel.length > 40 || value.linkLabel.length > 40) return { error: "Keep button labels under 40 characters." };
+  if (value.linkHref && (!isSafeHref(value.linkHref) || value.linkHref.length > 300)) return { error: "The link must start with / or https://" };
+  if (value.linkHref && !value.linkLabel) return { error: "Give the link button a label." };
+  if (!value.linkHref) value.linkLabel = "";
+
+  await store("welcome", value, user.id);
+  return { saved: true };
+}
+
 // One link per line as "Label | /path". In the footer, "## Title" starts a column.
 function parseLine(line: string, number: number): NavItem | string {
   const [label, href, extra] = line.split("|").map((part) => part.trim());

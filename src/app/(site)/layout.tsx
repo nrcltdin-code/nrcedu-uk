@@ -1,7 +1,7 @@
 import { Footer } from "@/components/site/footer";
 import { Header } from "@/components/site/header";
 import { Suspense } from "react";
-import { MaintenanceNotice } from "@/components/site/maintenance-notice";
+import { WelcomePopup } from "@/components/site/welcome-popup";
 import { ChatWidget } from "@/components/site/chat-widget";
 import { PageViewTracker } from "@/components/site/page-view-tracker";
 
@@ -18,7 +18,9 @@ export default function SiteLayout({ children }: LayoutProps<"/">) {
       <Suspense>
         <ChatWidget />
       </Suspense>
-      {process.env.NODE_ENV === "production" && <MaintenanceNotice />}
+      <Suspense>
+        <WelcomePopup />
+      </Suspense>
     </>
   );
 }
