@@ -74,14 +74,14 @@ export async function Header() {
         </Container>
       </div>
 
-      <header className="sticky top-3 z-40 mt-3 md:mt-0">
+      <header className="sticky top-2 z-40 mt-2 sm:top-3 sm:mt-3 md:mt-0">
         <Container>
-          <div className="glass flex items-center justify-between gap-3 rounded-full py-2 pl-4 pr-2">
-            <Link href="/" className="flex shrink-0 items-center gap-2">
-              <Image src="/nrc-logo.jpeg" alt="" width={44} height={44} priority className="rounded-full" />
+          <div className="glass flex items-center justify-between gap-2 rounded-full py-1.5 pl-2 pr-1.5 sm:gap-3 sm:py-2 sm:pl-4 sm:pr-2">
+            <Link href="/" className="flex min-w-0 shrink-0 items-center gap-2">
+              <Image src="/nrc-logo.jpeg" alt="" width={44} height={44} priority className="size-9 rounded-full sm:size-11" />
               <span className="flex flex-col whitespace-nowrap font-display leading-tight text-brand-800">
-                <span className="text-lg font-bold">NRC</span>
-                <span className="text-xs font-medium text-muted">Educational Consultant</span>
+                <span className="text-base font-bold sm:text-lg">NRC</span>
+                <span className="text-[0.7rem] font-medium text-muted sm:text-xs">Educational Consultant</span>
               </span>
             </Link>
 

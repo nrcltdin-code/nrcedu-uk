@@ -18,7 +18,7 @@ export function MobileMenu({ items, actions, extras }: { items: NavItem[]; actio
         type="button"
         onClick={() => setOpen(true)}
         aria-label="Open menu"
-        className="flex size-10 items-center justify-center rounded-full text-brand-800 transition-colors hover:bg-brand-600/10 lg:hidden"
+        className="flex size-9 items-center sm:size-10 justify-center rounded-full text-brand-800 transition-colors hover:bg-brand-600/10 lg:hidden"
       >
         <svg viewBox="0 0 24 24" className="size-6" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
           <path d="M4 7h16M4 12h16M4 17h16" />
