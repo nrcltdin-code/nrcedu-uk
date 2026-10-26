@@ -7,6 +7,8 @@ import type { FormState } from "@/lib/form";
 import type { NavItem } from "@/lib/nav";
 import { facebookPageName, isSafeHref, socialNetworks } from "@/lib/settings";
 import { requirePermission } from "@/lib/session";
+import { imageHosts, isAllowedImageUrl } from "@/lib/image-hosts";
+import { releaseImages } from "@/lib/uploads";
 
 async function store(key: string, value: object, userId: string) {
   await db.$transaction([
@@ -64,6 +66,7 @@ export async function saveWelcome(_previous: FormState, form: FormData): Promise
     enabled: form.get("enabled") === "on",
     title: text(form, "title"),
     message: text(form, "message"),
+    imageUrl: text(form, "imageUrl"),
     buttonLabel: text(form, "buttonLabel") || "Close",
     linkLabel: text(form, "linkLabel"),
     linkHref: text(form, "linkHref"),
@@ -75,8 +78,14 @@ export async function saveWelcome(_previous: FormState, form: FormData): Promise
   if (value.linkHref && (!isSafeHref(value.linkHref) || value.linkHref.length > 300)) return { error: "The link must start with / or https://" };
   if (value.linkHref && !value.linkLabel) return { error: "Give the link button a label." };
   if (!value.linkHref) value.linkLabel = "";
+  if (value.imageUrl && !isAllowedImageUrl(value.imageUrl)) {
+    return { error: `The image address must start with https:// and come from: ${imageHosts.join(", ")}.` };
+  }
 
+  const before = await db.siteSetting.findUnique({ where: { key: "welcome" }, select: { value: true } });
   await store("welcome", value, user.id);
+  const oldImage = (before?.value as { imageUrl?: unknown } | null)?.imageUrl;
+  if (typeof oldImage === "string" && oldImage !== value.imageUrl) releaseImages(oldImage);
   return { saved: true };
 }
 

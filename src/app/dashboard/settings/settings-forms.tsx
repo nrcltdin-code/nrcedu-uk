@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
+import { ImageField } from "@/components/dashboard/image-field";
 import { FormMessage } from "@/components/dashboard/form-bits";
 import { SaveButton } from "@/components/ui/save-button";
 import { Input, Label, Textarea } from "@/components/ui/field";
@@ -28,6 +29,7 @@ export function WelcomeForm({ welcome }: { welcome: WelcomeSettings }) {
         <Label htmlFor="w-message">Message</Label>
         <Textarea id="w-message" name="message" defaultValue={welcome.message} maxLength={1000} className="min-h-24" />
       </div>
+      <ImageField name="imageUrl" label="Image" defaultValue={welcome.imageUrl} hint="Optional. Shown at the top of the popup. A wide image (about 1200 × 630 px) works best." />
       <div className="grid gap-4 sm:grid-cols-3">
         <div>
           <Label htmlFor="w-button">Close button label</Label>

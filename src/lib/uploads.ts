@@ -19,7 +19,9 @@ async function inUse(url: string) {
     db.testimonial.count({ where: { photoUrl: url } }),
     db.partner.count({ where: { logoUrl: url } }),
   ]);
-  return counts.some(Boolean);
+  const welcome = await db.siteSetting.findUnique({ where: { key: "welcome" }, select: { value: true } });
+  const welcomeImage = (welcome?.value as { imageUrl?: unknown } | null)?.imageUrl;
+  return counts.some(Boolean) || welcomeImage === url;
 }
 
 async function removeIfUnused(upload: { id: string; key: string; url: string }) {

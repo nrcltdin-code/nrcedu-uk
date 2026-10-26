@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useState, useSyncExternalStore } from "react";
 import { Button, buttonStyles } from "@/components/ui/button";
@@ -23,8 +24,8 @@ function dismissedValue() {
 }
 
 // Closing the popup hides it for the rest of the browser session.
-export function WelcomePopupDialog({ title, message, buttonLabel, linkLabel, linkHref }: Omit<WelcomeSettings, "enabled">) {
-  const version = fingerprint([title, message, buttonLabel, linkLabel, linkHref].join("\n"));
+export function WelcomePopupDialog({ title, message, imageUrl, buttonLabel, linkLabel, linkHref }: Omit<WelcomeSettings, "enabled">) {
+  const version = fingerprint([title, message, imageUrl, buttonLabel, linkLabel, linkHref].join("\n"));
   // Hidden while rendering on the server; the browser then checks sessionStorage.
   const stored = useSyncExternalStore(() => () => {}, dismissedValue, () => version);
   const [closed, setClosed] = useState(false);
@@ -45,7 +46,12 @@ export function WelcomePopupDialog({ title, message, buttonLabel, linkLabel, lin
       aria-modal="true"
       aria-labelledby="welcome-title"
     >
-      <div className="w-full max-w-md rounded-2xl bg-white p-6 text-center shadow-2xl">
+      <div className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl bg-white p-6 text-center shadow-2xl">
+        {imageUrl && (
+          <div className="relative -mx-6 -mt-6 mb-5 aspect-[1.9] overflow-hidden rounded-t-2xl">
+            <Image src={imageUrl} alt="" fill sizes="448px" className="object-cover" priority />
+          </div>
+        )}
         <h2 id="welcome-title" className="text-xl font-bold text-ink">
           {title}
         </h2>

@@ -1,6 +1,7 @@
 import "server-only";
 import { cacheLife, cacheTag } from "next/cache";
 import { db } from "@/lib/db";
+import { isAllowedImageUrl } from "@/lib/image-hosts";
 import type { NavItem } from "@/lib/nav";
 import { contact as defaultContact, footerNav as defaultFooter, mainNav as defaultMain } from "@/lib/nav";
 
@@ -10,7 +11,7 @@ import { contact as defaultContact, footerNav as defaultFooter, mainNav as defau
 export type ContactSettings = { phone: string; email: string; whatsapp: string; messenger: string; address: string; reviewLink: string };
 export type SocialSettings = Record<(typeof socialNetworks)[number]["key"], string>;
 export type MenuSettings = { main: NavItem[]; footer: { title: string; items: NavItem[] }[] };
-export type WelcomeSettings = { enabled: boolean; title: string; message: string; buttonLabel: string; linkLabel: string; linkHref: string };
+export type WelcomeSettings = { enabled: boolean; title: string; message: string; imageUrl: string; buttonLabel: string; linkLabel: string; linkHref: string };
 export type SiteSettings = { contact: ContactSettings; social: SocialSettings; menus: MenuSettings; welcome: WelcomeSettings };
 
 export const socialNetworks = [
@@ -30,6 +31,7 @@ export const defaultSettings: SiteSettings = {
   welcome: {
     enabled: true,
     title: "This website is under maintenance",
+    imageUrl: "",
     message: "We are making some improvements, so some pages or features may not work as expected. Thank you for your patience.",
     buttonLabel: "Got it",
     linkLabel: "",
@@ -45,6 +47,7 @@ function parseWelcome(welcome: Record<string, unknown> | null): WelcomeSettings 
     enabled: welcome.enabled === true,
     title: str(welcome.title, 120),
     message: str(welcome.message, 1000),
+    imageUrl: isAllowedImageUrl(str(welcome.imageUrl)) ? str(welcome.imageUrl) : "",
     buttonLabel: str(welcome.buttonLabel, 40) || "Close",
     linkLabel: safeLink ? str(welcome.linkLabel, 40) : "",
     linkHref: safeLink,
