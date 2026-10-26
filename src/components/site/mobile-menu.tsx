@@ -31,8 +31,15 @@ export function MobileMenu({ items, actions, extras }: { items: NavItem[]; actio
             <ActiveNavList items={items} vertical onNavigate={close} />
           </Suspense>
         </nav>
-        {/* Any button or link in here closes the menu first, so panels never stack. */}
-        <div onClick={close} className="mt-auto flex flex-col gap-3 pt-8">
+        {/* Any link or button in here closes the menu first, so panels never stack. Dropdown
+            toggles (<summary>) only open their list, which shows inline instead of floating. */}
+        <div
+          onClick={(event) => {
+            const target = event.target as HTMLElement;
+            if (target.closest("a, button") && !target.closest("summary")) close();
+          }}
+          className="mt-auto flex flex-col gap-3 pt-8 [&_details>div]:static [&_details>div]:mt-2 [&_details>div]:w-full [&_details>summary]:w-full"
+        >
           {actions}
           {extras && <div className="mt-4 border-t border-brand-900/10 pt-5 md:hidden">{extras}</div>}
         </div>
