@@ -5,6 +5,8 @@ import { db } from "@/lib/db";
 import { isStudyLevel } from "@/lib/data/catalogue";
 import { documentTypeLabels } from "@/lib/documents";
 import { isHttpsUrl, slugify } from "@/lib/form";
+import { storeImageFromUrl } from "@/lib/remote-image";
+import { storageEnabled } from "@/lib/storage";
 
 // Bulk import of countries, universities, subjects and courses from one CSV.
 // One row per course. Rows with no course name add or update just the university.
@@ -15,7 +17,7 @@ import { isHttpsUrl, slugify } from "@/lib/form";
 export const importColumns = [
   "country", "university", "city", "website", "ranking", "description",
   "min_grade_percent", "university_min_ielts", "min_ielts_band", "max_study_gap_years", "accepts_moi",
-  "documents", "intakes", "process_notes",
+  "documents", "intakes", "process_notes", "logo_url", "cover_url", "cover_credit",
   "subject", "course", "level", "duration_months", "tuition_fee", "currency", "min_ielts",
 ] as const;
 
@@ -75,11 +77,14 @@ export type ImportResult = {
   subjects?: number;
   documents?: number;
   intakes?: number;
+  images?: number;
+  imagesLeft?: number;
   courses?: { created: number; updated: number };
   problems?: string[];
 };
 
 export async function importUniversities(csv: string): Promise<ImportResult> {
+  const startedAt = Date.now();
   const rows = parseCsv(csv);
   if (rows.length < 2) return { error: "The file has no rows below the header." };
 
@@ -99,12 +104,23 @@ export async function importUniversities(csv: string): Promise<ImportResult> {
   const [allCountries, allSubjects, allUniversities, allCourses] = await Promise.all([
     db.country.findMany({ select: { id: true, name: true } }),
     db.subject.findMany({ select: { id: true, name: true } }),
-    db.university.findMany({ select: { id: true, slug: true } }),
+    db.university.findMany({ select: { id: true, slug: true, logoUrl: true, coverUrl: true, description: true } }),
     db.course.findMany({ select: { id: true, universityId: true, slug: true } }),
   ]);
   const knownCountries = new Map(allCountries.map((c) => [c.name.toLowerCase(), c.id]));
   const knownSubjects = new Map(allSubjects.map((s) => [s.name.toLowerCase(), s.id]));
   const knownUniversities = new Map(allUniversities.map((u) => [u.slug, u.id]));
+  // A "Cover photo: …" credit line added by an earlier import is kept when the description is replaced.
+  const savedCredits = new Map(
+    allUniversities.flatMap((u) => {
+      const match = u.description?.match(/\s*Cover photo: .*$/);
+      return match ? [[u.id, `\n\n${match[0].trim()}`] as const] : [];
+    }),
+  );
+  const hasImage = new Set(allUniversities.flatMap((u) => [u.logoUrl && `${u.id}|logo`, u.coverUrl && `${u.id}|cover`].filter(Boolean) as string[]));
+  // Images are downloaded after the rows are saved. Universities that already have one are skipped,
+  // so importing the same file again carries on where a previous run stopped.
+  const imageJobs: { universityId: string; field: "logo" | "cover"; url: string; credit: string; uniName: string }[] = [];
   const knownCourses = new Map(allCourses.map((c) => [`${c.universityId}|${c.slug}`, c.id]));
   // New courses are saved together at the end, in one query per 500.
   const newCourses: Prisma.CourseCreateManyInput[] = [];
@@ -170,6 +186,8 @@ export async function importUniversities(csv: string): Promise<ImportResult> {
       };
       const existing = knownUniversities.get(uniSlug);
       if (existing) {
+        const credit = savedCredits.get(existing);
+        if (fields.description && credit && !fields.description.includes("Cover photo:")) fields.description += credit;
         await db.university.update({ where: { id: existing }, data: { ...fields, name: uniName, countryId } });
         universityId = existing;
         result.universities.updated++;
@@ -179,6 +197,14 @@ export async function importUniversities(csv: string): Promise<ImportResult> {
         result.universities.created++;
       }
       universityIds.set(uniSlug, universityId);
+
+      for (const field of ["logo", "cover"] as const) {
+        const url = get(row, `${field}_url`);
+        if (!url) continue;
+        if (!url.startsWith("https://")) { problems.push(`Row ${line}: ${field}_url must start with https:// (skipped).`); continue; }
+        if (hasImage.has(`${universityId}|${field}`)) continue;
+        imageJobs.push({ universityId, field, url, credit: field === "cover" ? get(row, "cover_credit") : "", uniName });
+      }
 
       // Documents the university asks for, e.g. "Passport; Transcript; CV". Only missing ones are added.
       const docs = get(row, "documents").split(";").map((d) => d.trim()).filter(Boolean);
@@ -262,5 +288,35 @@ export async function importUniversities(csv: string): Promise<ImportResult> {
     result.courses.created += count;
   }
 
-  return { ...result, problems };
+  // Images: 6 at a time, stopping before the server's time limit. The rest wait for the next import.
+  const deadline = startedAt + 45_000;
+  if (imageJobs.length && !storageEnabled) {
+    problems.push("Images were skipped: file storage is not set up on this server.");
+    imageJobs.length = 0;
+  }
+  let images = 0;
+  let imagesLeft = 0;
+  const queue = [...imageJobs];
+  await Promise.all(Array.from({ length: 6 }, async () => {
+    for (let job = queue.shift(); job; job = queue.shift()) {
+      if (Date.now() > deadline) { imagesLeft++; continue; }
+      try {
+        const stored = await storeImageFromUrl(job.url);
+        if (job.field === "logo") await db.university.update({ where: { id: job.universityId }, data: { logoUrl: stored } });
+        else {
+          const uni = await db.university.findUnique({ where: { id: job.universityId }, select: { description: true } });
+          const credit = job.credit && !uni?.description?.includes("Cover photo:") ? `\n\nCover photo: ${job.credit}` : "";
+          await db.university.update({
+            where: { id: job.universityId },
+            data: { coverUrl: stored, ...(credit ? { description: `${uni?.description ?? ""}${credit}`.trim() } : {}) },
+          });
+        }
+        images++;
+      } catch (error) {
+        problems.push(`${job.uniName}: ${job.field} image skipped (${error instanceof Error ? error.message : "could not be saved"}).`);
+      }
+    }
+  }));
+
+  return { ...result, images, imagesLeft, problems };
 }

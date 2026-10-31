@@ -13,7 +13,8 @@
     "db:studio": "prisma studio",
     "db:seed": "prisma db seed",
     "db:seed:demo": "tsx prisma/seed-demo.ts",
-    "db:reset-handover": "tsx --conditions=react-server scripts/reset-for-handover.ts"
+    "db:reset-handover": "tsx --conditions=react-server scripts/reset-for-handover.ts",
+    "db:import-logos": "tsx --conditions=react-server scripts/import-logos.ts"
   },
   "dependencies": {
     "@prisma/adapter-pg": "7.10.0",

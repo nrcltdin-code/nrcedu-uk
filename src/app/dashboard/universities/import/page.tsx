@@ -35,6 +35,7 @@ async function ImportCard() {
           Columns: <b>country</b>, <b>university</b> (required), city, website, ranking, description,
           min_grade_percent, university_min_ielts, min_ielts_band, max_study_gap_years, accepts_moi (yes/no),
           documents (e.g. Passport; Transcript; CV), intakes (e.g. September 2027; January 2028), process_notes,
+          logo_url, cover_url, cover_credit (images are downloaded and saved to the site; universities that already have one keep it),
           subject, course, level (Foundation, Diploma, Undergraduate, Postgraduate, PhD), duration_months,
           tuition_fee, currency, min_ielts.
         </p>
