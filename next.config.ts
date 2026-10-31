@@ -5,6 +5,10 @@ const nextConfig: NextConfig = {
   /* config options here */
   cacheComponents: true,
   partialPrefetching: true,
+  // Room for the university CSV import (default is 1 MB; Vercel caps requests at 4.5 MB).
+  experimental: {
+    serverActions: { bodySizeLimit: "4mb" },
+  },
   // Addresses from the old site (see its sitemap), so search results and bookmarks keep working.
   // /test-prep/<test> and /services kept the same address.
   async redirects() {
