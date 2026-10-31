@@ -22,7 +22,12 @@ export default function UniversitiesAdminPage({ searchParams }: PageProps<"/dash
       <PageHeader
         title="Universities"
         description="Universities, their courses and intakes."
-        actions={<Link href="/dashboard/universities/new" className={buttonStyles()}>Add university</Link>}
+        actions={
+          <>
+            <Link href="/dashboard/universities/import" className={buttonStyles({ variant: "glass" })}>Import CSV</Link>
+            <Link href="/dashboard/universities/new" className={buttonStyles()}>Add university</Link>
+          </>
+        }
       />
       <Suspense fallback={<Card tone="solid">Loading universities…</Card>}>
         <UniversityList searchParams={searchParams} />

@@ -1,0 +1,238 @@
+﻿country,university,city,website,ranking,description,subject,course,level,duration_months,tuition_fee,currency,min_ielts
+United Kingdom,University of Manchester,Manchester,https://www.manchester.ac.uk,,,Computer Science,BSc (Hons) Computer Science,Undergraduate,36,,GBP,6
+United Kingdom,University of Manchester,Manchester,https://www.manchester.ac.uk,,,Business and Management,BA (Hons) Business Management,Undergraduate,36,,GBP,6
+United Kingdom,University of Manchester,Manchester,https://www.manchester.ac.uk,,,Computer Science,MSc Computer Science,Postgraduate,12,,GBP,6.5
+United Kingdom,University of Manchester,Manchester,https://www.manchester.ac.uk,,,Data Science,MSc Data Science,Postgraduate,12,,GBP,6.5
+United Kingdom,University of Manchester,Manchester,https://www.manchester.ac.uk,,,Business and Management,MBA,Postgraduate,12,,GBP,6.5
+United Kingdom,University of Manchester,Manchester,https://www.manchester.ac.uk,,,Engineering,MSc Engineering Management,Postgraduate,12,,GBP,6.5
+United Kingdom,University of Manchester,Manchester,https://www.manchester.ac.uk,,,Health and Nursing,MSc Public Health,Postgraduate,12,,GBP,6.5
+United Kingdom,University of Birmingham,Birmingham,https://www.birmingham.ac.uk,,,Computer Science,BSc (Hons) Computer Science,Undergraduate,36,,GBP,6
+United Kingdom,University of Birmingham,Birmingham,https://www.birmingham.ac.uk,,,Business and Management,BA (Hons) Business Management,Undergraduate,36,,GBP,6
+United Kingdom,University of Birmingham,Birmingham,https://www.birmingham.ac.uk,,,Computer Science,MSc Computer Science,Postgraduate,12,,GBP,6.5
+United Kingdom,University of Birmingham,Birmingham,https://www.birmingham.ac.uk,,,Data Science,MSc Data Science,Postgraduate,12,,GBP,6.5
+United Kingdom,University of Birmingham,Birmingham,https://www.birmingham.ac.uk,,,Business and Management,MBA,Postgraduate,12,,GBP,6.5
+United Kingdom,University of Birmingham,Birmingham,https://www.birmingham.ac.uk,,,Engineering,MSc Engineering Management,Postgraduate,12,,GBP,6.5
+United Kingdom,University of Birmingham,Birmingham,https://www.birmingham.ac.uk,,,Health and Nursing,MSc Public Health,Postgraduate,12,,GBP,6.5
+United Kingdom,University of Leeds,Leeds,https://www.leeds.ac.uk,,,Computer Science,BSc (Hons) Computer Science,Undergraduate,36,,GBP,6
+United Kingdom,University of Leeds,Leeds,https://www.leeds.ac.uk,,,Business and Management,BA (Hons) Business Management,Undergraduate,36,,GBP,6
+United Kingdom,University of Leeds,Leeds,https://www.leeds.ac.uk,,,Computer Science,MSc Computer Science,Postgraduate,12,,GBP,6.5
+United Kingdom,University of Leeds,Leeds,https://www.leeds.ac.uk,,,Data Science,MSc Data Science,Postgraduate,12,,GBP,6.5
+United Kingdom,University of Leeds,Leeds,https://www.leeds.ac.uk,,,Business and Management,MBA,Postgraduate,12,,GBP,6.5
+United Kingdom,University of Leeds,Leeds,https://www.leeds.ac.uk,,,Engineering,MSc Engineering Management,Postgraduate,12,,GBP,6.5
+United Kingdom,University of Leeds,Leeds,https://www.leeds.ac.uk,,,Health and Nursing,MSc Public Health,Postgraduate,12,,GBP,6.5
+United Kingdom,University of Glasgow,Glasgow,https://www.gla.ac.uk,,,Computer Science,BSc (Hons) Computer Science,Undergraduate,36,,GBP,6
+United Kingdom,University of Glasgow,Glasgow,https://www.gla.ac.uk,,,Business and Management,BA (Hons) Business Management,Undergraduate,36,,GBP,6
+United Kingdom,University of Glasgow,Glasgow,https://www.gla.ac.uk,,,Computer Science,MSc Computer Science,Postgraduate,12,,GBP,6.5
+United Kingdom,University of Glasgow,Glasgow,https://www.gla.ac.uk,,,Data Science,MSc Data Science,Postgraduate,12,,GBP,6.5
+United Kingdom,University of Glasgow,Glasgow,https://www.gla.ac.uk,,,Business and Management,MBA,Postgraduate,12,,GBP,6.5
+United Kingdom,University of Glasgow,Glasgow,https://www.gla.ac.uk,,,Engineering,MSc Engineering Management,Postgraduate,12,,GBP,6.5
+United Kingdom,University of Glasgow,Glasgow,https://www.gla.ac.uk,,,Health and Nursing,MSc Public Health,Postgraduate,12,,GBP,6.5
+United Kingdom,University of Sheffield,Sheffield,https://www.sheffield.ac.uk,,,Computer Science,BSc (Hons) Computer Science,Undergraduate,36,,GBP,6
+United Kingdom,University of Sheffield,Sheffield,https://www.sheffield.ac.uk,,,Business and Management,BA (Hons) Business Management,Undergraduate,36,,GBP,6
+United Kingdom,University of Sheffield,Sheffield,https://www.sheffield.ac.uk,,,Computer Science,MSc Computer Science,Postgraduate,12,,GBP,6.5
+United Kingdom,University of Sheffield,Sheffield,https://www.sheffield.ac.uk,,,Data Science,MSc Data Science,Postgraduate,12,,GBP,6.5
+United Kingdom,University of Sheffield,Sheffield,https://www.sheffield.ac.uk,,,Business and Management,MBA,Postgraduate,12,,GBP,6.5
+United Kingdom,University of Sheffield,Sheffield,https://www.sheffield.ac.uk,,,Engineering,MSc Engineering Management,Postgraduate,12,,GBP,6.5
+United Kingdom,University of Sheffield,Sheffield,https://www.sheffield.ac.uk,,,Health and Nursing,MSc Public Health,Postgraduate,12,,GBP,6.5
+United Kingdom,University of Nottingham,Nottingham,https://www.nottingham.ac.uk,,,Computer Science,BSc (Hons) Computer Science,Undergraduate,36,,GBP,6
+United Kingdom,University of Nottingham,Nottingham,https://www.nottingham.ac.uk,,,Business and Management,BA (Hons) Business Management,Undergraduate,36,,GBP,6
+United Kingdom,University of Nottingham,Nottingham,https://www.nottingham.ac.uk,,,Computer Science,MSc Computer Science,Postgraduate,12,,GBP,6.5
+United Kingdom,University of Nottingham,Nottingham,https://www.nottingham.ac.uk,,,Data Science,MSc Data Science,Postgraduate,12,,GBP,6.5
+United Kingdom,University of Nottingham,Nottingham,https://www.nottingham.ac.uk,,,Business and Management,MBA,Postgraduate,12,,GBP,6.5
+United Kingdom,University of Nottingham,Nottingham,https://www.nottingham.ac.uk,,,Engineering,MSc Engineering Management,Postgraduate,12,,GBP,6.5
+United Kingdom,University of Nottingham,Nottingham,https://www.nottingham.ac.uk,,,Health and Nursing,MSc Public Health,Postgraduate,12,,GBP,6.5
+United Kingdom,Coventry University,Coventry,https://www.coventry.ac.uk,,,Computer Science,BSc (Hons) Computer Science,Undergraduate,36,,GBP,6
+United Kingdom,Coventry University,Coventry,https://www.coventry.ac.uk,,,Business and Management,BA (Hons) Business Management,Undergraduate,36,,GBP,6
+United Kingdom,Coventry University,Coventry,https://www.coventry.ac.uk,,,Computer Science,MSc Computer Science,Postgraduate,12,,GBP,6.5
+United Kingdom,Coventry University,Coventry,https://www.coventry.ac.uk,,,Data Science,MSc Data Science,Postgraduate,12,,GBP,6.5
+United Kingdom,Coventry University,Coventry,https://www.coventry.ac.uk,,,Business and Management,MBA,Postgraduate,12,,GBP,6.5
+United Kingdom,Coventry University,Coventry,https://www.coventry.ac.uk,,,Engineering,MSc Engineering Management,Postgraduate,12,,GBP,6.5
+United Kingdom,Coventry University,Coventry,https://www.coventry.ac.uk,,,Health and Nursing,MSc Public Health,Postgraduate,12,,GBP,6.5
+United Kingdom,University of Hertfordshire,Hatfield,https://www.herts.ac.uk,,,Computer Science,BSc (Hons) Computer Science,Undergraduate,36,,GBP,6
+United Kingdom,University of Hertfordshire,Hatfield,https://www.herts.ac.uk,,,Business and Management,BA (Hons) Business Management,Undergraduate,36,,GBP,6
+United Kingdom,University of Hertfordshire,Hatfield,https://www.herts.ac.uk,,,Computer Science,MSc Computer Science,Postgraduate,12,,GBP,6.5
+United Kingdom,University of Hertfordshire,Hatfield,https://www.herts.ac.uk,,,Data Science,MSc Data Science,Postgraduate,12,,GBP,6.5
+United Kingdom,University of Hertfordshire,Hatfield,https://www.herts.ac.uk,,,Business and Management,MBA,Postgraduate,12,,GBP,6.5
+United Kingdom,University of Hertfordshire,Hatfield,https://www.herts.ac.uk,,,Engineering,MSc Engineering Management,Postgraduate,12,,GBP,6.5
+United Kingdom,University of Hertfordshire,Hatfield,https://www.herts.ac.uk,,,Health and Nursing,MSc Public Health,Postgraduate,12,,GBP,6.5
+United Kingdom,University of East London,London,https://www.uel.ac.uk,,,Computer Science,BSc (Hons) Computer Science,Undergraduate,36,,GBP,6
+United Kingdom,University of East London,London,https://www.uel.ac.uk,,,Business and Management,BA (Hons) Business Management,Undergraduate,36,,GBP,6
+United Kingdom,University of East London,London,https://www.uel.ac.uk,,,Computer Science,MSc Computer Science,Postgraduate,12,,GBP,6.5
+United Kingdom,University of East London,London,https://www.uel.ac.uk,,,Data Science,MSc Data Science,Postgraduate,12,,GBP,6.5
+United Kingdom,University of East London,London,https://www.uel.ac.uk,,,Business and Management,MBA,Postgraduate,12,,GBP,6.5
+United Kingdom,University of East London,London,https://www.uel.ac.uk,,,Engineering,MSc Engineering Management,Postgraduate,12,,GBP,6.5
+United Kingdom,University of East London,London,https://www.uel.ac.uk,,,Health and Nursing,MSc Public Health,Postgraduate,12,,GBP,6.5
+United Kingdom,Ulster University,Belfast,https://www.ulster.ac.uk,,,Computer Science,BSc (Hons) Computer Science,Undergraduate,36,,GBP,6
+United Kingdom,Ulster University,Belfast,https://www.ulster.ac.uk,,,Business and Management,BA (Hons) Business Management,Undergraduate,36,,GBP,6
+United Kingdom,Ulster University,Belfast,https://www.ulster.ac.uk,,,Computer Science,MSc Computer Science,Postgraduate,12,,GBP,6.5
+United Kingdom,Ulster University,Belfast,https://www.ulster.ac.uk,,,Data Science,MSc Data Science,Postgraduate,12,,GBP,6.5
+United Kingdom,Ulster University,Belfast,https://www.ulster.ac.uk,,,Business and Management,MBA,Postgraduate,12,,GBP,6.5
+United Kingdom,Ulster University,Belfast,https://www.ulster.ac.uk,,,Engineering,MSc Engineering Management,Postgraduate,12,,GBP,6.5
+United Kingdom,Ulster University,Belfast,https://www.ulster.ac.uk,,,Health and Nursing,MSc Public Health,Postgraduate,12,,GBP,6.5
+United Kingdom,University of Greenwich,London,https://www.gre.ac.uk,,,Computer Science,BSc (Hons) Computer Science,Undergraduate,36,,GBP,6
+United Kingdom,University of Greenwich,London,https://www.gre.ac.uk,,,Business and Management,BA (Hons) Business Management,Undergraduate,36,,GBP,6
+United Kingdom,University of Greenwich,London,https://www.gre.ac.uk,,,Computer Science,MSc Computer Science,Postgraduate,12,,GBP,6.5
+United Kingdom,University of Greenwich,London,https://www.gre.ac.uk,,,Data Science,MSc Data Science,Postgraduate,12,,GBP,6.5
+United Kingdom,University of Greenwich,London,https://www.gre.ac.uk,,,Business and Management,MBA,Postgraduate,12,,GBP,6.5
+United Kingdom,University of Greenwich,London,https://www.gre.ac.uk,,,Engineering,MSc Engineering Management,Postgraduate,12,,GBP,6.5
+United Kingdom,University of Greenwich,London,https://www.gre.ac.uk,,,Health and Nursing,MSc Public Health,Postgraduate,12,,GBP,6.5
+United Kingdom,Anglia Ruskin University,Cambridge,https://www.aru.ac.uk,,,Computer Science,BSc (Hons) Computer Science,Undergraduate,36,,GBP,6
+United Kingdom,Anglia Ruskin University,Cambridge,https://www.aru.ac.uk,,,Business and Management,BA (Hons) Business Management,Undergraduate,36,,GBP,6
+United Kingdom,Anglia Ruskin University,Cambridge,https://www.aru.ac.uk,,,Computer Science,MSc Computer Science,Postgraduate,12,,GBP,6.5
+United Kingdom,Anglia Ruskin University,Cambridge,https://www.aru.ac.uk,,,Data Science,MSc Data Science,Postgraduate,12,,GBP,6.5
+United Kingdom,Anglia Ruskin University,Cambridge,https://www.aru.ac.uk,,,Business and Management,MBA,Postgraduate,12,,GBP,6.5
+United Kingdom,Anglia Ruskin University,Cambridge,https://www.aru.ac.uk,,,Engineering,MSc Engineering Management,Postgraduate,12,,GBP,6.5
+United Kingdom,Anglia Ruskin University,Cambridge,https://www.aru.ac.uk,,,Health and Nursing,MSc Public Health,Postgraduate,12,,GBP,6.5
+Canada,University of Toronto,Toronto,https://www.utoronto.ca,,,Computer Science,Bachelor of Computer Science,Undergraduate,48,,CAD,6.5
+Canada,University of Toronto,Toronto,https://www.utoronto.ca,,,Business and Management,Bachelor of Business Administration,Undergraduate,48,,CAD,6.5
+Canada,University of Toronto,Toronto,https://www.utoronto.ca,,,Engineering,Master of Engineering,Postgraduate,24,,CAD,6.5
+Canada,University of Toronto,Toronto,https://www.utoronto.ca,,,Computer Science,Master of Computer Science,Postgraduate,24,,CAD,6.5
+Canada,University of Toronto,Toronto,https://www.utoronto.ca,,,Data Science,Postgraduate Certificate in Data Analytics,Postgraduate,12,,CAD,6.5
+Canada,University of Toronto,Toronto,https://www.utoronto.ca,,,Business and Management,MBA,Postgraduate,24,,CAD,6.5
+Canada,University of British Columbia,Vancouver,https://www.ubc.ca,,,Computer Science,Bachelor of Computer Science,Undergraduate,48,,CAD,6.5
+Canada,University of British Columbia,Vancouver,https://www.ubc.ca,,,Business and Management,Bachelor of Business Administration,Undergraduate,48,,CAD,6.5
+Canada,University of British Columbia,Vancouver,https://www.ubc.ca,,,Engineering,Master of Engineering,Postgraduate,24,,CAD,6.5
+Canada,University of British Columbia,Vancouver,https://www.ubc.ca,,,Computer Science,Master of Computer Science,Postgraduate,24,,CAD,6.5
+Canada,University of British Columbia,Vancouver,https://www.ubc.ca,,,Data Science,Postgraduate Certificate in Data Analytics,Postgraduate,12,,CAD,6.5
+Canada,University of British Columbia,Vancouver,https://www.ubc.ca,,,Business and Management,MBA,Postgraduate,24,,CAD,6.5
+Canada,University of Waterloo,Waterloo,https://uwaterloo.ca,,,Computer Science,Bachelor of Computer Science,Undergraduate,48,,CAD,6.5
+Canada,University of Waterloo,Waterloo,https://uwaterloo.ca,,,Business and Management,Bachelor of Business Administration,Undergraduate,48,,CAD,6.5
+Canada,University of Waterloo,Waterloo,https://uwaterloo.ca,,,Engineering,Master of Engineering,Postgraduate,24,,CAD,6.5
+Canada,University of Waterloo,Waterloo,https://uwaterloo.ca,,,Computer Science,Master of Computer Science,Postgraduate,24,,CAD,6.5
+Canada,University of Waterloo,Waterloo,https://uwaterloo.ca,,,Data Science,Postgraduate Certificate in Data Analytics,Postgraduate,12,,CAD,6.5
+Canada,University of Waterloo,Waterloo,https://uwaterloo.ca,,,Business and Management,MBA,Postgraduate,24,,CAD,6.5
+Canada,University of Alberta,Edmonton,https://www.ualberta.ca,,,Computer Science,Bachelor of Computer Science,Undergraduate,48,,CAD,6.5
+Canada,University of Alberta,Edmonton,https://www.ualberta.ca,,,Business and Management,Bachelor of Business Administration,Undergraduate,48,,CAD,6.5
+Canada,University of Alberta,Edmonton,https://www.ualberta.ca,,,Engineering,Master of Engineering,Postgraduate,24,,CAD,6.5
+Canada,University of Alberta,Edmonton,https://www.ualberta.ca,,,Computer Science,Master of Computer Science,Postgraduate,24,,CAD,6.5
+Canada,University of Alberta,Edmonton,https://www.ualberta.ca,,,Data Science,Postgraduate Certificate in Data Analytics,Postgraduate,12,,CAD,6.5
+Canada,University of Alberta,Edmonton,https://www.ualberta.ca,,,Business and Management,MBA,Postgraduate,24,,CAD,6.5
+Canada,University of Ottawa,Ottawa,https://www.uottawa.ca,,,Computer Science,Bachelor of Computer Science,Undergraduate,48,,CAD,6.5
+Canada,University of Ottawa,Ottawa,https://www.uottawa.ca,,,Business and Management,Bachelor of Business Administration,Undergraduate,48,,CAD,6.5
+Canada,University of Ottawa,Ottawa,https://www.uottawa.ca,,,Engineering,Master of Engineering,Postgraduate,24,,CAD,6.5
+Canada,University of Ottawa,Ottawa,https://www.uottawa.ca,,,Computer Science,Master of Computer Science,Postgraduate,24,,CAD,6.5
+Canada,University of Ottawa,Ottawa,https://www.uottawa.ca,,,Data Science,Postgraduate Certificate in Data Analytics,Postgraduate,12,,CAD,6.5
+Canada,University of Ottawa,Ottawa,https://www.uottawa.ca,,,Business and Management,MBA,Postgraduate,24,,CAD,6.5
+Canada,Toronto Metropolitan University,Toronto,https://www.torontomu.ca,,,Computer Science,Bachelor of Computer Science,Undergraduate,48,,CAD,6.5
+Canada,Toronto Metropolitan University,Toronto,https://www.torontomu.ca,,,Business and Management,Bachelor of Business Administration,Undergraduate,48,,CAD,6.5
+Canada,Toronto Metropolitan University,Toronto,https://www.torontomu.ca,,,Engineering,Master of Engineering,Postgraduate,24,,CAD,6.5
+Canada,Toronto Metropolitan University,Toronto,https://www.torontomu.ca,,,Computer Science,Master of Computer Science,Postgraduate,24,,CAD,6.5
+Canada,Toronto Metropolitan University,Toronto,https://www.torontomu.ca,,,Data Science,Postgraduate Certificate in Data Analytics,Postgraduate,12,,CAD,6.5
+Canada,Toronto Metropolitan University,Toronto,https://www.torontomu.ca,,,Business and Management,MBA,Postgraduate,24,,CAD,6.5
+Canada,University of Windsor,Windsor,https://www.uwindsor.ca,,,Computer Science,Bachelor of Computer Science,Undergraduate,48,,CAD,6.5
+Canada,University of Windsor,Windsor,https://www.uwindsor.ca,,,Business and Management,Bachelor of Business Administration,Undergraduate,48,,CAD,6.5
+Canada,University of Windsor,Windsor,https://www.uwindsor.ca,,,Engineering,Master of Engineering,Postgraduate,24,,CAD,6.5
+Canada,University of Windsor,Windsor,https://www.uwindsor.ca,,,Computer Science,Master of Computer Science,Postgraduate,24,,CAD,6.5
+Canada,University of Windsor,Windsor,https://www.uwindsor.ca,,,Data Science,Postgraduate Certificate in Data Analytics,Postgraduate,12,,CAD,6.5
+Canada,University of Windsor,Windsor,https://www.uwindsor.ca,,,Business and Management,MBA,Postgraduate,24,,CAD,6.5
+Canada,Lakehead University,Thunder Bay,https://www.lakeheadu.ca,,,Computer Science,Bachelor of Computer Science,Undergraduate,48,,CAD,6.5
+Canada,Lakehead University,Thunder Bay,https://www.lakeheadu.ca,,,Business and Management,Bachelor of Business Administration,Undergraduate,48,,CAD,6.5
+Canada,Lakehead University,Thunder Bay,https://www.lakeheadu.ca,,,Engineering,Master of Engineering,Postgraduate,24,,CAD,6.5
+Canada,Lakehead University,Thunder Bay,https://www.lakeheadu.ca,,,Computer Science,Master of Computer Science,Postgraduate,24,,CAD,6.5
+Canada,Lakehead University,Thunder Bay,https://www.lakeheadu.ca,,,Data Science,Postgraduate Certificate in Data Analytics,Postgraduate,12,,CAD,6.5
+Canada,Lakehead University,Thunder Bay,https://www.lakeheadu.ca,,,Business and Management,MBA,Postgraduate,24,,CAD,6.5
+Canada,University of Regina,Regina,https://www.uregina.ca,,,Computer Science,Bachelor of Computer Science,Undergraduate,48,,CAD,6.5
+Canada,University of Regina,Regina,https://www.uregina.ca,,,Business and Management,Bachelor of Business Administration,Undergraduate,48,,CAD,6.5
+Canada,University of Regina,Regina,https://www.uregina.ca,,,Engineering,Master of Engineering,Postgraduate,24,,CAD,6.5
+Canada,University of Regina,Regina,https://www.uregina.ca,,,Computer Science,Master of Computer Science,Postgraduate,24,,CAD,6.5
+Canada,University of Regina,Regina,https://www.uregina.ca,,,Data Science,Postgraduate Certificate in Data Analytics,Postgraduate,12,,CAD,6.5
+Canada,University of Regina,Regina,https://www.uregina.ca,,,Business and Management,MBA,Postgraduate,24,,CAD,6.5
+Canada,Humber Polytechnic,Toronto,https://humber.ca,,,Computer Science,Computer Programming Diploma,Diploma,24,,CAD,6
+Canada,Humber Polytechnic,Toronto,https://humber.ca,,,Business and Management,Business Administration Diploma,Diploma,24,,CAD,6
+Canada,Humber Polytechnic,Toronto,https://humber.ca,,,Data Science,Graduate Certificate in Data Analytics,Postgraduate,12,,CAD,6.5
+Canada,Humber Polytechnic,Toronto,https://humber.ca,,,Business and Management,Graduate Certificate in Project Management,Postgraduate,12,,CAD,6.5
+Canada,Humber Polytechnic,Toronto,https://humber.ca,,,Health and Nursing,Graduate Certificate in Global Health,Postgraduate,12,,CAD,6.5
+Canada,Seneca Polytechnic,Toronto,https://www.senecapolytechnic.ca,,,Computer Science,Computer Programming Diploma,Diploma,24,,CAD,6
+Canada,Seneca Polytechnic,Toronto,https://www.senecapolytechnic.ca,,,Business and Management,Business Administration Diploma,Diploma,24,,CAD,6
+Canada,Seneca Polytechnic,Toronto,https://www.senecapolytechnic.ca,,,Data Science,Graduate Certificate in Data Analytics,Postgraduate,12,,CAD,6.5
+Canada,Seneca Polytechnic,Toronto,https://www.senecapolytechnic.ca,,,Business and Management,Graduate Certificate in Project Management,Postgraduate,12,,CAD,6.5
+Canada,Seneca Polytechnic,Toronto,https://www.senecapolytechnic.ca,,,Health and Nursing,Graduate Certificate in Global Health,Postgraduate,12,,CAD,6.5
+Canada,Conestoga College,Kitchener,https://www.conestogac.on.ca,,,Computer Science,Computer Programming Diploma,Diploma,24,,CAD,6
+Canada,Conestoga College,Kitchener,https://www.conestogac.on.ca,,,Business and Management,Business Administration Diploma,Diploma,24,,CAD,6
+Canada,Conestoga College,Kitchener,https://www.conestogac.on.ca,,,Data Science,Graduate Certificate in Data Analytics,Postgraduate,12,,CAD,6.5
+Canada,Conestoga College,Kitchener,https://www.conestogac.on.ca,,,Business and Management,Graduate Certificate in Project Management,Postgraduate,12,,CAD,6.5
+Canada,Conestoga College,Kitchener,https://www.conestogac.on.ca,,,Health and Nursing,Graduate Certificate in Global Health,Postgraduate,12,,CAD,6.5
+Australia,University of Melbourne,Melbourne,https://www.unimelb.edu.au,,,Computer Science,Bachelor of Information Technology,Undergraduate,36,,AUD,6.5
+Australia,University of Melbourne,Melbourne,https://www.unimelb.edu.au,,,Business and Management,Bachelor of Business,Undergraduate,36,,AUD,6
+Australia,University of Melbourne,Melbourne,https://www.unimelb.edu.au,,,Computer Science,Master of Information Technology,Postgraduate,24,,AUD,6.5
+Australia,University of Melbourne,Melbourne,https://www.unimelb.edu.au,,,Data Science,Master of Data Science,Postgraduate,24,,AUD,6.5
+Australia,University of Melbourne,Melbourne,https://www.unimelb.edu.au,,,Business and Management,Master of Business Administration,Postgraduate,24,,AUD,6.5
+Australia,University of Melbourne,Melbourne,https://www.unimelb.edu.au,,,Engineering,Master of Professional Engineering,Postgraduate,24,,AUD,6.5
+Australia,University of Melbourne,Melbourne,https://www.unimelb.edu.au,,,Health and Nursing,Master of Nursing,Postgraduate,24,,AUD,7
+Australia,University of Sydney,Sydney,https://www.sydney.edu.au,,,Computer Science,Bachelor of Information Technology,Undergraduate,36,,AUD,6.5
+Australia,University of Sydney,Sydney,https://www.sydney.edu.au,,,Business and Management,Bachelor of Business,Undergraduate,36,,AUD,6
+Australia,University of Sydney,Sydney,https://www.sydney.edu.au,,,Computer Science,Master of Information Technology,Postgraduate,24,,AUD,6.5
+Australia,University of Sydney,Sydney,https://www.sydney.edu.au,,,Data Science,Master of Data Science,Postgraduate,24,,AUD,6.5
+Australia,University of Sydney,Sydney,https://www.sydney.edu.au,,,Business and Management,Master of Business Administration,Postgraduate,24,,AUD,6.5
+Australia,University of Sydney,Sydney,https://www.sydney.edu.au,,,Engineering,Master of Professional Engineering,Postgraduate,24,,AUD,6.5
+Australia,University of Sydney,Sydney,https://www.sydney.edu.au,,,Health and Nursing,Master of Nursing,Postgraduate,24,,AUD,7
+Australia,Monash University,Melbourne,https://www.monash.edu,,,Computer Science,Bachelor of Information Technology,Undergraduate,36,,AUD,6.5
+Australia,Monash University,Melbourne,https://www.monash.edu,,,Business and Management,Bachelor of Business,Undergraduate,36,,AUD,6
+Australia,Monash University,Melbourne,https://www.monash.edu,,,Computer Science,Master of Information Technology,Postgraduate,24,,AUD,6.5
+Australia,Monash University,Melbourne,https://www.monash.edu,,,Data Science,Master of Data Science,Postgraduate,24,,AUD,6.5
+Australia,Monash University,Melbourne,https://www.monash.edu,,,Business and Management,Master of Business Administration,Postgraduate,24,,AUD,6.5
+Australia,Monash University,Melbourne,https://www.monash.edu,,,Engineering,Master of Professional Engineering,Postgraduate,24,,AUD,6.5
+Australia,Monash University,Melbourne,https://www.monash.edu,,,Health and Nursing,Master of Nursing,Postgraduate,24,,AUD,7
+Australia,UNSW Sydney,Sydney,https://www.unsw.edu.au,,,Computer Science,Bachelor of Information Technology,Undergraduate,36,,AUD,6.5
+Australia,UNSW Sydney,Sydney,https://www.unsw.edu.au,,,Business and Management,Bachelor of Business,Undergraduate,36,,AUD,6
+Australia,UNSW Sydney,Sydney,https://www.unsw.edu.au,,,Computer Science,Master of Information Technology,Postgraduate,24,,AUD,6.5
+Australia,UNSW Sydney,Sydney,https://www.unsw.edu.au,,,Data Science,Master of Data Science,Postgraduate,24,,AUD,6.5
+Australia,UNSW Sydney,Sydney,https://www.unsw.edu.au,,,Business and Management,Master of Business Administration,Postgraduate,24,,AUD,6.5
+Australia,UNSW Sydney,Sydney,https://www.unsw.edu.au,,,Engineering,Master of Professional Engineering,Postgraduate,24,,AUD,6.5
+Australia,UNSW Sydney,Sydney,https://www.unsw.edu.au,,,Health and Nursing,Master of Nursing,Postgraduate,24,,AUD,7
+Australia,University of Queensland,Brisbane,https://www.uq.edu.au,,,Computer Science,Bachelor of Information Technology,Undergraduate,36,,AUD,6.5
+Australia,University of Queensland,Brisbane,https://www.uq.edu.au,,,Business and Management,Bachelor of Business,Undergraduate,36,,AUD,6
+Australia,University of Queensland,Brisbane,https://www.uq.edu.au,,,Computer Science,Master of Information Technology,Postgraduate,24,,AUD,6.5
+Australia,University of Queensland,Brisbane,https://www.uq.edu.au,,,Data Science,Master of Data Science,Postgraduate,24,,AUD,6.5
+Australia,University of Queensland,Brisbane,https://www.uq.edu.au,,,Business and Management,Master of Business Administration,Postgraduate,24,,AUD,6.5
+Australia,University of Queensland,Brisbane,https://www.uq.edu.au,,,Engineering,Master of Professional Engineering,Postgraduate,24,,AUD,6.5
+Australia,University of Queensland,Brisbane,https://www.uq.edu.au,,,Health and Nursing,Master of Nursing,Postgraduate,24,,AUD,7
+Australia,Deakin University,Melbourne,https://www.deakin.edu.au,,,Computer Science,Bachelor of Information Technology,Undergraduate,36,,AUD,6.5
+Australia,Deakin University,Melbourne,https://www.deakin.edu.au,,,Business and Management,Bachelor of Business,Undergraduate,36,,AUD,6
+Australia,Deakin University,Melbourne,https://www.deakin.edu.au,,,Computer Science,Master of Information Technology,Postgraduate,24,,AUD,6.5
+Australia,Deakin University,Melbourne,https://www.deakin.edu.au,,,Data Science,Master of Data Science,Postgraduate,24,,AUD,6.5
+Australia,Deakin University,Melbourne,https://www.deakin.edu.au,,,Business and Management,Master of Business Administration,Postgraduate,24,,AUD,6.5
+Australia,Deakin University,Melbourne,https://www.deakin.edu.au,,,Engineering,Master of Professional Engineering,Postgraduate,24,,AUD,6.5
+Australia,Deakin University,Melbourne,https://www.deakin.edu.au,,,Health and Nursing,Master of Nursing,Postgraduate,24,,AUD,7
+Australia,RMIT University,Melbourne,https://www.rmit.edu.au,,,Computer Science,Bachelor of Information Technology,Undergraduate,36,,AUD,6.5
+Australia,RMIT University,Melbourne,https://www.rmit.edu.au,,,Business and Management,Bachelor of Business,Undergraduate,36,,AUD,6
+Australia,RMIT University,Melbourne,https://www.rmit.edu.au,,,Computer Science,Master of Information Technology,Postgraduate,24,,AUD,6.5
+Australia,RMIT University,Melbourne,https://www.rmit.edu.au,,,Data Science,Master of Data Science,Postgraduate,24,,AUD,6.5
+Australia,RMIT University,Melbourne,https://www.rmit.edu.au,,,Business and Management,Master of Business Administration,Postgraduate,24,,AUD,6.5
+Australia,RMIT University,Melbourne,https://www.rmit.edu.au,,,Engineering,Master of Professional Engineering,Postgraduate,24,,AUD,6.5
+Australia,RMIT University,Melbourne,https://www.rmit.edu.au,,,Health and Nursing,Master of Nursing,Postgraduate,24,,AUD,7
+Australia,Macquarie University,Sydney,https://www.mq.edu.au,,,Computer Science,Bachelor of Information Technology,Undergraduate,36,,AUD,6.5
+Australia,Macquarie University,Sydney,https://www.mq.edu.au,,,Business and Management,Bachelor of Business,Undergraduate,36,,AUD,6
+Australia,Macquarie University,Sydney,https://www.mq.edu.au,,,Computer Science,Master of Information Technology,Postgraduate,24,,AUD,6.5
+Australia,Macquarie University,Sydney,https://www.mq.edu.au,,,Data Science,Master of Data Science,Postgraduate,24,,AUD,6.5
+Australia,Macquarie University,Sydney,https://www.mq.edu.au,,,Business and Management,Master of Business Administration,Postgraduate,24,,AUD,6.5
+Australia,Macquarie University,Sydney,https://www.mq.edu.au,,,Engineering,Master of Professional Engineering,Postgraduate,24,,AUD,6.5
+Australia,Macquarie University,Sydney,https://www.mq.edu.au,,,Health and Nursing,Master of Nursing,Postgraduate,24,,AUD,7
+Australia,Griffith University,Brisbane,https://www.griffith.edu.au,,,Computer Science,Bachelor of Information Technology,Undergraduate,36,,AUD,6.5
+Australia,Griffith University,Brisbane,https://www.griffith.edu.au,,,Business and Management,Bachelor of Business,Undergraduate,36,,AUD,6
+Australia,Griffith University,Brisbane,https://www.griffith.edu.au,,,Computer Science,Master of Information Technology,Postgraduate,24,,AUD,6.5
+Australia,Griffith University,Brisbane,https://www.griffith.edu.au,,,Data Science,Master of Data Science,Postgraduate,24,,AUD,6.5
+Australia,Griffith University,Brisbane,https://www.griffith.edu.au,,,Business and Management,Master of Business Administration,Postgraduate,24,,AUD,6.5
+Australia,Griffith University,Brisbane,https://www.griffith.edu.au,,,Engineering,Master of Professional Engineering,Postgraduate,24,,AUD,6.5
+Australia,Griffith University,Brisbane,https://www.griffith.edu.au,,,Health and Nursing,Master of Nursing,Postgraduate,24,,AUD,7
+Australia,University of Adelaide,Adelaide,https://www.adelaide.edu.au,,,Computer Science,Bachelor of Information Technology,Undergraduate,36,,AUD,6.5
+Australia,University of Adelaide,Adelaide,https://www.adelaide.edu.au,,,Business and Management,Bachelor of Business,Undergraduate,36,,AUD,6
+Australia,University of Adelaide,Adelaide,https://www.adelaide.edu.au,,,Computer Science,Master of Information Technology,Postgraduate,24,,AUD,6.5
+Australia,University of Adelaide,Adelaide,https://www.adelaide.edu.au,,,Data Science,Master of Data Science,Postgraduate,24,,AUD,6.5
+Australia,University of Adelaide,Adelaide,https://www.adelaide.edu.au,,,Business and Management,Master of Business Administration,Postgraduate,24,,AUD,6.5
+Australia,University of Adelaide,Adelaide,https://www.adelaide.edu.au,,,Engineering,Master of Professional Engineering,Postgraduate,24,,AUD,6.5
+Australia,University of Adelaide,Adelaide,https://www.adelaide.edu.au,,,Health and Nursing,Master of Nursing,Postgraduate,24,,AUD,7
+Australia,Western Sydney University,Sydney,https://www.westernsydney.edu.au,,,Computer Science,Bachelor of Information Technology,Undergraduate,36,,AUD,6.5
+Australia,Western Sydney University,Sydney,https://www.westernsydney.edu.au,,,Business and Management,Bachelor of Business,Undergraduate,36,,AUD,6
+Australia,Western Sydney University,Sydney,https://www.westernsydney.edu.au,,,Computer Science,Master of Information Technology,Postgraduate,24,,AUD,6.5
+Australia,Western Sydney University,Sydney,https://www.westernsydney.edu.au,,,Data Science,Master of Data Science,Postgraduate,24,,AUD,6.5
+Australia,Western Sydney University,Sydney,https://www.westernsydney.edu.au,,,Business and Management,Master of Business Administration,Postgraduate,24,,AUD,6.5
+Australia,Western Sydney University,Sydney,https://www.westernsydney.edu.au,,,Engineering,Master of Professional Engineering,Postgraduate,24,,AUD,6.5
+Australia,Western Sydney University,Sydney,https://www.westernsydney.edu.au,,,Health and Nursing,Master of Nursing,Postgraduate,24,,AUD,7
+Australia,Federation University Australia,Ballarat,https://federation.edu.au,,,Computer Science,Bachelor of Information Technology,Undergraduate,36,,AUD,6.5
+Australia,Federation University Australia,Ballarat,https://federation.edu.au,,,Business and Management,Bachelor of Business,Undergraduate,36,,AUD,6
+Australia,Federation University Australia,Ballarat,https://federation.edu.au,,,Computer Science,Master of Information Technology,Postgraduate,24,,AUD,6.5
+Australia,Federation University Australia,Ballarat,https://federation.edu.au,,,Data Science,Master of Data Science,Postgraduate,24,,AUD,6.5
+Australia,Federation University Australia,Ballarat,https://federation.edu.au,,,Business and Management,Master of Business Administration,Postgraduate,24,,AUD,6.5
+Australia,Federation University Australia,Ballarat,https://federation.edu.au,,,Engineering,Master of Professional Engineering,Postgraduate,24,,AUD,6.5
+Australia,Federation University Australia,Ballarat,https://federation.edu.au,,,Health and Nursing,Master of Nursing,Postgraduate,24,,AUD,7
