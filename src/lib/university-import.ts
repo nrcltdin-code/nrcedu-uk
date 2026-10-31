@@ -1,6 +1,6 @@
 import "server-only";
 
-import type { StudyLevel } from "@/generated/prisma/client";
+import type { Prisma, StudyLevel } from "@/generated/prisma/client";
 import { db } from "@/lib/db";
 import { isStudyLevel } from "@/lib/data/catalogue";
 import { isHttpsUrl, slugify } from "@/lib/form";
@@ -84,7 +84,20 @@ export async function importUniversities(csv: string): Promise<ImportResult> {
   const countryIds = new Map<string, string>();
   const subjectIds = new Map<string, string>();
   const universityIds = new Map<string, string>();
-  const touchedUniversities = new Set<string>();
+  // Load what already exists once, so each row needs at most one write.
+  const [allCountries, allSubjects, allUniversities, allCourses] = await Promise.all([
+    db.country.findMany({ select: { id: true, name: true } }),
+    db.subject.findMany({ select: { id: true, name: true } }),
+    db.university.findMany({ select: { id: true, slug: true } }),
+    db.course.findMany({ select: { id: true, universityId: true, slug: true } }),
+  ]);
+  const knownCountries = new Map(allCountries.map((c) => [c.name.toLowerCase(), c.id]));
+  const knownSubjects = new Map(allSubjects.map((s) => [s.name.toLowerCase(), s.id]));
+  const knownUniversities = new Map(allUniversities.map((u) => [u.slug, u.id]));
+  const knownCourses = new Map(allCourses.map((c) => [`${c.universityId}|${c.slug}`, c.id]));
+  // New courses are saved together at the end, in one query per 500.
+  const newCourses: Prisma.CourseCreateManyInput[] = [];
+  const queuedCourses = new Set<string>();
 
   for (let r = 1; r < rows.length; r++) {
     const row = rows[r];
@@ -96,8 +109,8 @@ export async function importUniversities(csv: string): Promise<ImportResult> {
     // Country
     let countryId = countryIds.get(countryName.toLowerCase());
     if (!countryId) {
-      const existing = await db.country.findFirst({ where: { name: { equals: countryName, mode: "insensitive" } }, select: { id: true } });
-      if (existing) countryId = existing.id;
+      const existing = knownCountries.get(countryName.toLowerCase());
+      if (existing) countryId = existing;
       else {
         countryId = (await db.country.create({ data: { name: countryName, slug: slugify(countryName), isDestination: true } })).id;
         result.countries++;
@@ -119,10 +132,10 @@ export async function importUniversities(csv: string): Promise<ImportResult> {
         ranking: ranking ? Math.round(ranking) : undefined,
         description: get(row, "description") || undefined,
       };
-      const existing = await db.university.findUnique({ where: { slug: uniSlug }, select: { id: true } });
+      const existing = knownUniversities.get(uniSlug);
       if (existing) {
-        await db.university.update({ where: { id: existing.id }, data: { ...fields, name: uniName, countryId } });
-        universityId = existing.id;
+        await db.university.update({ where: { id: existing }, data: { ...fields, name: uniName, countryId } });
+        universityId = existing;
         result.universities.updated++;
       } else {
         const confirmationName = /canada/i.test(countryName) ? "LOA" : /australia/i.test(countryName) ? "CoE" : /united states|usa/i.test(countryName) ? "I-20" : "CAS";
@@ -130,7 +143,6 @@ export async function importUniversities(csv: string): Promise<ImportResult> {
         result.universities.created++;
       }
       universityIds.set(uniSlug, universityId);
-      touchedUniversities.add(universityId);
     }
 
     // Course (optional)
@@ -144,8 +156,8 @@ export async function importUniversities(csv: string): Promise<ImportResult> {
     if (subjectName) {
       subjectId = subjectIds.get(subjectName.toLowerCase());
       if (!subjectId) {
-        const existing = await db.subject.findFirst({ where: { name: { equals: subjectName, mode: "insensitive" } }, select: { id: true } });
-        if (existing) subjectId = existing.id;
+        const existing = knownSubjects.get(subjectName.toLowerCase());
+        if (existing) subjectId = existing;
         else {
           subjectId = (await db.subject.create({ data: { name: subjectName, slug: slugify(subjectName) } })).id;
           result.subjects++;
@@ -170,14 +182,22 @@ export async function importUniversities(csv: string): Promise<ImportResult> {
       minIelts: ielts !== null && ielts !== undefined && ielts <= 9 ? ielts : undefined,
     };
     const courseSlug = slugify(courseName);
-    const existingCourse = await db.course.findUnique({ where: { universityId_slug: { universityId, slug: courseSlug } }, select: { id: true } });
+    const courseKey = `${universityId}|${courseSlug}`;
+    const existingCourse = knownCourses.get(courseKey);
     if (existingCourse) {
-      await db.course.update({ where: { id: existingCourse.id }, data: { ...courseFields, name: courseName, level } });
+      await db.course.update({ where: { id: existingCourse }, data: { ...courseFields, name: courseName, level } });
       result.courses.updated++;
+    } else if (queuedCourses.has(courseKey)) {
+      problems.push(`Row ${line}: "${courseName}" appears twice for ${uniName} (second row skipped).`);
     } else {
-      await db.course.create({ data: { ...courseFields, universityId, name: courseName, slug: courseSlug, level, isPublished: true } });
-      result.courses.created++;
+      queuedCourses.add(courseKey);
+      newCourses.push({ ...courseFields, universityId, name: courseName, slug: courseSlug, level, isPublished: true });
     }
+  }
+
+  for (let i = 0; i < newCourses.length; i += 500) {
+    const { count } = await db.course.createMany({ data: newCourses.slice(i, i + 500), skipDuplicates: true });
+    result.courses.created += count;
   }
 
   return { ...result, problems };

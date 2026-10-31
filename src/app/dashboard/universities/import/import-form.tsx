@@ -9,21 +9,27 @@ import type { ImportResult } from "@/lib/university-import";
 import { importUniversitiesCsv } from "./actions";
 
 export function ImportForm() {
-  const [state, action] = useActionState(importUniversitiesCsv, {} as ImportResult);
+  const [state, action, pending] = useActionState(importUniversitiesCsv, {} as ImportResult);
 
   return (
     <form action={action} className="grid gap-4">
       <div>
         <Label htmlFor="import-file">CSV file</Label>
-        <Input id="import-file" name="file" type="file" accept=".csv,text/csv" required />
+        <Input id="import-file" name="file" type="file" accept=".csv,text/csv" required disabled={pending} />
       </div>
       <div className="flex flex-wrap gap-3">
-        <SaveButton>Import</SaveButton>
+        <SaveButton disabled={pending} aria-busy={pending}>
+          {pending && <span aria-hidden className="mr-2 inline-block size-4 animate-spin rounded-full border-2 border-current border-r-transparent align-[-2px]" />}
+          {pending ? "Importing…" : "Import"}
+        </SaveButton>
         <a href="/templates/university-import-template.csv" download className={buttonStyles({ variant: "glass" })}>Download template</a>
       </div>
 
-      {state.error && <p role="alert" className="text-sm text-red-600">{state.error}</p>}
-      {state.universities && (
+      {pending && (
+        <p role="status" className="text-sm text-muted">Importing your file. Large files can take a minute, so keep this page open.</p>
+      )}
+      {!pending && state.error && <p role="alert" className="text-sm text-red-600">{state.error}</p>}
+      {!pending && state.universities && (
         <div role="status" className="rounded-2xl border border-brand-900/10 p-4 text-sm">
           <p className="font-semibold">Import finished</p>
           <ul className="mt-2 list-disc pl-5">

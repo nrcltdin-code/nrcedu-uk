@@ -5,6 +5,9 @@ import { Card } from "@/components/ui/card";
 import { requirePermission } from "@/lib/session";
 import { ImportForm } from "./import-form";
 
+// Large files can take a while; give the import up to a minute on the server.
+export const maxDuration = 60;
+
 export const metadata: Metadata = { title: "Import universities", robots: { index: false } };
 
 export default function ImportUniversitiesPage() {
