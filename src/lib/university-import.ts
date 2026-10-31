@@ -174,7 +174,7 @@ export async function importUniversities(csv: string): Promise<ImportResult> {
         universityId = existing;
         result.universities.updated++;
       } else {
-        const confirmationName = /canada/i.test(countryName) ? "LOA" : /australia/i.test(countryName) ? "CoE" : /united states|usa/i.test(countryName) ? "I-20" : "CAS";
+        const confirmationName = /canada/i.test(countryName) ? "LOA" : /australia/i.test(countryName) ? "CoE" : /united states|usa/i.test(countryName) ? "I-20" : /germany/i.test(countryName) ? "Admission letter" : "CAS";
         universityId = (await db.university.create({ data: { ...fields, name: uniName, slug: uniSlug, countryId, confirmationName, isPublished: false } })).id;
         result.universities.created++;
       }
@@ -237,7 +237,7 @@ export async function importUniversities(csv: string): Promise<ImportResult> {
       durationMonths: duration ? Math.round(duration) : undefined,
       tuitionFee: fee ?? undefined,
       currency: /^[A-Z]{3}$/.test(currency) ? currency
-        : /canada/i.test(countryName) ? "CAD" : /australia/i.test(countryName) ? "AUD" : /united states|usa/i.test(countryName) ? "USD" : undefined,
+        : /canada/i.test(countryName) ? "CAD" : /australia/i.test(countryName) ? "AUD" : /united states|usa/i.test(countryName) ? "USD" : /germany/i.test(countryName) ? "EUR" : undefined,
       minIelts: ielts !== null && ielts !== undefined && ielts <= 9 ? ielts : undefined,
     };
     const courseSlug = slugify(courseName);
