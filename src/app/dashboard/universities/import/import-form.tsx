@@ -36,6 +36,7 @@ export function ImportForm() {
             <li>Universities: {state.universities.created} added, {state.universities.updated} updated</li>
             <li>Courses: {state.courses?.created} added, {state.courses?.updated} updated</li>
             <li>New countries: {state.countries} · New subjects: {state.subjects}</li>
+            <li>Required documents added: {state.documents ?? 0} · Intakes added: {state.intakes ?? 0}</li>
           </ul>
           {state.problems && state.problems.length > 0 && (
             <>

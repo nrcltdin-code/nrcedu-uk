@@ -33,6 +33,8 @@ async function ImportCard() {
         <p>One row per course. Repeat the university details on each of its rows, or fill them on the first row only.</p>
         <p>
           Columns: <b>country</b>, <b>university</b> (required), city, website, ranking, description,
+          min_grade_percent, university_min_ielts, min_ielts_band, max_study_gap_years, accepts_moi (yes/no),
+          documents (e.g. Passport; Transcript; CV), intakes (e.g. September 2027; January 2028), process_notes,
           subject, course, level (Foundation, Diploma, Undergraduate, Postgraduate, PhD), duration_months,
           tuition_fee, currency, min_ielts.
         </p>

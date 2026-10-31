@@ -1,8 +1,9 @@
 import "server-only";
 
-import type { Prisma, StudyLevel } from "@/generated/prisma/client";
+import type { DocumentType, Prisma, StudyLevel } from "@/generated/prisma/client";
 import { db } from "@/lib/db";
 import { isStudyLevel } from "@/lib/data/catalogue";
+import { documentTypeLabels } from "@/lib/documents";
 import { isHttpsUrl, slugify } from "@/lib/form";
 
 // Bulk import of countries, universities, subjects and courses from one CSV.
@@ -13,8 +14,16 @@ import { isHttpsUrl, slugify } from "@/lib/form";
 
 export const importColumns = [
   "country", "university", "city", "website", "ranking", "description",
+  "min_grade_percent", "university_min_ielts", "min_ielts_band", "max_study_gap_years", "accepts_moi",
+  "documents", "intakes", "process_notes",
   "subject", "course", "level", "duration_months", "tuition_fee", "currency", "min_ielts",
 ] as const;
+
+const months = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
+const documentTypeByLabel = new Map(
+  (Object.entries(documentTypeLabels) as [DocumentType, string][]).flatMap(([type, label]) => [[label.toLowerCase(), type], [type.toLowerCase(), type]]),
+);
+documentTypeByLabel.set("passport copy", "PASSPORT").set("ielts", "ENGLISH_TEST").set("references", "RECOMMENDATION_LETTER").set("reference letter", "RECOMMENDATION_LETTER").set("personal statement", "SOP").set("bank statement", "FINANCIAL").set("transcripts", "TRANSCRIPT").set("certificates", "CERTIFICATE");
 
 // RFC 4180 CSV: quoted cells, doubled quotes, commas and line breaks inside quotes.
 export function parseCsv(input: string): string[][] {
@@ -64,6 +73,8 @@ export type ImportResult = {
   countries?: number;
   universities?: { created: number; updated: number };
   subjects?: number;
+  documents?: number;
+  intakes?: number;
   courses?: { created: number; updated: number };
   problems?: string[];
 };
@@ -80,7 +91,7 @@ export async function importUniversities(csv: string): Promise<ImportResult> {
   const get = (row: string[], name: string) => (col(name) >= 0 ? (row[col(name)] ?? "").trim() : "");
 
   const problems: string[] = [];
-  const result = { countries: 0, universities: { created: 0, updated: 0 }, subjects: 0, courses: { created: 0, updated: 0 } };
+  const result: { documents?: number; intakes?: number; countries: number; universities: { created: number; updated: number }; subjects: number; courses: { created: number; updated: number } } = { countries: 0, universities: { created: 0, updated: 0 }, subjects: 0, courses: { created: 0, updated: 0 } };
   const countryIds = new Map<string, string>();
   const subjectIds = new Map<string, string>();
   const universityIds = new Map<string, string>();
@@ -98,6 +109,14 @@ export async function importUniversities(csv: string): Promise<ImportResult> {
   // New courses are saved together at the end, in one query per 500.
   const newCourses: Prisma.CourseCreateManyInput[] = [];
   const queuedCourses = new Set<string>();
+  const [allRequirements, allIntakes] = await Promise.all([
+    db.universityRequirement.findMany({ select: { universityId: true, type: true, label: true } }),
+    db.intake.findMany({ where: { courseId: null }, select: { universityId: true, name: true } }),
+  ]);
+  const knownRequirements = new Set(allRequirements.flatMap((q) => [`${q.universityId}|${q.type}|${q.label.toLowerCase()}`, `${q.universityId}|${q.type}`]));
+  const knownIntakes = new Set(allIntakes.map((i) => `${i.universityId}|${i.name.toLowerCase()}`));
+  const newRequirements: Prisma.UniversityRequirementCreateManyInput[] = [];
+  const newIntakes: Prisma.IntakeCreateManyInput[] = [];
 
   for (let r = 1; r < rows.length; r++) {
     const row = rows[r];
@@ -126,11 +145,28 @@ export async function importUniversities(csv: string): Promise<ImportResult> {
       const ranking = num(get(row, "ranking"));
       if (website && !isHttpsUrl(website)) problems.push(`Row ${line}: website must start with https:// (skipped the website).`);
       if (ranking === undefined) problems.push(`Row ${line}: ranking is not a number (skipped the ranking).`);
+      // University-wide entry requirement defaults (a course's own value wins).
+      const grade = num(get(row, "min_grade_percent"));
+      const uniIelts = num(get(row, "university_min_ielts"));
+      const band = num(get(row, "min_ielts_band"));
+      const gap = num(get(row, "max_study_gap_years"));
+      const moi = get(row, "accepts_moi").toLowerCase();
+      if (grade === undefined || (grade !== null && grade > 100)) problems.push(`Row ${line}: min_grade_percent must be 0 to 100 (skipped).`);
+      for (const [label, v] of [["university_min_ielts", uniIelts], ["min_ielts_band", band]] as const) {
+        if (v === undefined || (v !== null && v > 9)) problems.push(`Row ${line}: ${label} must be 0 to 9 (skipped).`);
+      }
+      if (gap === undefined) problems.push(`Row ${line}: max_study_gap_years is not a number (skipped).`);
       const fields = {
         city: get(row, "city") || undefined,
         website: website && isHttpsUrl(website) ? website : undefined,
         ranking: ranking ? Math.round(ranking) : undefined,
         description: get(row, "description") || undefined,
+        minGradePercent: grade !== null && grade !== undefined && grade <= 100 ? grade : undefined,
+        minIelts: uniIelts !== null && uniIelts !== undefined && uniIelts <= 9 ? uniIelts : undefined,
+        minIeltsBand: band !== null && band !== undefined && band <= 9 ? band : undefined,
+        maxStudyGapYears: gap !== null && gap !== undefined ? Math.round(gap) : undefined,
+        acceptsMoi: ["yes", "y", "true"].includes(moi) ? true : ["no", "n", "false"].includes(moi) ? false : undefined,
+        processNotes: get(row, "process_notes") || undefined,
       };
       const existing = knownUniversities.get(uniSlug);
       if (existing) {
@@ -143,6 +179,29 @@ export async function importUniversities(csv: string): Promise<ImportResult> {
         result.universities.created++;
       }
       universityIds.set(uniSlug, universityId);
+
+      // Documents the university asks for, e.g. "Passport; Transcript; CV". Only missing ones are added.
+      const docs = get(row, "documents").split(";").map((d) => d.trim()).filter(Boolean);
+      docs.forEach((label, index) => {
+        const type = documentTypeByLabel.get(label.toLowerCase()) ?? "OTHER";
+        const key = `${universityId}|${type}|${label.toLowerCase()}`;
+        if (knownRequirements.has(key) || (type !== "OTHER" && knownRequirements.has(`${universityId}|${type}`))) return;
+        knownRequirements.add(key);
+        knownRequirements.add(`${universityId}|${type}`);
+        newRequirements.push({ universityId: universityId!, type, label, sortOrder: index });
+      });
+
+      // Intakes, e.g. "September 2027; January 2028". Each starts on the 1st of its month.
+      for (const name of get(row, "intakes").split(";").map((i) => i.trim()).filter(Boolean)) {
+        const match = /^([A-Za-z]+)\s+(\d{4})$/.exec(name);
+        const month = match ? months.indexOf(match[1].slice(0, 3).toLowerCase()) : -1;
+        if (!match || month < 0) { problems.push(`Row ${line}: intake "${name}" should look like "September 2027" (skipped).`); continue; }
+        const label = `${match[1][0].toUpperCase()}${match[1].slice(1).toLowerCase()} ${match[2]}`;
+        const key = `${universityId}|${label.toLowerCase()}`;
+        if (knownIntakes.has(key)) continue;
+        knownIntakes.add(key);
+        newIntakes.push({ universityId, name: label, startDate: new Date(Date.UTC(Number(match[2]), month, 1)) });
+      }
     }
 
     // Course (optional)
@@ -194,6 +253,9 @@ export async function importUniversities(csv: string): Promise<ImportResult> {
       newCourses.push({ ...courseFields, universityId, name: courseName, slug: courseSlug, level, isPublished: true });
     }
   }
+
+  if (newRequirements.length) result.documents = (await db.universityRequirement.createMany({ data: newRequirements })).count;
+  if (newIntakes.length) result.intakes = (await db.intake.createMany({ data: newIntakes })).count;
 
   for (let i = 0; i < newCourses.length; i += 500) {
     const { count } = await db.course.createMany({ data: newCourses.slice(i, i + 500), skipDuplicates: true });
