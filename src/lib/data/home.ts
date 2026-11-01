@@ -26,13 +26,14 @@ export async function getDestinations() {
 
   return db.country.findMany({
     where: { isDestination: true },
-    orderBy: { name: "asc" },
+    orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
     select: {
       id: true,
       name: true,
       slug: true,
       description: true,
       imageUrl: true,
+      flagUrl: true,
       _count: { select: { universities: { where: { isPublished: true } } } },
     },
   });

@@ -40,7 +40,7 @@ async function CountriesManager({ searchParams }: Pick<PageProps<"/dashboard/cou
 
   // The list shows destinations only; any other country is added from the dropdown.
   const [countries, others, editing] = await Promise.all([
-    db.country.findMany({ where: { isDestination: true }, orderBy: { name: "asc" }, include: { _count: { select: { universities: true } } } }),
+    db.country.findMany({ where: { isDestination: true }, orderBy: [{ sortOrder: "asc" }, { name: "asc" }], include: { _count: { select: { universities: true } } } }),
     db.country.findMany({ where: { isDestination: false }, orderBy: { name: "asc" }, select: { id: true, name: true } }),
     // Only destinations open in the editor, so an old ?edit= link to a removed one shows nothing.
     edit ? db.country.findFirst({ where: { id: edit, isDestination: true } }) : null,

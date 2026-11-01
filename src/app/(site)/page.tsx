@@ -175,7 +175,10 @@ async function Destinations() {
                     {country._count.universities} {country._count.universities === 1 ? "university" : "universities"}
                   </span>
                 )}
-                <h3 className="mt-3 text-xl font-bold">{country.name}</h3>
+                <h3 className="mt-3 flex items-center gap-2 text-xl font-bold">
+                  {country.flagUrl && <Image src={country.flagUrl} alt="" width={36} height={24} className="h-6 w-9 shrink-0 rounded-sm object-cover ring-1 ring-white/40" />}
+                  {country.name}
+                </h3>
                 {country.description && <p className="mt-1 line-clamp-3 text-sm text-white/85">{country.description}</p>}
                 <span className="mt-3 inline-flex items-center gap-1 text-sm font-semibold text-accent-400">
                   Explore <Icon name="arrowRight" className="size-4 transition group-hover:translate-x-1" />

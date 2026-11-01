@@ -223,6 +223,7 @@ export async function getDestination(slug: string) {
       tagline: true,
       content: true,
       imageUrl: true,
+      flagUrl: true,
       universities: {
         where: { isPublished: true },
         orderBy: [{ isOfficialPartner: "desc" }, { ranking: "asc" }, { name: "asc" }],

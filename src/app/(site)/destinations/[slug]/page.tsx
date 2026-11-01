@@ -72,6 +72,9 @@ async function DestinationContent({ params }: Pick<Props, "params">) {
                 Destinations
               </Link>
             </nav>
+            {country.flagUrl && (
+              <Image src={country.flagUrl} alt={`Flag of ${country.name}`} width={72} height={48} className="mb-4 h-12 w-18 rounded-md object-cover shadow-lg ring-1 ring-white/40" />
+            )}
             <h1 className="text-4xl font-extrabold tracking-tight sm:text-5xl">
               Study in <span className="text-gradient-warm">{country.name}</span>
             </h1>

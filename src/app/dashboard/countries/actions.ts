@@ -4,7 +4,7 @@ import { updateTag } from "next/cache";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { releaseImages } from "@/lib/uploads";
-import { checked, imageError, text } from "@/lib/form";
+import { checked, imageError, optionalInt, text } from "@/lib/form";
 import type { FormState } from "@/lib/form";
 import { requirePermission } from "@/lib/session";
 
@@ -18,6 +18,8 @@ export async function saveCountry(_previous: FormState, form: FormData): Promise
   const content = text(form, "content");
   const imageUrl = text(form, "imageUrl");
   const flagUrl = text(form, "flagUrl");
+  const sortOrder = optionalInt(text(form, "sortOrder"));
+  if (sortOrder === undefined) return { error: "The display order must be a whole number." };
 
   if (description.length > 5000) return { error: "Keep the description under 5,000 characters." };
   if (tagline.length > 300) return { error: "Keep the banner text under 300 characters." };
@@ -35,6 +37,7 @@ export async function saveCountry(_previous: FormState, form: FormData): Promise
       imageUrl: imageUrl || null,
       flagUrl: flagUrl || null,
       isDestination: checked(form, "isDestination"),
+      sortOrder: sortOrder ?? 0,
     },
   });
   releaseImages(before?.imageUrl, before?.flagUrl);

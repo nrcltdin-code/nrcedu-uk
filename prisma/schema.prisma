@@ -777,6 +777,8 @@ model Country {
   // Markdown details shown below the banner.
   content       String?
   isDestination Boolean  @default(false)
+  // Lower numbers show first on the home page and destination lists.
+  sortOrder     Int      @default(0)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 

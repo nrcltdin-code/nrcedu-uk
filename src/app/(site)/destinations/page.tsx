@@ -39,7 +39,10 @@ export default async function DestinationsPage() {
                       )}
                     </div>
                     <div className="p-6">
-                      <h2 className="text-xl font-bold">{country.name}</h2>
+                      <h2 className="flex items-center gap-2 text-xl font-bold">
+                        {country.flagUrl && <Image src={country.flagUrl} alt="" width={36} height={24} className="h-6 w-9 shrink-0 rounded-sm object-cover ring-1 ring-black/10" />}
+                        {country.name}
+                      </h2>
                       <p className="mt-1 text-sm font-semibold text-brand-700">
                         {country._count.universities} {country._count.universities === 1 ? "university" : "universities"}
                       </p>
