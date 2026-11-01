@@ -10,7 +10,7 @@ import { Select } from "@/components/ui/field";
 import { db } from "@/lib/db";
 import { requirePermission } from "@/lib/session";
 import { DeleteButton } from "@/components/dashboard/form-bits";
-import { addDestination, deleteCountryPage } from "./actions";
+import { addDestination, deleteCountryPage, moveCountry } from "./actions";
 import { CountryForm } from "./country-form";
 
 // Only countries with a page (or page content) get a Delete button.
@@ -24,7 +24,7 @@ const first = (value: string | string[] | undefined) => (Array.isArray(value) ? 
 export default function CountriesPage({ searchParams }: PageProps<"/dashboard/countries">) {
   return (
     <>
-      <PageHeader title="Countries" description="Add study destinations and write their pages." />
+      <PageHeader title="Countries" description="Add study destinations and write their pages. Use the arrows to set the order they appear on the website." />
       <Suspense fallback={<Card tone="solid">Loading countries…</Card>}>
         <CountriesManager searchParams={searchParams} />
       </Suspense>
@@ -61,8 +61,9 @@ async function CountriesManager({ searchParams }: Pick<PageProps<"/dashboard/cou
         </form>
         <ul className="mt-4 divide-y divide-brand-900/10">
           {countries.length === 0 && <li className="py-3 text-muted">No destinations yet. Add one above.</li>}
-          {countries.map((country) => (
+          {countries.map((country, index) => (
             <li key={country.id} className="flex items-center gap-1">
+              <span className="w-6 text-center text-sm text-muted">{index + 1}</span>
               <Link
                 href={link(country.id)}
                 className={`flex min-w-0 flex-1 items-center justify-between gap-3 rounded-xl px-2 py-2.5 hover:bg-brand-600/5 ${country.id === edit ? "bg-brand-600/8" : ""}`}
@@ -73,6 +74,12 @@ async function CountriesManager({ searchParams }: Pick<PageProps<"/dashboard/cou
                   {country.isDestination && <Badge tone="success">Destination</Badge>}
                 </span>
               </Link>
+              <form action={moveCountry.bind(null, country.id, "up")}>
+                <Button variant="ghost" size="sm" disabled={index === 0} aria-label={`Move ${country.name} up`}>↑</Button>
+              </form>
+              <form action={moveCountry.bind(null, country.id, "down")}>
+                <Button variant="ghost" size="sm" disabled={index === countries.length - 1} aria-label={`Move ${country.name} down`}>↓</Button>
+              </form>
               {hasPage(country) && (
                 <DeleteButton action={deleteCountryPage.bind(null, country.id)} question={`Delete the ${country.name} page? Its text and images are removed and it leaves the Destinations menu.`} />
               )}

@@ -6,7 +6,7 @@ import { ImageField } from "@/components/dashboard/image-field";
 import { MarkdownEditor } from "@/components/dashboard/markdown-editor";
 import { Button } from "@/components/ui/button";
 import { SaveButton } from "@/components/ui/save-button";
-import { Input, Label, Textarea } from "@/components/ui/field";
+import { Label, Textarea } from "@/components/ui/field";
 import type { FormState } from "@/lib/form";
 import { saveCountry } from "./actions";
 
@@ -18,7 +18,6 @@ type CountryValues = {
   imageUrl: string | null;
   flagUrl: string | null;
   isDestination: boolean;
-  sortOrder: number;
 };
 
 export function CountryForm({ country }: { country: CountryValues }) {
@@ -30,11 +29,6 @@ export function CountryForm({ country }: { country: CountryValues }) {
       <Checkbox name="isDestination" defaultChecked={country.isDestination}>
         Study destination (gets its own page under /destinations)
       </Checkbox>
-      <div className="max-w-40">
-        <Label htmlFor="country-order">Display order</Label>
-        <Input id="country-order" name="sortOrder" type="number" step={1} defaultValue={country.sortOrder} />
-        <p className="mt-1 text-xs text-muted">Lower numbers show first on the home page.</p>
-      </div>
       <div>
         <Label htmlFor="country-tagline">Banner text (one or two lines)</Label>
         <Textarea id="country-tagline" name="tagline" defaultValue={country.tagline ?? ""} maxLength={300} className="min-h-20" />
