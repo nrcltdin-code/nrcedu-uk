@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { InfoTip } from "@/components/ui/info-tip";
 import Link from "next/link";
+import { BackToList } from "@/components/dashboard/list-memory";
 import { notFound } from "next/navigation";
 import { DeleteButton } from "@/components/dashboard/form-bits";
 import { PageHeader } from "@/components/dashboard/page-header";
@@ -73,7 +74,7 @@ async function EditUniversity({ params, searchParams }: PageProps<"/dashboard/un
     <>
       <PageHeader
         title={uni.name}
-        back={{ href: "/dashboard/universities", label: "Universities" }}
+        back={<BackToList storageKey="universities-list" href="/dashboard/universities" label="Universities" />}
         actions={
           <div className="flex items-center gap-2">
             {uni.isPublished && (

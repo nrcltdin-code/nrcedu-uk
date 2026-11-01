@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { RememberListUrl } from "@/components/dashboard/list-memory";
 import { PageHeader } from "@/components/dashboard/page-header";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonStyles } from "@/components/ui/button";
@@ -48,7 +49,8 @@ async function UniversityList({ searchParams }: Pick<PageProps<"/dashboard/unive
     ...(country ? { countryId: country } : {}),
     ...(q ? { name: { contains: q, mode: "insensitive" } } : {}),
   };
-  const [universities, total, countries] = await Promise.all([
+  const countryWhere: Prisma.UniversityWhereInput = country ? { countryId: country } : {};
+  const [universities, total, countries, stats] = await Promise.all([
     db.university.findMany({
       where,
       orderBy: { name: "asc" },
@@ -62,13 +64,41 @@ async function UniversityList({ searchParams }: Pick<PageProps<"/dashboard/unive
     }),
     db.university.count({ where }),
     db.country.findMany({ where: { universities: { some: {} } }, orderBy: { name: "asc" }, select: { id: true, name: true } }),
+    Promise.all([
+      db.university.count({ where: countryWhere }),
+      db.university.count({ where: { ...countryWhere, isPublished: true } }),
+      db.university.count({ where: { ...countryWhere, isFeatured: true } }),
+      db.university.count({ where: { ...countryWhere, isOfficialPartner: true } }),
+      db.course.count({ where: { university: countryWhere } }),
+    ]),
   ]);
+  const [allCount, publishedCount, featuredCount, officialCount, courseCount] = stats;
+  const countryName = countries.find((c) => c.id === country)?.name;
+  const tiles = [
+    { label: "Universities", value: allCount },
+    { label: "On the website", value: publishedCount },
+    { label: "Hidden", value: allCount - publishedCount },
+    { label: "Featured", value: featuredCount },
+    { label: "Official partners", value: officialCount },
+    { label: "Courses", value: courseCount },
+  ];
   const pages = Math.max(1, Math.ceil(total / pageSize));
   const pageHref = (n: number) => `/dashboard/universities?${new URLSearchParams({ q, country, page: String(n) })}`;
 
   return (
+    <>
+      <RememberListUrl storageKey="universities-list" />
+      <p className="mb-2 text-sm font-medium text-muted">{countryName ?? "All countries"}</p>
+      <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+        {tiles.map((t) => (
+          <Card key={t.label} tone="solid" className="p-4">
+            <p className="text-2xl font-bold">{t.value}</p>
+            <p className="text-sm text-muted">{t.label}</p>
+          </Card>
+        ))}
+      </div>
     <Card tone="solid">
-      <form className="grid gap-3 sm:grid-cols-[1fr_auto_auto]">
+      <form key={`${q}|${country}`} className="grid gap-3 sm:grid-cols-[1fr_auto_auto]">
         <Input name="q" defaultValue={q} placeholder="Search universities" aria-label="Search" />
         <Select name="country" defaultValue={country} aria-label="Country">
           <option value="">All countries</option>
@@ -110,5 +140,6 @@ async function UniversityList({ searchParams }: Pick<PageProps<"/dashboard/unive
         </div>
       )}
     </Card>
+    </>
   );
 }
