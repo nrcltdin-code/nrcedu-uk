@@ -151,10 +151,10 @@ async function Destinations() {
       <SectionHeading eyebrow="Study destinations" title="Where would you like to" highlight="study?">
         Compare countries by cost, work rights and the universities we work with.
       </SectionHeading>
-      {/* All countries side by side on desktop; a swipe row on phones and tablets. */}
-      <ul className="no-scrollbar -mx-4 flex snap-x snap-mandatory gap-5 overflow-x-auto px-4 pb-4 lg:mx-0 lg:grid lg:grid-cols-5 lg:overflow-visible lg:px-0">
+      {/* Five at a time on desktop with arrow buttons; swiped on phones and tablets. */}
+      <ScrollRow label="Study destinations">
         {countries.map((country, index) => (
-          <li key={country.id} className="w-64 shrink-0 snap-start lg:w-auto">
+          <li key={country.id} className="w-64 shrink-0 snap-start lg:w-[calc((100%-6rem)/5)]">
             <Link
               href={`/destinations/${country.slug}`}
               className={`group bg-deep relative flex h-96 flex-col justify-end overflow-hidden rounded-3xl text-white shadow-xl shadow-brand-900/20 ${cardHover}`}
@@ -187,7 +187,7 @@ async function Destinations() {
             </Link>
           </li>
         ))}
-      </ul>
+      </ScrollRow>
     </Section>
   );
 }

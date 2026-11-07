@@ -49,6 +49,8 @@ export function NavList({ items, pathname, vertical, onNavigate }: NavListProps)
         }
         if (item.children?.length) {
           // Opens on hover and on keyboard focus; the parent link still goes to the overview page.
+          // Long lists (e.g. destinations) split into columns of about four, up to six columns.
+          const columns = Math.min(6, Math.ceil(item.children.length / 4));
           return (
             <li key={`${item.label}${item.href}`} className="group relative">
               {item.menuOnly ? (
@@ -63,9 +65,12 @@ export function NavList({ items, pathname, vertical, onNavigate }: NavListProps)
                 </Link>
               )}
               <div className="invisible absolute left-0 top-full z-50 pt-2 opacity-0 transition group-focus-within:visible group-focus-within:opacity-100 group-hover:visible group-hover:opacity-100">
-                <ul className="glass-solid max-h-[70vh] w-60 overflow-y-auto rounded-2xl p-2 shadow-lg">
+                <ul
+                  className="glass-solid max-h-[70vh] overflow-y-auto rounded-2xl p-2 shadow-lg"
+                  style={{ columnCount: columns, columnGap: "0.25rem", width: `min(${columns * 11}rem, calc(100vw - 2rem))` }}
+                >
                   {item.children.map((child) => (
-                    <li key={child.href}>
+                    <li key={child.href} className="break-inside-avoid">
                       <Link href={child.href} aria-current={isActive(child.href) ? "page" : undefined}
                         className={cn("block rounded-xl px-3 py-2 text-sm font-medium", isActive(child.href) ? "bg-brand-600/12 text-brand-800" : "text-ink/85 hover:bg-brand-600/8")}>
                         {child.label}
