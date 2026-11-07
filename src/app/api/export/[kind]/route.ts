@@ -59,6 +59,7 @@ async function build(kind: string, search: URLSearchParams) {
     }
     case "students": {
       const rows = await db.studentProfile.findMany({
+        where: { user: { role: "STUDENT" } },
         orderBy: { createdAt: "desc" },
         take: MAX_ROWS,
         include: {

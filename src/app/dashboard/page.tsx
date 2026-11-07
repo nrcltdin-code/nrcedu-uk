@@ -215,7 +215,7 @@ async function AgentOverview({ user }: { user: CurrentUser }) {
   }
   const now = new Date();
   const [students, open, enrolled, due, newLeads, followUps] = await Promise.all([
-    db.studentProfile.count({ where: scope.students }),
+    db.studentProfile.count({ where: { ...scope.students, user: { role: "STUDENT" } } }),
     db.application.count({ where: { ...scope.applications, stage: { notIn: closedStages } } }),
     db.application.count({ where: { ...scope.applications, stage: "ENROLLED" } }),
     scope.can("COMMISSION") ? db.commission.count({ where: { agentId: scope.agentId, direction: "NRC_TO_AGENT", status: "PENDING" } }) : 0,

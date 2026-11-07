@@ -42,14 +42,16 @@ async function StudentsList({ searchParams }: Pick<PageProps<"/dashboard/student
   const docs = first(params.docs) === "pending" ? "pending" : "";
   const page = Math.max(1, Number.parseInt(first(params.page) || "1", 10) || 1);
 
+  // Only accounts that are students now: someone moved to staff keeps their old record, hidden here.
   const where: Prisma.StudentProfileWhereInput = {
+    user: { role: "STUDENT" },
     ...(docs ? { documents: { some: { status: "PENDING" } } } : {}),
     ...(owner === "me" ? { counsellorId: user.id } : owner === "none" ? { counsellorId: null } : {}),
     ...(q
       ? {
           OR: [
-            { user: { name: { contains: q, mode: "insensitive" } } },
-            { user: { email: { contains: q, mode: "insensitive" } } },
+            { user: { role: "STUDENT", name: { contains: q, mode: "insensitive" } } },
+            { user: { role: "STUDENT", email: { contains: q, mode: "insensitive" } } },
             { phone: { contains: q } },
           ],
         }
