@@ -52,7 +52,9 @@ export function NavList({ items, pathname, vertical, onNavigate }: NavListProps)
           // Long lists (e.g. destinations) split into columns of about four, up to six columns.
           const columns = Math.min(6, Math.ceil(item.children.length / 4));
           return (
-            <li key={`${item.label}${item.href}`} className="group relative">
+            // A multi-column menu is centred under the whole header bar (its glass background makes it
+            // the positioning parent); a short one opens under its own link.
+            <li key={`${item.label}${item.href}`} className={cn("group", columns === 1 && "relative")}>
               {item.menuOnly ? (
                 <button type="button" aria-haspopup="true" className={cn(linkClass(active), "flex items-center gap-1")}>
                   {item.label}
@@ -64,10 +66,10 @@ export function NavList({ items, pathname, vertical, onNavigate }: NavListProps)
                   {chevron}
                 </Link>
               )}
-              <div className="invisible absolute left-0 top-full z-50 pt-2 opacity-0 transition group-focus-within:visible group-focus-within:opacity-100 group-hover:visible group-hover:opacity-100">
+              <div className={cn("invisible absolute top-full z-50 pt-2 opacity-0 transition group-focus-within:visible group-focus-within:opacity-100 group-hover:visible group-hover:opacity-100", columns === 1 ? "left-0" : "left-1/2 -translate-x-1/2")}>
                 <ul
-                  className="glass-solid max-h-[70vh] overflow-y-auto rounded-2xl p-2 shadow-lg"
-                  style={{ columnCount: columns, columnGap: "0.25rem", width: `min(${columns * 11}rem, calc(100vw - 2rem))` }}
+                  className="max-h-[70vh] overflow-y-auto rounded-2xl border border-brand-900/10 bg-white p-2 shadow-xl shadow-brand-900/15"
+                  style={{ columnCount: columns, columnGap: "0.25rem", width: `min(${columns * 12}rem, calc(100vw - 2rem))` }}
                 >
                   {item.children.map((child) => (
                     <li key={child.href} className="break-inside-avoid">
