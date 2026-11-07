@@ -171,9 +171,13 @@ export async function getCourse(universitySlug: string, courseSlug: string) {
       currency: true,
       description: true,
       entryRequirements: true,
+      minGradePercent: true, minIelts: true, minIeltsBand: true, maxStudyGapYears: true, acceptsMoi: true,
+      subjectId: true,
       subject: { select: { name: true, slug: true } },
       university: {
         select: {
+          minGradePercent: true, minIelts: true, minIeltsBand: true, maxStudyGapYears: true, acceptsMoi: true,
+          requirements: { orderBy: [{ sortOrder: "asc" }, { label: "asc" }], select: { label: true } },
           id: true,
           name: true,
           slug: true,
@@ -194,7 +198,55 @@ export async function getCourse(universitySlug: string, courseSlug: string) {
     select: { id: true, name: true, startDate: true, applicationDeadline: true },
   });
 
-  return { ...course, tuitionFee: toNumber(course.tuitionFee), intakes };
+  // Links to other pages: more courses here (same subject first) and this subject elsewhere.
+  const related = { id: true, name: true, slug: true, level: true, university: { select: { name: true, slug: true } } } as const;
+  const [moreHere, elsewhere] = await Promise.all([
+    db.course.findMany({
+      where: { isPublished: true, universityId: course.university.id, id: { not: course.id } },
+      orderBy: [{ name: "asc" }],
+      select: { ...related, subjectId: true },
+      take: 40,
+    }),
+    course.subjectId
+      ? db.course.findMany({
+          where: { isPublished: true, subjectId: course.subjectId, level: course.level, universityId: { not: course.university.id }, university: { isPublished: true } },
+          orderBy: [{ university: { sortOrder: { sort: "asc", nulls: "last" } } }, { university: { ranking: { sort: "asc", nulls: "last" } } }, { name: "asc" }],
+          select: related,
+          take: 6,
+        })
+      : [],
+  ]);
+  const sameSubjectFirst = [...moreHere].sort((a, b) => Number(b.subjectId === course.subjectId) - Number(a.subjectId === course.subjectId)).slice(0, 6);
+
+  const num = (v: unknown) => (v == null ? null : Number(v));
+  const u = course.university;
+  const entry = {
+    minGradePercent: num(course.minGradePercent ?? u.minGradePercent),
+    minIelts: num(course.minIelts ?? u.minIelts),
+    minIeltsBand: num(course.minIeltsBand ?? u.minIeltsBand),
+    maxStudyGapYears: course.maxStudyGapYears ?? u.maxStudyGapYears,
+    acceptsMoi: course.acceptsMoi ?? u.acceptsMoi,
+    documents: u.requirements.map((r) => r.label),
+  };
+
+  // Decimal values cannot be cached, so only plain values leave this function.
+  return {
+    id: course.id,
+    name: course.name,
+    slug: course.slug,
+    level: course.level,
+    durationMonths: course.durationMonths,
+    tuitionFee: toNumber(course.tuitionFee),
+    currency: course.currency,
+    description: course.description,
+    entryRequirements: course.entryRequirements,
+    subject: course.subject,
+    university: { id: u.id, name: u.name, slug: u.slug, city: u.city, coverUrl: u.coverUrl, isOfficialPartner: u.isOfficialPartner, country: u.country },
+    intakes,
+    entry,
+    moreHere: sameSubjectFirst.map((c) => ({ id: c.id, name: c.name, slug: c.slug, level: c.level, university: c.university })),
+    elsewhere,
+  };
 }
 
 export async function getUniversitySlugs() {

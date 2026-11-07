@@ -16,6 +16,36 @@ import { absoluteUrl, breadcrumbLd, pageMetadata } from "@/lib/seo";
 import { JsonLd } from "@/components/site/json-ld";
 
 type Props = PageProps<"/universities/[slug]/courses/[course]">;
+type CourseData = NonNullable<Awaited<ReturnType<typeof getCourse>>>;
+
+const where = (c: CourseData) => [c.university.city, c.university.country.name].filter(Boolean).join(", ");
+
+// When staff have not written a description yet, a short summary built from the course's own
+// facts, so every page has unique, useful text for students and search engines.
+function summary(c: CourseData) {
+  const level = levelNames[c.level].toLowerCase();
+  const parts = [
+    `${c.name} is ${/^[aeiou]/i.test(level) ? "an" : "a"} ${level} course at ${c.university.name} in ${where(c)}${c.subject ? `, in the ${c.subject.name} subject area` : ""}.`,
+  ];
+  const facts = [
+    c.durationMonths && `lasts ${formatDuration(c.durationMonths)}`,
+    c.tuitionFee != null && `costs about ${formatMoney(c.tuitionFee, c.currency)} a year for international students`,
+  ].filter(Boolean);
+  if (facts.length) parts.push(`The course ${facts.join(" and ")}.`);
+  if (c.intakes.length) parts.push(`Upcoming intakes: ${c.intakes.slice(0, 3).map((i) => i.name).join(", ")}.`);
+  parts.push(`NRC Educational Consultant helps international students apply to ${c.university.name} for free, from choosing the course and checking eligibility to the offer, CAS and student visa.`);
+  return parts.join(" ");
+}
+
+function entryList(c: CourseData) {
+  const e = c.entry;
+  return [
+    e.minGradePercent != null && `Previous qualification with at least ${e.minGradePercent}% overall (or equivalent)`,
+    e.minIelts != null && `IELTS ${e.minIelts} overall${e.minIeltsBand != null ? ` with no band below ${e.minIeltsBand}` : ""}, or an equivalent English test`,
+    e.acceptsMoi === true && "Medium of Instruction (MOI) letter may be accepted instead of IELTS",
+    e.maxStudyGapYears != null && `Study gap of up to ${e.maxStudyGapYears} years accepted`,
+  ].filter((x): x is string => Boolean(x));
+}
 
 export async function generateStaticParams() {
   const universities = await getUniversitySlugs();
@@ -75,7 +105,7 @@ async function CourseContent({ params }: Pick<Props, "params">) {
           {
             "@type": "Course",
             name: course.name,
-            description: course.description || `${levelNames[course.level]} ${course.name} at ${course.university.name}.`,
+            description: course.description || summary(course),
             url: absoluteUrl(`/universities/${course.university.slug}/courses/${course.slug}`),
             provider: {
               "@type": "CollegeOrUniversity",
@@ -141,17 +171,58 @@ async function CourseContent({ params }: Pick<Props, "params">) {
           <div className="grid gap-8">
             <Card>
               <h2 className="text-2xl font-bold">About this course</h2>
-              <p className="mt-4 whitespace-pre-line text-ink/85">
-                {course.description ?? "A full description of this course is coming soon. Ask a counsellor for the details."}
-              </p>
+              <p className="mt-4 whitespace-pre-line text-ink/85">{course.description || summary(course)}</p>
             </Card>
             <Card>
               <h2 className="text-2xl font-bold">Entry requirements</h2>
-              <p className="mt-4 whitespace-pre-line text-ink/85">
-                {course.entryRequirements ??
-                  "Requirements depend on your qualifications and country. A counsellor will check your eligibility for free."}
-              </p>
+              {course.entryRequirements && <p className="mt-4 whitespace-pre-line text-ink/85">{course.entryRequirements}</p>}
+              {entryList(course).length > 0 && (
+                <ul className="mt-4 grid gap-2 text-ink/85">
+                  {entryList(course).map((line) => (
+                    <li key={line} className="flex gap-2"><Icon name="check" className="mt-0.5 size-5 shrink-0 text-emerald-600" />{line}</li>
+                  ))}
+                </ul>
+              )}
+              {course.entry.documents.length > 0 && (
+                <>
+                  <h3 className="mt-6 font-bold">Documents you will need</h3>
+                  <p className="mt-2 text-ink/85">{course.entry.documents.join(", ")}.</p>
+                </>
+              )}
+              <p className="mt-4 text-sm text-muted">Requirements can depend on your country and qualifications. A counsellor will check your eligibility for free.</p>
             </Card>
+            {(course.moreHere.length > 0 || course.elsewhere.length > 0) && (
+              <Card>
+                {course.moreHere.length > 0 && (
+                  <>
+                    <h2 className="text-2xl font-bold">More courses at {university.name}</h2>
+                    <ul className="mt-4 grid gap-2 sm:grid-cols-2">
+                      {course.moreHere.map((c) => (
+                        <li key={c.id}>
+                          <Link href={`/universities/${c.university.slug}/courses/${c.slug}`} className="font-medium text-brand-700 hover:underline">{c.name}</Link>
+                          <span className="text-sm text-muted"> · {levelNames[c.level]}</span>
+                        </li>
+                      ))}
+                    </ul>
+                    <Link href={`/universities/${university.slug}`} className="mt-3 inline-block text-sm font-semibold text-brand-700 hover:underline">All courses at {university.name} →</Link>
+                  </>
+                )}
+                {course.elsewhere.length > 0 && course.subject && (
+                  <>
+                    <h2 className={`text-2xl font-bold ${course.moreHere.length ? "mt-8" : ""}`}>{course.subject.name} at other universities</h2>
+                    <ul className="mt-4 grid gap-2 sm:grid-cols-2">
+                      {course.elsewhere.map((c) => (
+                        <li key={c.id}>
+                          <Link href={`/universities/${c.university.slug}/courses/${c.slug}`} className="font-medium text-brand-700 hover:underline">{c.name}</Link>
+                          <span className="text-sm text-muted"> · {c.university.name}</span>
+                        </li>
+                      ))}
+                    </ul>
+                    <Link href={`/subjects/${course.subject.slug}`} className="mt-3 inline-block text-sm font-semibold text-brand-700 hover:underline">All {course.subject.name} courses →</Link>
+                  </>
+                )}
+              </Card>
+            )}
           </div>
 
           <div id="apply" className="bg-vivid scroll-mt-28 rounded-3xl p-6 text-white shadow-xl shadow-brand-900/20 sm:p-8">

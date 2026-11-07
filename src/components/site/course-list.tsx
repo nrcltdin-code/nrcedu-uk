@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { ApplyButton } from "@/components/site/apply-button";
 import { Badge } from "@/components/ui/badge";
-import { buttonStyles } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { levelNames } from "@/lib/data/catalogue";
 import { formatDuration, formatMoney } from "@/lib/format";
@@ -19,16 +18,18 @@ export type CourseRow = {
   detail?: string;
 };
 
+// The whole card opens the course page (one real link per course, which search engines follow);
+// Apply sits above that link so it still works on its own.
 export function CourseList({ courses }: { courses: CourseRow[] }) {
   return (
     <ul className="grid gap-4">
       {courses.map((course) => (
         <li key={course.id}>
-          <Card tone="solid" className="flex flex-wrap items-center justify-between gap-4 p-5">
+          <Card tone="solid" className="group relative flex flex-wrap items-center justify-between gap-4 p-5 transition hover:shadow-lg hover:ring-1 hover:ring-brand-600/20">
             <div className="min-w-0">
               <div className="flex flex-wrap items-center gap-2">
                 <h3 className="font-display text-lg font-bold">
-                  <Link href={course.href} className="hover:text-brand-700">
+                  <Link href={course.href} className="after:absolute after:inset-0 after:rounded-[inherit] group-hover:text-brand-700">
                     {course.name}
                   </Link>
                 </h3>
@@ -44,10 +45,7 @@ export function CourseList({ courses }: { courses: CourseRow[] }) {
                 )}
               </p>
             </div>
-            <div className="flex shrink-0 gap-2">
-              <Link href={course.href} className={buttonStyles({ variant: "glass", size: "sm" })}>
-                Details
-              </Link>
+            <div className="relative z-10 shrink-0">
               <ApplyButton courseId={course.id} />
             </div>
           </Card>
