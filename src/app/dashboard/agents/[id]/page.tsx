@@ -13,12 +13,16 @@ import { agentDocumentLabels, agentPermissionLabels, requiredAgentDocuments } fr
 import { db } from "@/lib/db";
 import { formatDate } from "@/lib/format";
 import { can, requirePermission } from "@/lib/session";
-import { AgencyUpgradeForm, AgentDecisionForm, AgentDocumentReview, CancelRequestButton, RequestDocumentForm } from "../agent-review-forms";
-import { approvalLabels, approvalTones } from "../labels";
+import { AgencyUpgradeForm, AgentDecisionForm, AgentDocumentReview, CancelRequestButton, FollowUpForm, RequestDocumentForm } from "../agent-review-forms";
+import { approvalLabels, approvalTones, followUpLabels, isFollowUp } from "../labels";
+import { describeAction } from "@/lib/activity";
 
 export const metadata: Metadata = { title: "Agent", robots: { index: false } };
 
 const docLabels = { PENDING: "To check", APPROVED: "Approved", REJECTED: "Sent back" } as const;
+const dateTime = new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", timeZone: "Europe/London" });
+const stepLabel = (v: unknown) => (typeof v === "string" && isFollowUp(v) ? followUpLabels[v] : "not set");
+
 const docTones = { PENDING: "accent", APPROVED: "success", REJECTED: "danger" } as const;
 
 export default function AgentReviewPage({ params }: PageProps<"/dashboard/agents/[id]">) {
@@ -41,12 +45,34 @@ async function AgentReview({ params }: Pick<PageProps<"/dashboard/agents/[id]">,
       approvedBy: { select: { name: true } },
       verification: { orderBy: { createdAt: "desc" }, include: { reviewedBy: { select: { name: true } }, request: { select: { label: true } } } },
       documentRequests: { where: { isOpen: true }, orderBy: { createdAt: "asc" }, include: { createdBy: { select: { name: true } }, _count: { select: { documents: true } } } },
+      staffNotes: { orderBy: { createdAt: "desc" }, include: { author: { select: { name: true } } } },
       team: { orderBy: { name: "asc" }, select: { id: true, name: true, email: true, status: true, agentPermissions: true } },
       _count: { select: { students: true, applications: true, leads: true } },
     },
   });
   if (!agent) notFound();
-  const compose = canDecide ? await composeProps(viewer) : null;
+  const [compose, logs] = await Promise.all([
+    canDecide ? composeProps(viewer) : null,
+    // Some agent actions are logged against the agent's user account, others against the profile.
+    db.activityLog.findMany({
+      where: { OR: [{ entityType: "AgentProfile", entityId: id }, { entityType: "User", entityId: agent.userId, action: { startsWith: "agent." } }] },
+      orderBy: { createdAt: "desc" },
+      take: 100,
+      include: { user: { select: { name: true } } },
+    }),
+  ]);
+  const describe = (action: string, meta: Record<string, unknown>) => {
+    const step = meta.followUp as { from: unknown; to: unknown } | undefined;
+    if (action === "agent.follow-up" && step) return `changed the step from ${stepLabel(step.from)} to ${stepLabel(step.to)}`;
+    const label = (meta.label as string | undefined) ?? "";
+    const note = (meta.note as string | undefined) ?? "";
+    return describeAction(action) + (label ? `: ${label}` : "") + (note ? ` (“${note}”)` : "");
+  };
+  const timeline = [
+    ...agent.staffNotes.map((n) => ({ id: n.id, at: n.createdAt, who: n.author?.name ?? "Someone", note: n.body as string | null, text: null as string | null })),
+    ...logs.map((l) => ({ id: l.id, at: l.createdAt, who: l.user?.name ?? "Someone", note: null as string | null, text: describe(l.action, (l.meta ?? {}) as Record<string, unknown>) })),
+    { id: "registered", at: agent.createdAt, who: null, note: null, text: "Registered as an agent" },
+  ].sort((a, b) => b.at.getTime() - a.at.getTime());
   const required = requiredAgentDocuments(agent.kind);
   const approvedTypes = new Set(agent.verification.filter((d) => d.status === "APPROVED").map((d) => d.type));
 
@@ -119,6 +145,21 @@ async function AgentReview({ params }: Pick<PageProps<"/dashboard/agents/[id]">,
             </ul>
           </Card>
 
+          <Card tone="solid">
+            <h2 className="mb-4 flex items-center gap-1 text-xl font-bold">Notes and history <InfoTip text="Staff only. The agent never sees these notes or the follow-up step." /></h2>
+            <ol className="grid gap-4">
+              {timeline.map((item) => (
+                <li key={item.id} className="border-l-2 border-brand-600/25 pl-4">
+                  <p className="text-xs text-muted">
+                    {dateTime.format(item.at)}
+                    {item.who && ` · ${item.who}`}
+                  </p>
+                  {item.note ? <p className="mt-1 whitespace-pre-line">{item.note}</p> : <p className="mt-1 text-sm text-muted">{item.text}</p>}
+                </li>
+              ))}
+            </ol>
+          </Card>
+
           {agent.kind === "AGENCY" && (
             <Card tone="solid">
               <h2 className="mb-4 flex items-center gap-1 text-xl font-bold">Team ({agent.team.length}) <InfoTip text="People the agency added. The agency owner decides what each can do." /></h2>
@@ -139,6 +180,14 @@ async function AgentReview({ params }: Pick<PageProps<"/dashboard/agents/[id]">,
         </div>
 
         <div className="grid gap-6 lg:sticky lg:top-6">
+          <Card tone="solid">
+            <h2 className="mb-4 flex items-center gap-1 text-xl font-bold">Follow-up <InfoTip text="Where you are with this agent, e.g. meeting booked. Staff only; the agent is not told. Each change goes into the history." /></h2>
+            {canDecide ? (
+              <FollowUpForm key={agent.followUp ?? ""} id={agent.id} current={agent.followUp} />
+            ) : (
+              <p className="text-sm">Last step: {stepLabel(agent.followUp)}</p>
+            )}
+          </Card>
           {agent.upgradeStatus && agent.kind === "INDIVIDUAL" && (
             <Card tone="solid">
               <h2 className="mb-3 flex items-center gap-1 text-xl font-bold">Agency upgrade <InfoTip text="This approved agent wants to become an agency so they can add a team. Approve their business registration in Verification documents first. Their students and commission stay as they are." /></h2>

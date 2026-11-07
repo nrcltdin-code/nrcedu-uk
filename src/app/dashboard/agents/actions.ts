@@ -9,6 +9,7 @@ import { text } from "@/lib/form";
 import type { FormState } from "@/lib/form";
 import { notify } from "@/lib/notifications";
 import { requirePermission } from "@/lib/session";
+import { isFollowUp } from "./labels";
 
 const page = (id: string) => `/dashboard/agents/${id}`;
 
@@ -182,4 +183,32 @@ export async function cancelAgentDocumentRequest(id: string) {
     db.activityLog.create({ data: { userId: user.id, action: "agent.document-request-cancelled", entityType: "AgentProfile", entityId: request.agentId, meta: { label: request.label } } }),
   ]);
   revalidatePath(page(request.agentId));
+}
+
+// Staff-only follow-up step and note for an agent's request. The agent is not told.
+export async function updateAgentFollowUp(_previous: FormState, form: FormData): Promise<FormState> {
+  const user = await requirePermission("AGENTS", "edit");
+  const id = text(form, "id");
+  const followUp = text(form, "followUp");
+  const note = text(form, "note");
+  if (followUp && !isFollowUp(followUp)) return { error: "Choose a step from the list." };
+  if (note.length > 5000) return { error: "Keep the note under 5,000 characters." };
+
+  const agent = await db.agentProfile.findUnique({ where: { id }, select: { followUp: true } });
+  if (!agent) return { error: "This agent no longer exists." };
+  const changed = (agent.followUp ?? "") !== followUp;
+  if (!changed && !note) return { error: "Pick a different step or write a note." };
+
+  await db.$transaction([
+    ...(changed
+      ? [
+          db.agentProfile.update({ where: { id }, data: { followUp: followUp || null } }),
+          db.activityLog.create({ data: { userId: user.id, action: "agent.follow-up", entityType: "AgentProfile", entityId: id, meta: { followUp: { from: agent.followUp, to: followUp || null } } } }),
+        ]
+      : []),
+    ...(note ? [db.note.create({ data: { aboutAgentId: id, body: note, authorId: user.id } })] : []),
+  ]);
+  revalidatePath(page(id));
+  revalidatePath("/dashboard/agents");
+  return { saved: true };
 }

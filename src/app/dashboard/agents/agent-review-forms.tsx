@@ -8,7 +8,8 @@ import { SaveButton } from "@/components/ui/save-button";
 import { Input, Label, Select, Textarea } from "@/components/ui/field";
 import { DecisionForm, FileReview } from "@/components/dashboard/decision-form";
 import type { FormState } from "@/lib/form";
-import { cancelAgentDocumentRequest, decideAgencyUpgrade, decideAgentProfile, requestAgentDocument, reviewAgentDocument } from "./actions";
+import { cancelAgentDocumentRequest, decideAgencyUpgrade, decideAgentProfile, requestAgentDocument, reviewAgentDocument, updateAgentFollowUp } from "./actions";
+import { followUpLabels } from "./labels";
 
 export function AgentDocumentReview({ id }: { id: string }) {
   return <FileReview action={reviewAgentDocument} id={id} sendBackLabel="Send back" notePlaceholder="e.g. The ID has expired" />;
@@ -82,5 +83,29 @@ export function CancelRequestButton({ id }: { id: string }) {
     <Button size="sm" variant="ghost" disabled={pending} onClick={() => start(() => cancelAgentDocumentRequest(id))}>
       {pending ? "Cancelling…" : "Cancel request"}
     </Button>
+  );
+}
+
+// Staff-only: the last step taken and an optional note. Both show in the history.
+export function FollowUpForm({ id, current }: { id: string; current: string | null }) {
+  const [state, action, pending] = useActionState<FormState, FormData>(updateAgentFollowUp, {});
+  return (
+    <form action={action} key={state.saved ? `saved-${current}` : "form"} className="grid gap-3">
+      <input type="hidden" name="id" value={id} />
+      <div>
+        <Label htmlFor="fu-step">Last step taken</Label>
+        <Select id="fu-step" name="followUp" defaultValue={current ?? ""}>
+          <option value="">Not set</option>
+          {Object.entries(followUpLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+        </Select>
+      </div>
+      <div>
+        <Label htmlFor="fu-note">Note (optional, staff only)</Label>
+        <Textarea id="fu-note" name="note" rows={3} maxLength={5000} placeholder="Called, meeting set for Tuesday 3pm…" />
+      </div>
+      <KeepValuesOnError state={state} failed={Boolean(state.error)} />
+      <FormMessage state={state} />
+      <SaveButton size="sm" disabled={pending} className="justify-self-start">{pending ? "Saving…" : "Save"}</SaveButton>
+    </form>
   );
 }

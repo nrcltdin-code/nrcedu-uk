@@ -1,3 +1,4 @@
+import { followUpLabels, isFollowUp } from "./labels";
 import type { Metadata } from "next";
 import { Suspense } from "react";
 import Link from "next/link";
@@ -91,6 +92,7 @@ async function AgentsList({ searchParams }: Pick<PageProps<"/dashboard/agents">,
                   </p>
                 </div>
                 {agent.upgradeStatus === "PENDING" && <Badge tone="accent">Wants to become an agency</Badge>}
+                {status !== "APPROVED" && agent.followUp && isFollowUp(agent.followUp) && <Badge tone="neutral">{followUpLabels[agent.followUp]}</Badge>}
                 <Badge tone={status === "PENDING" && !agent.submittedAt ? "neutral" : "accent"}>
                   {status === "PENDING" ? (agent.submittedAt ? `Sent ${formatDate(agent.submittedAt)}` : "Still uploading") : `Registered ${formatDate(agent.createdAt)}`}
                 </Badge>

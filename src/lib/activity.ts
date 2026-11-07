@@ -41,6 +41,7 @@ export const activityText: Record<string, string> = {
   "agent.document-approved": "approved an agent's document",
   "agent.document-rejected": "sent back an agent's document",
   "agent.team-permissions": "changed a team member's access",
+  "agent.follow-up": "updated an agent's follow-up step",
   "export.leads": "downloaded leads (CSV)",
   "export.students": "downloaded students (CSV)",
   "export.applications": "downloaded applications (CSV)",

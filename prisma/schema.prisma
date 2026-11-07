@@ -236,6 +236,8 @@ model AgentProfile {
   upgradeRegistrationNumber String?
   upgradeNote               String?
   upgradeRequestedAt        DateTime?
+  // Staff-only: the last step taken while reviewing the request (see agents/labels.ts).
+  followUp                  String?
   createdAt                 DateTime        @default(now())
   updatedAt                 DateTime        @updatedAt
 
@@ -251,7 +253,8 @@ model AgentProfile {
   countryAssignments CountryAssignment[]
   verification       AgentDocument[]
   documentRequests   AgentDocumentRequest[]
-  notes              Note[]
+  notes              Note[]                 @relation("AgencyNotes")
+  staffNotes         Note[]                 @relation("AgentStaffNotes")
 
   @@index([countryId])
   @@index([approvalStatus])
@@ -670,10 +673,13 @@ model Note {
   leadId        String?
   studentId     String?
   applicationId String?
+  // Staff-only note about an agent's account (the agent never sees these).
+  aboutAgentId  String?
   createdAt     DateTime @default(now())
 
   author      User?           @relation(fields: [authorId], references: [id], onDelete: SetNull)
-  agent       AgentProfile?   @relation(fields: [agentId], references: [id], onDelete: Cascade)
+  agent       AgentProfile?   @relation("AgencyNotes", fields: [agentId], references: [id], onDelete: Cascade)
+  aboutAgent  AgentProfile?   @relation("AgentStaffNotes", fields: [aboutAgentId], references: [id], onDelete: Cascade)
   lead        Lead?           @relation(fields: [leadId], references: [id], onDelete: Cascade)
   student     StudentProfile? @relation(fields: [studentId], references: [id], onDelete: Cascade)
   application Application?    @relation(fields: [applicationId], references: [id], onDelete: Cascade)
@@ -681,6 +687,7 @@ model Note {
   @@index([leadId])
   @@index([studentId])
   @@index([applicationId])
+  @@index([aboutAgentId])
 }
 
 // One conversation thread per student, between the student and NRC staff.
