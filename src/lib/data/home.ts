@@ -46,7 +46,7 @@ export async function getFeaturedUniversities() {
 
   return db.university.findMany({
     where: { isPublished: true, isFeatured: true },
-    orderBy: [{ ranking: "asc" }, { name: "asc" }],
+    orderBy: [{ sortOrder: { sort: "asc", nulls: "last" } }, { ranking: "asc" }, { name: "asc" }],
     take: 6,
     select: universityCard,
   });

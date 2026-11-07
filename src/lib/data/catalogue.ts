@@ -73,7 +73,7 @@ export async function searchUniversities({ q, country, subject, level, page = 1 
     db.university.count({ where }),
     db.university.findMany({
       where,
-      orderBy: [{ isOfficialPartner: "desc" }, { ranking: "asc" }, { name: "asc" }],
+      orderBy: [{ sortOrder: { sort: "asc", nulls: "last" } }, { isOfficialPartner: "desc" }, { ranking: "asc" }, { name: "asc" }],
       skip: (page - 1) * PAGE_SIZE,
       take: PAGE_SIZE,
       select: universityCard,
@@ -226,7 +226,7 @@ export async function getDestination(slug: string) {
       flagUrl: true,
       universities: {
         where: { isPublished: true },
-        orderBy: [{ isOfficialPartner: "desc" }, { ranking: "asc" }, { name: "asc" }],
+        orderBy: [{ sortOrder: { sort: "asc", nulls: "last" } }, { isOfficialPartner: "desc" }, { ranking: "asc" }, { name: "asc" }],
         select: universityCard,
       },
     },

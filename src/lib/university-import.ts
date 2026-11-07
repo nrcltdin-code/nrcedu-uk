@@ -15,7 +15,7 @@ import { storageEnabled } from "@/lib/storage";
 // never unpublished, and empty cells never wipe saved values.
 
 export const importColumns = [
-  "country", "university", "city", "website", "ranking", "description",
+  "country", "university", "city", "website", "ranking", "sort_order", "description",
   "min_grade_percent", "university_min_ielts", "min_ielts_band", "max_study_gap_years", "accepts_moi",
   "documents", "intakes", "process_notes", "logo_url", "cover_url", "cover_credit",
   "subject", "course", "level", "duration_months", "tuition_fee", "currency", "min_ielts",
@@ -139,7 +139,7 @@ export async function importUniversities(csv: string): Promise<ImportResult> {
     const line = r + 1;
     const countryName = get(row, "country");
     const uniName = get(row, "university");
-    if (!countryName || !uniName) { problems.push(`Row ${line}: country and university are required.`); continue; }
+    if (!countryName) { problems.push(`Row ${line}: country is required.`); continue; }
 
     // Country
     let countryId = countryIds.get(countryName.toLowerCase());
@@ -152,6 +152,8 @@ export async function importUniversities(csv: string): Promise<ImportResult> {
       }
       countryIds.set(countryName.toLowerCase(), countryId);
     }
+    // A row with only a country just adds the country.
+    if (!uniName) continue;
 
     // University: matched by its web address (slug), filled in once per file.
     const uniSlug = slugify(uniName);
@@ -159,6 +161,8 @@ export async function importUniversities(csv: string): Promise<ImportResult> {
     if (!universityId) {
       const website = get(row, "website");
       const ranking = num(get(row, "ranking"));
+      const sortOrder = num(get(row, "sort_order"));
+      if (sortOrder === undefined) problems.push(`Row ${line}: sort_order is not a number (skipped).`);
       if (website && !isHttpsUrl(website)) problems.push(`Row ${line}: website must start with https:// (skipped the website).`);
       if (ranking === undefined) problems.push(`Row ${line}: ranking is not a number (skipped the ranking).`);
       // University-wide entry requirement defaults (a course's own value wins).
@@ -176,6 +180,7 @@ export async function importUniversities(csv: string): Promise<ImportResult> {
         city: get(row, "city") || undefined,
         website: website && isHttpsUrl(website) ? website : undefined,
         ranking: ranking ? Math.round(ranking) : undefined,
+        sortOrder: sortOrder ? Math.round(sortOrder) : undefined,
         description: get(row, "description") || undefined,
         minGradePercent: grade !== null && grade !== undefined && grade <= 100 ? grade : undefined,
         minIelts: uniIelts !== null && uniIelts !== undefined && uniIelts <= 9 ? uniIelts : undefined,

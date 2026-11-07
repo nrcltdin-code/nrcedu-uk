@@ -89,7 +89,7 @@ export async function findCourses(facts: StudentFacts, filters: FinderFilters, p
       },
     },
     take: 500,
-    orderBy: [{ university: { ranking: { sort: "asc", nulls: "last" } } }, { name: "asc" }],
+    orderBy: [{ university: { sortOrder: { sort: "asc", nulls: "last" } } }, { university: { ranking: { sort: "asc", nulls: "last" } } }, { name: "asc" }],
     select: {
       id: true,
       name: true,

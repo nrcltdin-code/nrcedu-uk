@@ -86,6 +86,7 @@ export type UniversityValues = {
   logoUrl: string | null;
   coverUrl: string | null;
   ranking: number | null;
+  sortOrder: number | null;
   nrcCommissionRate: string | null;
   agentCommissionRate: string | null;
   isOfficialPartner: boolean;
@@ -126,6 +127,11 @@ export function UniversityForm({ university, countries }: { university: Universi
         <div>
           <Label htmlFor="uni-ranking">World ranking</Label>
           <Input id="uni-ranking" name="ranking" type="number" min={1} defaultValue={university?.ranking ?? ""} />
+        </div>
+        <div>
+          <Label htmlFor="uni-order">Display order</Label>
+          <Input id="uni-order" name="sortOrder" type="number" min={1} step={1} defaultValue={university?.sortOrder ?? ""} placeholder="Empty = after numbered ones" />
+          <p className="mt-1 text-xs text-muted">1 shows first on the site.</p>
         </div>
       </div>
       <div>

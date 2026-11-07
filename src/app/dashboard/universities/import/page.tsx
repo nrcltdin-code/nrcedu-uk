@@ -32,7 +32,7 @@ async function ImportCard() {
       <div className="mb-5 space-y-2 text-sm text-muted">
         <p>One row per course. Repeat the university details on each of its rows, or fill them on the first row only.</p>
         <p>
-          Columns: <b>country</b>, <b>university</b> (required), city, website, ranking, description,
+          Columns: <b>country</b>, <b>university</b> (required, or leave empty to add just the country), city, website, ranking, sort_order (1 shows first), description,
           min_grade_percent, university_min_ielts, min_ielts_band, max_study_gap_years, accepts_moi (yes/no),
           documents (e.g. Passport; Transcript; CV), intakes (e.g. September 2027; January 2028), process_notes,
           logo_url, cover_url, cover_credit (images are downloaded and saved to the site; universities that already have one keep it),

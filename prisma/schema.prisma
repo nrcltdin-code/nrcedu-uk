@@ -817,6 +817,8 @@ model University {
   description         String?
   website             String?
   ranking             Int?
+  // Display order: lower numbers show first; empty ones follow, by ranking then name.
+  sortOrder           Int?
   isOfficialPartner   Boolean            @default(false)
   isFeatured          Boolean            @default(false)
   isPublished         Boolean            @default(false)

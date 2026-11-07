@@ -71,7 +71,7 @@ export async function getPartnerUniversities() {
 
   return db.university.findMany({
     where: { isPublished: true, isOfficialPartner: true },
-    orderBy: [{ country: { name: "asc" } }, { name: "asc" }],
+    orderBy: [{ country: { name: "asc" } }, { sortOrder: { sort: "asc", nulls: "last" } }, { name: "asc" }],
     select: { id: true, name: true, slug: true, city: true, logoUrl: true, country: { select: { name: true } } },
   });
 }

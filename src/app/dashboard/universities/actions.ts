@@ -60,6 +60,7 @@ export async function saveUniversity(_previous: FormState, form: FormData): Prom
   const logoUrl = text(form, "logoUrl");
   const coverUrl = text(form, "coverUrl");
   const ranking = optionalInt(text(form, "ranking"));
+  const sortOrder = optionalInt(text(form, "sortOrder"));
   const nrcCommissionRate = optionalNumber(text(form, "nrcCommissionRate"));
   const agentCommissionRate = optionalNumber(text(form, "agentCommissionRate"));
 
@@ -74,6 +75,7 @@ export async function saveUniversity(_previous: FormState, form: FormData): Prom
   const badImage = imageError(logoUrl, "The logo address") ?? imageError(coverUrl, "The cover image address");
   if (badImage) return { error: badImage };
   if (ranking === undefined || (ranking !== null && ranking < 1)) return { error: "Ranking must be a whole number above 0." };
+  if (sortOrder === undefined || (sortOrder !== null && sortOrder < 1)) return { error: "Display order must be a whole number above 0, or empty." };
   for (const rate of [nrcCommissionRate, agentCommissionRate]) {
     if (rate === undefined || (rate !== null && rate > 100)) return { error: "Commission rates are percentages from 0 to 100." };
   }
@@ -92,6 +94,7 @@ export async function saveUniversity(_previous: FormState, form: FormData): Prom
     logoUrl: logoUrl || null,
     coverUrl: coverUrl || null,
     ranking,
+    sortOrder,
     nrcCommissionRate,
     agentCommissionRate,
     isOfficialPartner: checked(form, "isOfficialPartner"),

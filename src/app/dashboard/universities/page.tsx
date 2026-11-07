@@ -53,7 +53,7 @@ async function UniversityList({ searchParams }: Pick<PageProps<"/dashboard/unive
   const [universities, total, countries, stats] = await Promise.all([
     db.university.findMany({
       where,
-      orderBy: { name: "asc" },
+      orderBy: [{ sortOrder: { sort: "asc", nulls: "last" } }, { name: "asc" }],
       skip: (page - 1) * pageSize,
       take: pageSize,
       select: {
