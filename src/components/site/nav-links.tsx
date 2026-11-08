@@ -66,7 +66,9 @@ export function NavList({ items, pathname, vertical, onNavigate }: NavListProps)
                   {chevron}
                 </Link>
               )}
-              <div className={cn("invisible absolute top-full z-50 pt-2 opacity-0 transition group-focus-within:visible group-focus-within:opacity-100 group-hover:visible group-hover:opacity-100", columns === 1 ? "left-0" : "left-1/2 -translate-x-1/2")}>
+              {/* The menu waits 300ms before closing so a slow pointer can cross the gap under the header;
+                  the invisible strip above it also bridges that gap. */}
+              <div className={cn("invisible absolute top-full z-50 pt-2 opacity-0 transition-[opacity,visibility] delay-300 before:absolute before:inset-x-0 before:bottom-full before:h-8 group-focus-within:visible group-focus-within:delay-0 group-hover:delay-0 group-focus-within:opacity-100 group-hover:visible group-hover:opacity-100", columns === 1 ? "left-0" : "left-1/2 -translate-x-1/2")}>
                 <ul
                   className="max-h-[70vh] overflow-y-auto rounded-2xl border border-brand-900/10 bg-white p-2 shadow-xl shadow-brand-900/15"
                   style={{ columnCount: columns, columnGap: "0.25rem", width: `min(${columns * 12}rem, calc(100vw - 2rem))` }}
