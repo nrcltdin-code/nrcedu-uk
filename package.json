@@ -14,6 +14,7 @@
     "db:seed": "prisma db seed",
     "db:seed:demo": "tsx prisma/seed-demo.ts",
     "db:reset-handover": "tsx --conditions=react-server scripts/reset-for-handover.ts",
+    "db:seed-test-prep": "tsx --conditions=react-server scripts/seed-test-prep.ts",
     "db:import-logos": "tsx --conditions=react-server scripts/import-logos.ts"
   },
   "dependencies": {

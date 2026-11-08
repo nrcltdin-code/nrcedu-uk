@@ -10,7 +10,7 @@ import { pageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = pageMetadata({
   title: "Test preparation",
-  description: "Guidance on IELTS, TOEFL, PTE, Duolingo, GRE and GMAT for students applying to universities abroad.",
+  description: "Guides to IELTS, TOEFL, PTE, Duolingo, GRE, GMAT, SAT, ACT and Cambridge C1 Advanced: format, fees, scores for students applying to universities abroad.",
   path: "/test-prep",
 });
 
