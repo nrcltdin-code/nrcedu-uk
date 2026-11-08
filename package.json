@@ -5,7 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "npm run db:seed-test-prep --silent; next start",
+    "start": "npm run db:seed-content --silent; next start",
     "lint": "eslint",
     "postinstall": "prisma generate",
     "db:migrate": "prisma migrate dev",
@@ -14,7 +14,7 @@
     "db:seed": "prisma db seed",
     "db:seed:demo": "tsx prisma/seed-demo.ts",
     "db:reset-handover": "tsx --conditions=react-server scripts/reset-for-handover.ts",
-    "db:seed-test-prep": "tsx --conditions=react-server scripts/seed-test-prep.ts",
+    "db:seed-content": "tsx --conditions=react-server scripts/seed-content.ts",
     "db:import-logos": "tsx --conditions=react-server scripts/import-logos.ts"
   },
   "dependencies": {
