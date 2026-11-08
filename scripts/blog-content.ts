@@ -1,7 +1,7 @@
 // Starter blog posts. Loaded once by scripts/seed-test-prep.ts; edit them in the dashboard after.
 // Visa fees and rules change: check gov.uk before relying on figures.
 
-export type BlogContent = { title: string; slug: string; excerpt: string; content: string };
+export type BlogContent = { title: string; slug: string; excerpt: string; content: string; coverUrl?: string };
 
 export const blogContent: BlogContent[] = [
   {
@@ -157,6 +157,7 @@ Read it aloud, check the word limit, and ask someone who knows you to read it. O
   {
     title: "Studying in the UK: what does it really cost?",
     slug: "cost-of-studying-in-the-uk",
+    coverUrl: "/banners/blog-cost-of-studying-in-the-uk.svg",
     excerpt: "Tuition fees, rent, food, transport and visa costs: a realistic yearly budget for international students.",
     content: `Many students budget for tuition and forget everything else. Here is a realistic picture of what a year in the UK costs, so there are no surprises.
 
@@ -205,6 +206,7 @@ Part-time work helps with living costs, but you must still show the full require
   {
     title: "Scholarships for international students: where to find them",
     slug: "scholarships-for-international-students",
+    coverUrl: "/banners/blog-scholarships-for-international-students.svg",
     excerpt: "Government, university and external scholarships, who they are for, and how to give your application the best chance.",
     content: `Scholarships can cut the cost of studying abroad by thousands, sometimes covering everything. Most students only look at a few famous ones, but there are many more. Here is where to look.
 
@@ -245,6 +247,7 @@ We check scholarship eligibility for every student we help. Book a consultation 
   {
     title: "IELTS, PTE, TOEFL or Duolingo: which English test should you take?",
     slug: "which-english-test-should-you-take",
+    coverUrl: "/banners/blog-which-english-test-should-you-take.svg",
     excerpt: "A side-by-side comparison of the four main English tests: cost, format, speed of results and where each is accepted.",
     content: `Most universities ask for proof of English, and there are four main tests to choose from. The right one depends on where you are applying, how quickly you need results, and how you like to take tests.
 
@@ -285,6 +288,7 @@ See our detailed guides to each test in the Test preparation section, or book a 
   {
     title: "The UK Graduate Route: working in the UK after your degree",
     slug: "uk-graduate-route",
+    coverUrl: "/banners/blog-uk-graduate-route.svg",
     excerpt: "Who can apply, how long you can stay, what it costs, and how to move on to a Skilled Worker visa.",
     content: `The Graduate Route lets international students stay and work in the UK after finishing their degree, with no job offer needed at the time of applying. It is one of the main reasons students choose the UK.
 
@@ -334,6 +338,7 @@ Rules change often, so check gov.uk for the latest. We can help you choose cours
   {
     title: "Documents you need to apply to a university abroad",
     slug: "documents-to-apply-abroad",
+    coverUrl: "/banners/blog-documents-to-apply-abroad.svg",
     excerpt: "A complete checklist of the documents universities ask for, and tips to get them ready early.",
     content: `Most delays in university applications come from missing or incorrect documents. Prepare them early and your application can be processed in days instead of weeks.
 
