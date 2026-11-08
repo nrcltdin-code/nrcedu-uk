@@ -82,8 +82,8 @@ async function seedBlog() {
   await saveDone(KEY, done);
 }
 
-// Built-in cover illustrations (public/banners) for posts that have no cover yet.
-// Set once per post: a cover changed or removed in the dashboard is left alone.
+// Built-in cover illustrations (public/banners) for posts with no cover or a demo sample photo
+// (picsum.photos). Set once per post: a cover changed in the dashboard later is left alone.
 async function seedBlogCovers() {
   const KEY = "seeded.blog-covers";
   const done = await loadDone(KEY);
@@ -91,7 +91,7 @@ async function seedBlogCovers() {
   if (pending.length === 0) return;
 
   for (const post of pending) {
-    const { count } = await db.blogPost.updateMany({ where: { slug: post.slug, coverUrl: null }, data: { coverUrl: post.coverUrl } });
+    const { count } = await db.blogPost.updateMany({ where: { slug: post.slug, OR: [{ coverUrl: null }, { coverUrl: { contains: "picsum.photos" } }] }, data: { coverUrl: post.coverUrl } });
     if (count) console.log(`blog: cover added to "${post.title}"`);
     done.add(post.slug);
   }

@@ -7,6 +7,7 @@ export const blogContent: BlogContent[] = [
   {
     title: "How to choose the right country for your degree",
     slug: "how-to-choose-the-right-country",
+    coverUrl: "/banners/blog-how-to-choose-the-right-country.svg",
     excerpt: "Tuition, living costs, work rights and career goals: a simple way to compare your options.",
     content: `Choosing where to study is the biggest decision in your study abroad journey. It affects your fees, your visa, the jobs you can do while studying and where you can work afterwards. Here is a simple way to compare your options.
 
@@ -50,6 +51,7 @@ Every student's grades, budget and family situation is different. A free consult
   {
     title: "A step-by-step guide to the UK student visa",
     slug: "uk-student-visa-guide",
+    coverUrl: "/banners/blog-uk-student-visa-guide.svg",
     excerpt: "What a CAS is, how much money you need to show, and the mistakes that cause refusals.",
     content: `The UK Student visa lets you study at a licensed university for the length of your course. The process is straightforward if you prepare your documents carefully. Here is how it works.
 
@@ -115,6 +117,7 @@ Rules and fees change regularly, so always check gov.uk before applying. Our tea
   {
     title: "Writing a statement of purpose that gets noticed",
     slug: "writing-a-statement-of-purpose",
+    coverUrl: "/banners/blog-writing-a-statement-of-purpose.svg",
     excerpt: "Admissions tutors read hundreds of statements. Here is how to make yours specific and memorable.",
     content: `Your statement of purpose (SOP), also called a personal statement, is your chance to show admissions tutors who you are beyond your grades. A strong statement can win you a place even when your grades are borderline.
 

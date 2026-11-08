@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" role="img" aria-label="A globe with location pins and signposts pointing to different study destinations">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#EAF2FA"/><stop offset="1" stop-color="#F8FAFC"/></linearGradient>
+    <linearGradient id="globe" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2E7BC4"/><stop offset="1" stop-color="#1B5E9E"/></linearGradient>
+  </defs>
+  <rect width="1600" height="900" fill="url(#bg)"/>
+  <circle cx="1380" cy="180" r="150" fill="#DCEAF7"/><circle cx="200" cy="760" r="150" fill="#E3F1EF"/>
+  <rect x="0" y="760" width="1600" height="140" fill="#E6EEF7"/>
+  <g transform="translate(560 440)">
+    <ellipse cy="320" rx="220" ry="22" fill="#1B5E9E" opacity=".12"/>
+    <circle r="270" fill="url(#globe)"/>
+    <path d="M-200-90c40-40 110-55 155-30s25 85-15 110-55 70-15 95 85 0 95 55-40 85-95 70" fill="#5FA8D3" opacity=".6"/>
+    <path d="M60-230c60 0 125 40 140 100s-40 60-70 100 15 85 70 100" fill="none" stroke="#5FA8D3" stroke-width="50" stroke-linecap="round" opacity=".6"/>
+    <ellipse rx="270" ry="100" fill="none" stroke="#fff" stroke-opacity=".35" stroke-width="4"/>
+    <ellipse rx="115" ry="270" fill="none" stroke="#fff" stroke-opacity=".35" stroke-width="4"/>
+    <g transform="translate(-90 -120)"><path d="M0 40c-30-35-45-60-45-80a45 45 0 0 1 90 0c0 20-15 45-45 80z" fill="#F59E0B"/><circle cy="-40" r="16" fill="#fff"/></g>
+    <g transform="translate(130 -20)"><path d="M0 40c-30-35-45-60-45-80a45 45 0 0 1 90 0c0 20-15 45-45 80z" fill="#DC2626"/><circle cy="-40" r="16" fill="#fff"/></g>
+    <g transform="translate(-20 130)"><path d="M0 40c-30-35-45-60-45-80a45 45 0 0 1 90 0c0 20-15 45-45 80z" fill="#16A34A"/><circle cy="-40" r="16" fill="#fff"/></g>
+  </g>
+  <g transform="translate(1150 0)" font-family="Arial, sans-serif" font-weight="800" font-size="34" fill="#fff">
+    <rect x="-10" y="250" width="20" height="510" rx="8" fill="#7C4A21"/>
+    <path d="M10 280h200l40 40-40 40H10z" fill="#1B5E9E"/><text x="40" y="333">UK</text>
+    <path d="M-10 390h-200l-40 40 40 40h200z" fill="#DC2626"/><text x="-180" y="443">USA</text>
+    <path d="M10 500h220l40 40-40 40H10z" fill="#16A34A"/><text x="34" y="553">CANADA</text>
+    <path d="M-10 610h-250l-40 40 40 40h250z" fill="#F59E0B"/><text x="-250" y="663">AUSTRALIA</text>
+  </g>
+</svg>
