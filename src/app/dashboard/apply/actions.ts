@@ -7,6 +7,7 @@ import { text } from "@/lib/form";
 import type { FormState } from "@/lib/form";
 import { requireUser } from "@/lib/session";
 import { requireMyStudentId } from "@/lib/student";
+import { redirectPath } from "@/lib/site-url";
 
 export async function applyForCourse(_previous: FormState, form: FormData): Promise<FormState> {
   const user = await requireUser();
@@ -19,5 +20,5 @@ export async function applyForCourse(_previous: FormState, form: FormData): Prom
 
   const result = await startApplication({ studentId, courseId, intakeId: text(form, "intakeId") || null, byUserId: user.id, byStudent: true });
   if ("error" in result) return { error: result.error };
-  redirect(`/dashboard/my-applications?started=${result.id}`);
+  redirect(redirectPath(`/dashboard/my-applications?started=${result.id}`));
 }

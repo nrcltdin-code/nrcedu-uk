@@ -7,6 +7,7 @@ import { releaseImages } from "@/lib/uploads";
 import { imageError, isSlug, isUniqueError, slugify, text } from "@/lib/form";
 import type { FormState } from "@/lib/form";
 import { requirePermission } from "@/lib/session";
+import { redirectPath } from "@/lib/site-url";
 
 // The submit button decides the status: "Save draft" keeps a post off the website,
 // "Publish" puts it live. The publish date is set the first time a post goes live.
@@ -57,7 +58,7 @@ export async function savePost(_previous: FormState, form: FormData): Promise<Fo
   }
 
   updateTag("posts");
-  if (!id) redirect(`/dashboard/blog/${savedId}`);
+  if (!id) redirect(redirectPath(`/dashboard/blog/${savedId}`));
   revalidatePath(`/dashboard/blog/${id}`);
   return { saved: true };
 }

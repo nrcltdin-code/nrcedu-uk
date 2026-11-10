@@ -11,6 +11,7 @@ import { text } from "@/lib/form";
 import type { FormState } from "@/lib/form";
 import { isEmail } from "@/lib/leads";
 import { requirePermission } from "@/lib/session";
+import { redirectPath } from "@/lib/site-url";
 import { getPrivateObject, privateStorageEnabled } from "@/lib/storage";
 import { buildSubmissionPack, submissionCode } from "@/lib/submission";
 
@@ -80,7 +81,7 @@ export async function sendSubmissionEmail(_previous: FormState, form: FormData):
     if (moved.error) return { error: `The email was sent, but the stage could not be changed: ${moved.error}` };
   }
   revalidatePath(`/dashboard/applications/${id}`);
-  redirect(`/dashboard/applications/${id}?submitted=email`);
+  redirect(redirectPath(`/dashboard/applications/${id}?submitted=email`));
 }
 
 // For portals, UCAS and anything else done outside the site: record that it went in, how,
@@ -109,5 +110,5 @@ export async function recordSubmission(_previous: FormState, form: FormData): Pr
     ]);
   }
   revalidatePath(`/dashboard/applications/${id}`);
-  redirect(`/dashboard/applications/${id}?submitted=recorded`);
+  redirect(redirectPath(`/dashboard/applications/${id}?submitted=recorded`));
 }

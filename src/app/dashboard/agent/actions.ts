@@ -11,6 +11,7 @@ import { isEmail } from "@/lib/leads";
 import { requireUser } from "@/lib/session";
 import { counsellorOrStaff, notify } from "@/lib/notifications";
 import { findOrCreateStudent } from "@/lib/student";
+import { redirectPath } from "@/lib/site-url";
 
 export async function addMyStudent(_previous: FormState, form: FormData): Promise<FormState> {
   const user = await requireUser();
@@ -57,7 +58,7 @@ export async function addMyStudent(_previous: FormState, form: FormData): Promis
     const owner = await db.agentProfile.findUnique({ where: { id: scope.agentId }, select: { userId: true } });
     notify([owner?.userId], { type: "student.agent-added", title: `${user.name} added a student: ${name}`, href: `/dashboard/agent/students/${student.id}`, email: true }, user.id);
   }
-  redirect(`/dashboard/agent/students/${student.id}`);
+  redirect(redirectPath(`/dashboard/agent/students/${student.id}`));
 }
 
 export async function updateMyStudent(_previous: FormState, form: FormData): Promise<FormState> {

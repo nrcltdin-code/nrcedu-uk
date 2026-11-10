@@ -10,6 +10,7 @@ import { isEmail } from "@/lib/leads";
 import { notify } from "@/lib/notifications";
 import { requirePermission, requireRole } from "@/lib/session";
 import type { CurrentUser } from "@/lib/session";
+import { redirectPath } from "@/lib/site-url";
 import type { PermissionModule, Role, UserStatus } from "@/generated/prisma/client";
 import { permissionModules } from "./labels";
 
@@ -67,7 +68,7 @@ export async function createStaffUser(_previous: UserFormState, form: FormData):
   });
   await log(actor, "user.created", user.id, { role });
 
-  redirect(`/dashboard/users/${user.id}`);
+  redirect(redirectPath(`/dashboard/users/${user.id}`));
 }
 
 export async function updateUserAccess(_previous: UserFormState, form: FormData): Promise<UserFormState> {
@@ -154,7 +155,7 @@ export async function decideAgent(userId: string, decision: "APPROVED" | "REJECT
   // Approval needs the verification documents checked first, on the agent's review page.
   if (decision === "APPROVED") {
     const approved = new Set(profile.verification.map((d) => d.type));
-    if (requiredAgentDocuments(profile.kind).some((t) => !approved.has(t))) redirect(`/dashboard/agents/${(await db.agentProfile.findUnique({ where: { userId }, select: { id: true } }))?.id ?? ""}`);
+    if (requiredAgentDocuments(profile.kind).some((t) => !approved.has(t))) redirect(redirectPath(`/dashboard/agents/${(await db.agentProfile.findUnique({ where: { userId }, select: { id: true } }))?.id ?? ""}`));
   }
 
   await db.$transaction([

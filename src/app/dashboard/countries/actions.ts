@@ -8,6 +8,7 @@ import { checked, imageError, text } from "@/lib/form";
 import type { FormState } from "@/lib/form";
 import { moveRow } from "@/lib/reorder";
 import { requirePermission } from "@/lib/session";
+import { redirectPath } from "@/lib/site-url";
 
 // The country list is seeded (all 197); here staff only fill in details and choose destinations.
 export async function saveCountry(_previous: FormState, form: FormData): Promise<FormState> {
@@ -69,7 +70,7 @@ export async function addDestination(form: FormData) {
   const last = await db.country.aggregate({ where: { isDestination: true }, _max: { sortOrder: true } });
   await db.country.update({ where: { id }, data: { isDestination: true, sortOrder: (last._max.sortOrder ?? -1) + 1 } });
   updateTag("countries");
-  redirect(`/dashboard/countries?${new URLSearchParams({ edit: id })}`);
+  redirect(redirectPath(`/dashboard/countries?${new URLSearchParams({ edit: id })}`));
 }
 
 // Up/down arrows in the dashboard list set the order destinations appear on the site.

@@ -9,9 +9,10 @@ import { optionalNumber, text } from "@/lib/form";
 import { notify } from "@/lib/notifications";
 import type { FormState } from "@/lib/form";
 import { requirePermission } from "@/lib/session";
+import { redirectPath } from "@/lib/site-url";
 import { stageLabels } from "./labels";
 
-const page = (id: string) => `/dashboard/applications/${id}`;
+const page = (id: string) => redirectPath(`/dashboard/applications/${id}`);
 
 export async function createApplication(_previous: FormState, form: FormData): Promise<FormState> {
   const user = await requirePermission("APPLICATIONS", "edit");
@@ -43,7 +44,7 @@ export async function createApplications(_previous: FormState, form: FormData): 
   if (failed.length) {
     return { error: `${started ? `Started ${started}. ` : ""}Not started: ${failed.join(" ")}` };
   }
-  redirect(`/dashboard/students/${studentId}?started=${started}#applications`);
+  redirect(redirectPath(`/dashboard/students/${studentId}?started=${started}#applications`));
 }
 
 // Only staff move applications. Every move is checked against the pipeline rules
@@ -193,5 +194,5 @@ export async function deleteApplication(id: string) {
     db.application.delete({ where: { id } }),
     db.activityLog.create({ data: { userId: user.id, action: "application.delete", entityType: "Application", entityId: id } }),
   ]);
-  redirect(`/dashboard/students/${application.studentId}`);
+  redirect(redirectPath(`/dashboard/students/${application.studentId}`));
 }

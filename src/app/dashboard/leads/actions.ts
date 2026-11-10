@@ -10,6 +10,7 @@ import { text } from "@/lib/form";
 import type { FormState } from "@/lib/form";
 import { createLead, isEmail } from "@/lib/leads";
 import { requirePermission } from "@/lib/session";
+import { redirectPath } from "@/lib/site-url";
 import { leadStatusLabels, studyLevelLabels } from "./labels";
 
 const log = (userId: string, action: string, entityId: string, meta?: Prisma.InputJsonValue) =>
@@ -61,7 +62,7 @@ export async function addLead(_previous: FormState, form: FormData): Promise<For
     studyLevel: (studyLevel as StudyLevel) || undefined,
   });
   await log(user.id, "lead.create", lead.id);
-  redirect(`/dashboard/leads/${lead.id}`);
+  redirect(redirectPath(`/dashboard/leads/${lead.id}`));
 }
 
 export async function updateLead(_previous: FormState, form: FormData): Promise<FormState> {
@@ -121,7 +122,7 @@ export async function addLeadNote(_previous: FormState, form: FormData): Promise
 // Admin only: removes spam or duplicates. Notes go with it.
 export async function deleteLead(id: string) {
   const user = await requirePermission("LEADS", "edit");
-  if (user.role !== "ADMIN") redirect(`/dashboard/leads/${id}`);
+  if (user.role !== "ADMIN") redirect(redirectPath(`/dashboard/leads/${id}`));
   await db.$transaction([db.lead.delete({ where: { id } }), log(user.id, "lead.delete", id)]);
   redirect("/dashboard/leads");
 }

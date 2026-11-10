@@ -11,6 +11,7 @@ import { createInvite } from "@/lib/invites";
 import { findOrCreateStudent } from "@/lib/student";
 import { isEmail } from "@/lib/leads";
 import { requirePermission } from "@/lib/session";
+import { redirectPath } from "@/lib/site-url";
 
 const log = (userId: string, action: string, entityType: string, entityId: string, meta?: Prisma.InputJsonValue) =>
   db.activityLog.create({ data: { userId, action, entityType, entityId, meta } });
@@ -29,7 +30,7 @@ export async function convertLead(leadId: string) {
   const user = await requirePermission("STUDENTS", "edit");
   const lead = await db.lead.findUnique({ where: { id: leadId } });
   if (!lead) redirect("/dashboard/leads");
-  if (lead.studentId) redirect(`/dashboard/students/${lead.studentId}`);
+  if (lead.studentId) redirect(redirectPath(`/dashboard/students/${lead.studentId}`));
 
   const student = await findOrCreateStudent({
     name: lead.name,
@@ -39,7 +40,7 @@ export async function convertLead(leadId: string) {
     counsellorId: lead.assignedStaffId,
     agentId: lead.assignedAgentId,
   });
-  if ("error" in student) redirect(`/dashboard/leads/${leadId}?error=email-taken`);
+  if ("error" in student) redirect(redirectPath(`/dashboard/leads/${leadId}?error=email-taken`));
 
   // Another lead may already point at this student (same email, two enquiries).
   const linked = await db.lead.count({ where: { studentId: student.id } });
@@ -48,7 +49,7 @@ export async function convertLead(leadId: string) {
     log(user.id, "lead.update", "Lead", leadId, { status: { from: lead.status, to: "CONVERTED" } }),
     log(user.id, "student.create", "StudentProfile", student.id, { fromLead: leadId }),
   ]);
-  redirect(`/dashboard/students/${student.id}`);
+  redirect(redirectPath(`/dashboard/students/${student.id}`));
 }
 
 export async function addStudent(_previous: FormState, form: FormData): Promise<FormState> {
@@ -79,7 +80,7 @@ export async function addStudent(_previous: FormState, form: FormData): Promise<
   if ("error" in student) return student;
 
   await log(user.id, "student.create", "StudentProfile", student.id);
-  redirect(`/dashboard/students/${student.id}`);
+  redirect(redirectPath(`/dashboard/students/${student.id}`));
 }
 
 export async function updateStudent(_previous: FormState, form: FormData): Promise<FormState> {

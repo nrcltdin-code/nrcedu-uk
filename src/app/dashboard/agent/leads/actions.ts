@@ -12,10 +12,11 @@ import { counsellorOrStaff, notify } from "@/lib/notifications";
 import { requireUser } from "@/lib/session";
 import { findOrCreateStudent } from "@/lib/student";
 import { studyLevelLabels } from "../../leads/labels";
+import { redirectPath } from "@/lib/site-url";
 
 // The agency's CRM. Every action is limited to leads the agent account may see (scope.leads).
 
-const page = (id: string) => `/dashboard/agent/leads/${id}`;
+const page = (id: string) => redirectPath(`/dashboard/agent/leads/${id}`);
 const workingStatuses: LeadStatus[] = ["NEW", "CONTACTED", "QUALIFIED", "LOST"];
 
 async function myLead(id: string) {
@@ -120,7 +121,7 @@ export async function convertAgentLead(id: string) {
   const user = await requireUser();
   const { scope, lead } = await myLead(id);
   if (!lead) redirect("/dashboard/agent/leads");
-  if (lead.studentId) redirect(`/dashboard/agent/students/${lead.studentId}`);
+  if (lead.studentId) redirect(redirectPath(`/dashboard/agent/students/${lead.studentId}`));
   if (!scope.can("APPLICATIONS")) redirect(`${page(id)}?error=no-access`);
 
   const existing = await db.user.findUnique({ where: { email: lead.email }, select: { studentProfile: { select: { id: true, agentId: true } } } });
@@ -144,5 +145,5 @@ export async function convertAgentLead(id: string) {
     href: `/dashboard/students/${student.id}`,
     email: true,
   });
-  redirect(`/dashboard/agent/students/${student.id}`);
+  redirect(redirectPath(`/dashboard/agent/students/${student.id}`));
 }
